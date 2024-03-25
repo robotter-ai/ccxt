@@ -1,0 +1,1587 @@
+{
+	"info": {
+		"_postman_id": "67ff8942-aed5-49f3-bc03-d83773f0e18a",
+		"name": "Cube Iridium HTTP API",
+		"description": "Contact Support:\n Name: Cube\n Email: support@cube.exchange",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23776819",
+		"_collection_link": "https://sagitariusteam.postman.co/workspace/Cube-Exchange~4f2d6447-baaf-459c-9369-c6d06d7c5e9f/collection/23776819-67ff8942-aed5-49f3-bc03-d83773f0e18a?action=share&source=collection_link&creator=23776819"
+	},
+	"item": [
+		{
+			"name": "users",
+			"item": [
+				{
+					"name": "check",
+					"item": [
+						{
+							"name": "/users/check",
+							"request": {
+								"auth": {
+									"type": "apikey",
+									"apikey": [
+										{
+											"key": "key",
+											"value": "x-api-key",
+											"type": "string"
+										},
+										{
+											"key": "value",
+											"value": "{{apiKey}}",
+											"type": "string"
+										},
+										{
+											"key": "in",
+											"value": "header",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/users/check",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"check"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Untitled Response",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "x-api-key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/users/check",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"users",
+												"check"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"result\": {\n    \"id\": \"<uuid>\"\n  }\n}"
+								},
+								{
+									"name": "An error occurred while processing the request",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "x-api-key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/users/check",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"users",
+												"check"
+											]
+										}
+									},
+									"status": "Internal Server Error",
+									"code": 500,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"error\": \"<string>\"\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "info",
+					"item": [
+						{
+							"name": "/users/info",
+							"request": {
+								"auth": {
+									"type": "apikey",
+									"apikey": [
+										{
+											"key": "key",
+											"value": "x-api-key",
+											"type": "string"
+										},
+										{
+											"key": "value",
+											"value": "{{apiKey}}",
+											"type": "string"
+										},
+										{
+											"key": "in",
+											"value": "header",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/users/info",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"info"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Untitled Response",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "x-api-key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/users/info",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"users",
+												"info"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"result\": {\n    \"apiKeys\": [\n      {\n        \"accessLevel\": \"write\",\n        \"apiKey\": \"<uuid>\",\n        \"createdAt\": \"<dateTime>\",\n        \"isMasterKey\": \"<boolean>\",\n        \"subaccountIds\": [\n          \"<long>\",\n          \"<long>\"\n        ]\n      },\n      {\n        \"accessLevel\": \"write\",\n        \"apiKey\": \"<uuid>\",\n        \"createdAt\": \"<dateTime>\",\n        \"isMasterKey\": \"<boolean>\",\n        \"subaccountIds\": [\n          \"<long>\",\n          \"<long>\"\n        ]\n      }\n    ],\n    \"email\": \"<string>\",\n    \"hasApprovedKyc\": \"<boolean>\",\n    \"hasGuardianQuorum\": \"<boolean>\",\n    \"id\": \"<uuid>\",\n    \"kycStatus\": {\n      \"voluptate51\": {\n        \"approved\": \"<boolean>\",\n        \"level\": \"<integer>\",\n        \"state\": \"init\"\n      }\n    },\n    \"maxSubaccounts\": \"<integer>\",\n    \"points\": \"<long>\",\n    \"status\": \"waitlist\",\n    \"subaccounts\": [\n      {\n        \"hasOrderHistory\": \"<boolean>\",\n        \"id\": \"<long>\",\n        \"name\": \"<string>\",\n        \"pubkeys\": [\n          [\n            -32006614,\n            \"nisi quis enim\"\n          ],\n          [\n            -67622229,\n            \"Duis la\"\n          ]\n        ]\n      },\n      {\n        \"hasOrderHistory\": \"<boolean>\",\n        \"id\": \"<long>\",\n        \"name\": \"<string>\",\n        \"pubkeys\": [\n          [\n            49207030,\n            \"ipsum et\"\n          ],\n          [\n            -44655630,\n            \"est\"\n          ]\n        ]\n      }\n    ],\n    \"vipLevel\": \"<integer>\",\n    \"mpcKeyId\": \"<long>\",\n    \"guardianHasKey\": [\n      {\n        \"id\": \"<integer>\",\n        \"name\": \"<string>\",\n        \"hasKey\": \"<boolean>\"\n      },\n      {\n        \"id\": \"<integer>\",\n        \"name\": \"<string>\",\n        \"hasKey\": \"<boolean>\"\n      }\n    ],\n    \"phoneNumber\": \"<string>\",\n    \"registration\": {\n      \"newlyStarted\": \"<boolean>\",\n      \"startedAt\": \"<dateTime>\",\n      \"windowSeconds\": \"<integer>\"\n    },\n    \"firstName\": \"<string>\",\n    \"lastName\": \"<string>\",\n    \"country\": \"<string>\",\n    \"inviteId\": \"<uuid>\",\n    \"referralCode\": \"<string>\"\n  }\n}"
+								},
+								{
+									"name": "An error occurred while processing the request",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "x-api-key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/users/info",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"users",
+												"info"
+											]
+										}
+									},
+									"status": "Internal Server Error",
+									"code": 500,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"error\": \"<string>\"\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "positions",
+					"item": [
+						{
+							"name": "/users/positions",
+							"request": {
+								"auth": {
+									"type": "apikey",
+									"apikey": [
+										{
+											"key": "key",
+											"value": "x-api-key",
+											"type": "string"
+										},
+										{
+											"key": "value",
+											"value": "{{apiKey}}",
+											"type": "string"
+										},
+										{
+											"key": "in",
+											"value": "header",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/users/positions",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"positions"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Untitled Response",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "x-api-key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/users/positions",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"users",
+												"positions"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"result\": {\n    \"esse_7af\": {\n      \"inner\": [\n        {\n          \"accountingType\": \"liability\",\n          \"amount\": \"<string>\",\n          \"assetId\": \"<integer>\",\n          \"pendingDeposits\": \"<string>\",\n          \"receivedAmount\": \"<string>\"\n        },\n        {\n          \"accountingType\": \"asset\",\n          \"amount\": \"<string>\",\n          \"assetId\": \"<integer>\",\n          \"pendingDeposits\": \"<string>\",\n          \"receivedAmount\": \"<string>\"\n        }\n      ],\n      \"name\": \"<string>\"\n    },\n    \"veniamc\": {\n      \"inner\": [\n        {\n          \"accountingType\": \"income\",\n          \"amount\": \"<string>\",\n          \"assetId\": \"<integer>\",\n          \"pendingDeposits\": \"<string>\",\n          \"receivedAmount\": \"<string>\"\n        },\n        {\n          \"accountingType\": \"liability\",\n          \"amount\": \"<string>\",\n          \"assetId\": \"<integer>\",\n          \"pendingDeposits\": \"<string>\",\n          \"receivedAmount\": \"<string>\"\n        }\n      ],\n      \"name\": \"<string>\"\n    }\n  }\n}"
+								},
+								{
+									"name": "An error occurred while processing the request",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "x-api-key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/users/positions",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"users",
+												"positions"
+											]
+										}
+									},
+									"status": "Internal Server Error",
+									"code": 500,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"error\": \"<string>\"\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "transfers",
+					"item": [
+						{
+							"name": "/users/transfers",
+							"request": {
+								"auth": {
+									"type": "apikey",
+									"apikey": [
+										{
+											"key": "key",
+											"value": "x-api-key",
+											"type": "string"
+										},
+										{
+											"key": "value",
+											"value": "{{apiKey}}",
+											"type": "string"
+										},
+										{
+											"key": "in",
+											"value": "header",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/users/transfers",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"transfers"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Untitled Response",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "x-api-key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/users/transfers",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"users",
+												"transfers"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"result\": {\n    \"deposits\": {\n      \"eu_ea1\": {\n        \"inner\": [\n          {\n            \"amount\": \"<string>\",\n            \"assetId\": \"<integer>\",\n            \"createdAt\": \"<dateTime>\",\n            \"fiatToCrypto\": \"<boolean>\",\n            \"timeEst\": \"<dateTime>\",\n            \"txnState\": \"dropped\",\n            \"updatedAt\": \"<dateTime>\",\n            \"txnHash\": \"<string>\",\n            \"txnIndex\": \"<long>\",\n            \"address\": \"<string>\"\n          },\n          {\n            \"amount\": \"<string>\",\n            \"assetId\": \"<integer>\",\n            \"createdAt\": \"<dateTime>\",\n            \"fiatToCrypto\": \"<boolean>\",\n            \"timeEst\": \"<dateTime>\",\n            \"txnState\": \"received\",\n            \"updatedAt\": \"<dateTime>\",\n            \"txnHash\": \"<string>\",\n            \"txnIndex\": \"<long>\",\n            \"address\": \"<string>\"\n          }\n        ],\n        \"name\": \"<string>\"\n      },\n      \"consequatf\": {\n        \"inner\": [\n          {\n            \"amount\": \"<string>\",\n            \"assetId\": \"<integer>\",\n            \"createdAt\": \"<dateTime>\",\n            \"fiatToCrypto\": \"<boolean>\",\n            \"timeEst\": \"<dateTime>\",\n            \"txnState\": \"dropped\",\n            \"updatedAt\": \"<dateTime>\",\n            \"txnHash\": \"<string>\",\n            \"txnIndex\": \"<long>\",\n            \"address\": \"<string>\"\n          },\n          {\n            \"amount\": \"<string>\",\n            \"assetId\": \"<integer>\",\n            \"createdAt\": \"<dateTime>\",\n            \"fiatToCrypto\": \"<boolean>\",\n            \"timeEst\": \"<dateTime>\",\n            \"txnState\": \"received\",\n            \"updatedAt\": \"<dateTime>\",\n            \"txnHash\": \"<string>\",\n            \"txnIndex\": \"<long>\",\n            \"address\": \"<string>\"\n          }\n        ],\n        \"name\": \"<string>\"\n      }\n    },\n    \"withdrawals\": {\n      \"eu_26\": {\n        \"inner\": [\n          {\n            \"address\": \"<string>\",\n            \"amount\": \"<string>\",\n            \"assetId\": \"<integer>\",\n            \"attemptId\": \"<long>\",\n            \"createdAt\": \"<dateTime>\",\n            \"updatedAt\": \"<dateTime>\",\n            \"txnHash\": \"<string>\",\n            \"txnIndex\": \"<long>\",\n            \"txnState\": \"pending\",\n            \"approved\": \"<boolean>\",\n            \"reason\": \"<string>\"\n          },\n          {\n            \"address\": \"<string>\",\n            \"amount\": \"<string>\",\n            \"assetId\": \"<integer>\",\n            \"attemptId\": \"<long>\",\n            \"createdAt\": \"<dateTime>\",\n            \"updatedAt\": \"<dateTime>\",\n            \"txnHash\": \"<string>\",\n            \"txnIndex\": \"<long>\",\n            \"txnState\": \"received\",\n            \"approved\": \"<boolean>\",\n            \"reason\": \"<string>\"\n          }\n        ],\n        \"name\": \"<string>\"\n      }\n    }\n  }\n}"
+								},
+								{
+									"name": "An error occurred while processing the request",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "x-api-key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/users/transfers",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"users",
+												"transfers"
+											]
+										}
+									},
+									"status": "Internal Server Error",
+									"code": 500,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"error\": \"<string>\"\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "deposits",
+					"item": [
+						{
+							"name": "/users/deposits",
+							"request": {
+								"auth": {
+									"type": "apikey",
+									"apikey": [
+										{
+											"key": "key",
+											"value": "x-api-key",
+											"type": "string"
+										},
+										{
+											"key": "value",
+											"value": "{{apiKey}}",
+											"type": "string"
+										},
+										{
+											"key": "in",
+											"value": "header",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/users/deposits",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"deposits"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Untitled Response",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "x-api-key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/users/deposits",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"users",
+												"deposits"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"result\": {\n    \"nulla8a0\": {\n      \"inner\": [\n        {\n          \"amount\": \"<string>\",\n          \"assetId\": \"<integer>\",\n          \"createdAt\": \"<dateTime>\",\n          \"fiatToCrypto\": \"<boolean>\",\n          \"timeEst\": \"<dateTime>\",\n          \"txnState\": \"confirmed\",\n          \"updatedAt\": \"<dateTime>\",\n          \"txnHash\": \"<string>\",\n          \"txnIndex\": \"<long>\",\n          \"address\": \"<string>\"\n        },\n        {\n          \"amount\": \"<string>\",\n          \"assetId\": \"<integer>\",\n          \"createdAt\": \"<dateTime>\",\n          \"fiatToCrypto\": \"<boolean>\",\n          \"timeEst\": \"<dateTime>\",\n          \"txnState\": \"dropped\",\n          \"updatedAt\": \"<dateTime>\",\n          \"txnHash\": \"<string>\",\n          \"txnIndex\": \"<long>\",\n          \"address\": \"<string>\"\n        }\n      ],\n      \"name\": \"<string>\"\n    }\n  }\n}"
+								},
+								{
+									"name": "An error occurred while processing the request",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "x-api-key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/users/deposits",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"users",
+												"deposits"
+											]
+										}
+									},
+									"status": "Internal Server Error",
+									"code": 500,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"error\": \"<string>\"\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "withdrawals",
+					"item": [
+						{
+							"name": "/users/withdrawals",
+							"request": {
+								"auth": {
+									"type": "apikey",
+									"apikey": [
+										{
+											"key": "key",
+											"value": "x-api-key",
+											"type": "string"
+										},
+										{
+											"key": "value",
+											"value": "{{apiKey}}",
+											"type": "string"
+										},
+										{
+											"key": "in",
+											"value": "header",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/users/withdrawals",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"withdrawals"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Untitled Response",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "x-api-key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/users/withdrawals",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"users",
+												"withdrawals"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"result\": {\n    \"sunt_919\": {\n      \"inner\": [\n        {\n          \"address\": \"<string>\",\n          \"amount\": \"<string>\",\n          \"assetId\": \"<integer>\",\n          \"attemptId\": \"<long>\",\n          \"createdAt\": \"<dateTime>\",\n          \"updatedAt\": \"<dateTime>\",\n          \"txnHash\": \"<string>\",\n          \"txnIndex\": \"<long>\",\n          \"txnState\": \"dropped\",\n          \"approved\": \"<boolean>\",\n          \"reason\": \"<string>\"\n        },\n        {\n          \"address\": \"<string>\",\n          \"amount\": \"<string>\",\n          \"assetId\": \"<integer>\",\n          \"attemptId\": \"<long>\",\n          \"createdAt\": \"<dateTime>\",\n          \"updatedAt\": \"<dateTime>\",\n          \"txnHash\": \"<string>\",\n          \"txnIndex\": \"<long>\",\n          \"txnState\": \"pending\",\n          \"approved\": \"<boolean>\",\n          \"reason\": \"<string>\"\n        }\n      ],\n      \"name\": \"<string>\"\n    }\n  }\n}"
+								},
+								{
+									"name": "An error occurred while processing the request",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "x-api-key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/users/withdrawals",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"users",
+												"withdrawals"
+											]
+										}
+									},
+									"status": "Internal Server Error",
+									"code": 500,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"error\": \"<string>\"\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "orders",
+					"item": [
+						{
+							"name": "/users/orders",
+							"request": {
+								"auth": {
+									"type": "apikey",
+									"apikey": [
+										{
+											"key": "key",
+											"value": "x-api-key",
+											"type": "string"
+										},
+										{
+											"key": "value",
+											"value": "{{apiKey}}",
+											"type": "string"
+										},
+										{
+											"key": "in",
+											"value": "header",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/users/orders?subaccountId=<long>&createdBefore=<long>&limit=<integer>",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"orders"
+									],
+									"query": [
+										{
+											"key": "subaccountId",
+											"value": "<long>",
+											"description": "(Required) "
+										},
+										{
+											"key": "createdBefore",
+											"value": "<long>",
+											"description": "Returns the most recent orders where `created_at < created_before`. If null, returns the most recent orders."
+										},
+										{
+											"key": "limit",
+											"value": "<integer>",
+											"description": "The maximum number of orders to return. If null, defaults to 100. The maximum is 1000."
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Untitled Response",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "x-api-key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/users/orders?subaccountId=<long>&createdBefore=<long>&limit=<integer>",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"users",
+												"orders"
+											],
+											"query": [
+												{
+													"key": "subaccountId",
+													"value": "<long>",
+													"description": "(Required) "
+												},
+												{
+													"key": "createdBefore",
+													"value": "<long>",
+													"description": "Returns the most recent orders where `created_at < created_before`. If null, returns the most recent orders."
+												},
+												{
+													"key": "limit",
+													"value": "<integer>",
+													"description": "The maximum number of orders to return. If null, defaults to 100. The maximum is 1000."
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"result\": {\n    \"name\": \"<string>\",\n    \"orders\": [\n      {\n        \"createdAt\": \"<long>\",\n        \"fills\": [\n          {\n            \"baseAmount\": \"<string>\",\n            \"baseSettled\": \"<boolean>\",\n            \"feeAmount\": \"<string>\",\n            \"filledAt\": \"<long>\",\n            \"quoteAmount\": \"<string>\",\n            \"quoteSettled\": \"<boolean>\",\n            \"tradeId\": \"<long>\",\n            \"baseBatchId\": \"<uuid>\",\n            \"quoteBatchId\": \"<uuid>\",\n            \"feeAsset\": \"<integer>\"\n          },\n          {\n            \"baseAmount\": \"<string>\",\n            \"baseSettled\": \"<boolean>\",\n            \"feeAmount\": \"<string>\",\n            \"filledAt\": \"<long>\",\n            \"quoteAmount\": \"<string>\",\n            \"quoteSettled\": \"<boolean>\",\n            \"tradeId\": \"<long>\",\n            \"baseBatchId\": \"<uuid>\",\n            \"quoteBatchId\": \"<uuid>\",\n            \"feeAsset\": \"<integer>\"\n          }\n        ],\n        \"marketId\": \"<integer>\",\n        \"modifies\": [\n          {\n            \"modifiedAt\": \"<long>\",\n            \"price\": \"<integer>\",\n            \"quantity\": \"<integer>\"\n          },\n          {\n            \"modifiedAt\": \"<long>\",\n            \"price\": \"<integer>\",\n            \"quantity\": \"<integer>\"\n          }\n        ],\n        \"price\": \"<integer>\",\n        \"qty\": \"<integer>\",\n        \"side\": \"Bid\",\n        \"status\": \"filled\",\n        \"orderId\": \"<long>\",\n        \"canceledAt\": \"<long>\",\n        \"filledAt\": \"<long>\",\n        \"filledTotal\": {\n          \"baseAmount\": \"<string>\",\n          \"feeAmount\": \"<string>\",\n          \"filledAt\": \"<long>\",\n          \"quoteAmount\": \"<string>\",\n          \"feeAsset\": \"<integer>\"\n        },\n        \"reason\": \"<string>\",\n        \"settled\": \"<boolean>\",\n        \"clientOrderId\": \"<integer>\",\n        \"timeInForce\": \"<integer>\",\n        \"orderType\": \"<integer>\",\n        \"selfTradePrevention\": \"<integer>\",\n        \"cancelOnDisconnect\": \"<boolean>\",\n        \"postOnly\": \"<boolean>\"\n      },\n      {\n        \"createdAt\": \"<long>\",\n        \"fills\": [\n          {\n            \"baseAmount\": \"<string>\",\n            \"baseSettled\": \"<boolean>\",\n            \"feeAmount\": \"<string>\",\n            \"filledAt\": \"<long>\",\n            \"quoteAmount\": \"<string>\",\n            \"quoteSettled\": \"<boolean>\",\n            \"tradeId\": \"<long>\",\n            \"baseBatchId\": \"<uuid>\",\n            \"quoteBatchId\": \"<uuid>\",\n            \"feeAsset\": \"<integer>\"\n          },\n          {\n            \"baseAmount\": \"<string>\",\n            \"baseSettled\": \"<boolean>\",\n            \"feeAmount\": \"<string>\",\n            \"filledAt\": \"<long>\",\n            \"quoteAmount\": \"<string>\",\n            \"quoteSettled\": \"<boolean>\",\n            \"tradeId\": \"<long>\",\n            \"baseBatchId\": \"<uuid>\",\n            \"quoteBatchId\": \"<uuid>\",\n            \"feeAsset\": \"<integer>\"\n          }\n        ],\n        \"marketId\": \"<integer>\",\n        \"modifies\": [\n          {\n            \"modifiedAt\": \"<long>\",\n            \"price\": \"<integer>\",\n            \"quantity\": \"<integer>\"\n          },\n          {\n            \"modifiedAt\": \"<long>\",\n            \"price\": \"<integer>\",\n            \"quantity\": \"<integer>\"\n          }\n        ],\n        \"price\": \"<integer>\",\n        \"qty\": \"<integer>\",\n        \"side\": \"Bid\",\n        \"status\": \"p-filled\",\n        \"orderId\": \"<long>\",\n        \"canceledAt\": \"<long>\",\n        \"filledAt\": \"<long>\",\n        \"filledTotal\": {\n          \"baseAmount\": \"<string>\",\n          \"feeAmount\": \"<string>\",\n          \"filledAt\": \"<long>\",\n          \"quoteAmount\": \"<string>\",\n          \"feeAsset\": \"<integer>\"\n        },\n        \"reason\": \"<string>\",\n        \"settled\": \"<boolean>\",\n        \"clientOrderId\": \"<integer>\",\n        \"timeInForce\": \"<integer>\",\n        \"orderType\": \"<integer>\",\n        \"selfTradePrevention\": \"<integer>\",\n        \"cancelOnDisconnect\": \"<boolean>\",\n        \"postOnly\": \"<boolean>\"\n      }\n    ]\n  }\n}"
+								},
+								{
+									"name": "An error occurred while processing the request",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "x-api-key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/users/orders?subaccountId=<long>&createdBefore=<long>&limit=<integer>",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"users",
+												"orders"
+											],
+											"query": [
+												{
+													"key": "subaccountId",
+													"value": "<long>",
+													"description": "(Required) "
+												},
+												{
+													"key": "createdBefore",
+													"value": "<long>",
+													"description": "Returns the most recent orders where `created_at < created_before`. If null, returns the most recent orders."
+												},
+												{
+													"key": "limit",
+													"value": "<integer>",
+													"description": "The maximum number of orders to return. If null, defaults to 100. The maximum is 1000."
+												}
+											]
+										}
+									},
+									"status": "Internal Server Error",
+									"code": 500,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"error\": \"<string>\"\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "fills",
+					"item": [
+						{
+							"name": "/users/fills",
+							"request": {
+								"auth": {
+									"type": "apikey",
+									"apikey": [
+										{
+											"key": "key",
+											"value": "x-api-key",
+											"type": "string"
+										},
+										{
+											"key": "value",
+											"value": "{{apiKey}}",
+											"type": "string"
+										},
+										{
+											"key": "in",
+											"value": "header",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/users/fills?subaccountId=<long>&startTime=<long>&endTime=<long>&marketIds=<string>&orderIds=<string>",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"fills"
+									],
+									"query": [
+										{
+											"key": "subaccountId",
+											"value": "<long>",
+											"description": "(Required) "
+										},
+										{
+											"key": "startTime",
+											"value": "<long>"
+										},
+										{
+											"key": "endTime",
+											"value": "<long>"
+										},
+										{
+											"key": "marketIds",
+											"value": "<string>"
+										},
+										{
+											"key": "orderIds",
+											"value": "<string>"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Untitled Response",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "x-api-key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/users/fills?subaccountId=<long>&startTime=<long>&endTime=<long>&marketIds=<string>&orderIds=<string>",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"users",
+												"fills"
+											],
+											"query": [
+												{
+													"key": "subaccountId",
+													"value": "<long>",
+													"description": "(Required) "
+												},
+												{
+													"key": "startTime",
+													"value": "<long>"
+												},
+												{
+													"key": "endTime",
+													"value": "<long>"
+												},
+												{
+													"key": "marketIds",
+													"value": "<string>"
+												},
+												{
+													"key": "orderIds",
+													"value": "<string>"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"result\": {\n    \"fills\": [\n      {\n        \"baseAmount\": \"<string>\",\n        \"feeAmount\": \"<string>\",\n        \"filledAt\": \"<long>\",\n        \"marketId\": \"<integer>\",\n        \"orderId\": \"<long>\",\n        \"quoteAmount\": \"<string>\",\n        \"side\": \"Bid\",\n        \"tradeId\": \"<long>\",\n        \"aggressingSide\": \"Bid\",\n        \"price\": \"<long>\",\n        \"quantity\": \"<long>\",\n        \"feeAsset\": \"<integer>\"\n      },\n      {\n        \"baseAmount\": \"<string>\",\n        \"feeAmount\": \"<string>\",\n        \"filledAt\": \"<long>\",\n        \"marketId\": \"<integer>\",\n        \"orderId\": \"<long>\",\n        \"quoteAmount\": \"<string>\",\n        \"side\": \"Bid\",\n        \"tradeId\": \"<long>\",\n        \"aggressingSide\": \"Bid\",\n        \"price\": \"<long>\",\n        \"quantity\": \"<long>\",\n        \"feeAsset\": \"<integer>\"\n      }\n    ],\n    \"name\": \"<string>\"\n  }\n}"
+								},
+								{
+									"name": "An error occurred while processing the request",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "x-api-key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/users/fills?subaccountId=<long>&startTime=<long>&endTime=<long>&marketIds=<string>&orderIds=<string>",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"users",
+												"fills"
+											],
+											"query": [
+												{
+													"key": "subaccountId",
+													"value": "<long>",
+													"description": "(Required) "
+												},
+												{
+													"key": "startTime",
+													"value": "<long>"
+												},
+												{
+													"key": "endTime",
+													"value": "<long>"
+												},
+												{
+													"key": "marketIds",
+													"value": "<string>"
+												},
+												{
+													"key": "orderIds",
+													"value": "<string>"
+												}
+											]
+										}
+									},
+									"status": "Internal Server Error",
+									"code": 500,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"error\": \"<string>\"\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "subaccounts",
+					"item": [
+						{
+							"name": "{subaccount_id}",
+							"item": [
+								{
+									"name": "/users/subaccounts/:subaccount_id",
+									"request": {
+										"auth": {
+											"type": "apikey",
+											"apikey": [
+												{
+													"key": "key",
+													"value": "x-api-key",
+													"type": "string"
+												},
+												{
+													"key": "value",
+													"value": "{{apiKey}}",
+													"type": "string"
+												},
+												{
+													"key": "in",
+													"value": "header",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"name\": \"<string>\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/users/subaccounts/:subaccount_id",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"users",
+												"subaccounts",
+												":subaccount_id"
+											],
+											"variable": [
+												{
+													"key": "subaccount_id"
+												}
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "Untitled Response",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"description": "Added as a part of security scheme: apikey",
+														"key": "x-api-key",
+														"value": "<API Key>"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"name\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/users/subaccounts/:subaccount_id",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"users",
+														"subaccounts",
+														":subaccount_id"
+													],
+													"variable": [
+														{
+															"key": "subaccount_id"
+														}
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"result\": {\n    \"id\": \"<long>\"\n  }\n}"
+										},
+										{
+											"name": "An error occurred while processing the request",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"description": "Added as a part of security scheme: apikey",
+														"key": "x-api-key",
+														"value": "<API Key>"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"name\": \"<string>\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/users/subaccounts/:subaccount_id",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"users",
+														"subaccounts",
+														":subaccount_id"
+													],
+													"variable": [
+														{
+															"key": "subaccount_id"
+														}
+													]
+												}
+											},
+											"status": "Internal Server Error",
+											"code": 500,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"error\": \"<string>\"\n}"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "/users/subaccounts",
+							"request": {
+								"auth": {
+									"type": "apikey",
+									"apikey": [
+										{
+											"key": "key",
+											"value": "x-api-key",
+											"type": "string"
+										},
+										{
+											"key": "value",
+											"value": "{{apiKey}}",
+											"type": "string"
+										},
+										{
+											"key": "in",
+											"value": "header",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"accountType\": \"spot\",\n  \"name\": \"<string>\"\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/users/subaccounts",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										"subaccounts"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Untitled Response",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "x-api-key",
+												"value": "<API Key>"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"accountType\": \"spot\",\n  \"name\": \"<string>\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/users/subaccounts",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"users",
+												"subaccounts"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"result\": {\n    \"id\": \"<long>\"\n  }\n}"
+								},
+								{
+									"name": "An error occurred while processing the request",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "x-api-key",
+												"value": "<API Key>"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"accountType\": \"spot\",\n  \"name\": \"<string>\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/users/subaccounts",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"users",
+												"subaccounts"
+											]
+										}
+									},
+									"status": "Internal Server Error",
+									"code": 500,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"error\": \"<string>\"\n}"
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "markets",
+			"item": [
+				{
+					"name": "Fetch all asset, market, and source definitions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrlIR}}/markets",
+							"host": [
+								"{{baseUrlIR}}"
+							],
+							"path": [
+								"markets"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Untitled Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/markets",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"markets"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"result\": {\n    \"assets\": [\n      {\n        \"assetId\": \"<integer>\",\n        \"assetType\": \"Crypto\",\n        \"decimals\": \"<integer>\",\n        \"disabled\": \"<boolean>\",\n        \"displayDecimals\": \"<integer>\",\n        \"metadata\": {\n          \"description\": \"Additional metadata about this asset.\"\n        },\n        \"settles\": \"<boolean>\",\n        \"sourceId\": \"<integer>\",\n        \"symbol\": \"<string>\"\n      },\n      {\n        \"assetId\": \"<integer>\",\n        \"assetType\": \"Crypto\",\n        \"decimals\": \"<integer>\",\n        \"disabled\": \"<boolean>\",\n        \"displayDecimals\": \"<integer>\",\n        \"metadata\": {\n          \"description\": \"Additional metadata about this asset.\"\n        },\n        \"settles\": \"<boolean>\",\n        \"sourceId\": \"<integer>\",\n        \"symbol\": \"<string>\"\n      }\n    ],\n    \"markets\": [\n      {\n        \"baseAssetId\": \"<integer>\",\n        \"baseLotSize\": \"<string>\",\n        \"disabled\": \"<boolean>\",\n        \"marketId\": \"<integer>\",\n        \"priceDisplayDecimals\": \"<integer>\",\n        \"priceTickSize\": \"<string>\",\n        \"protectionPriceLevels\": \"<integer>\",\n        \"quantityTickSize\": \"<string>\",\n        \"quoteAssetId\": \"<integer>\",\n        \"quoteLotSize\": \"<string>\",\n        \"symbol\": \"<string>\"\n      },\n      {\n        \"baseAssetId\": \"<integer>\",\n        \"baseLotSize\": \"<string>\",\n        \"disabled\": \"<boolean>\",\n        \"marketId\": \"<integer>\",\n        \"priceDisplayDecimals\": \"<integer>\",\n        \"priceTickSize\": \"<string>\",\n        \"protectionPriceLevels\": \"<integer>\",\n        \"quantityTickSize\": \"<string>\",\n        \"quoteAssetId\": \"<integer>\",\n        \"quoteLotSize\": \"<string>\",\n        \"symbol\": \"<string>\"\n      }\n    ],\n    \"sources\": [\n      {\n        \"metadata\": {\n          \"description\": \"Additional metadata about this source.\"\n        },\n        \"name\": \"<string>\",\n        \"sourceId\": \"<integer>\",\n        \"transactionExplorer\": \"<string>\",\n        \"addressExplorer\": \"<string>\"\n      },\n      {\n        \"metadata\": {\n          \"description\": \"Additional metadata about this source.\"\n        },\n        \"name\": \"<string>\",\n        \"sourceId\": \"<integer>\",\n        \"transactionExplorer\": \"<string>\",\n        \"addressExplorer\": \"<string>\"\n      }\n    ]\n  }\n}"
+						},
+						{
+							"name": "An error occurred while processing the request",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/markets",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"markets"
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"error\": \"<string>\"\n}"
+						}
+					]
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "/"
+		}
+	]
+}

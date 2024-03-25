@@ -1,0 +1,746 @@
+{
+	"info": {
+		"_postman_id": "8256a387-8211-4c86-a64f-aba6cbb15701",
+		"name": "Cube Mendelev HTTP API",
+		"description": "Contact Support:\n Name: Cube\n Email: support@cube.exchange",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23776819",
+		"_collection_link": "https://sagitariusteam.postman.co/workspace/Cube-Exchange~4f2d6447-baaf-459c-9369-c6d06d7c5e9f/collection/23776819-8256a387-8211-4c86-a64f-aba6cbb15701?action=share&source=collection_link&creator=23776819"
+	},
+	"item": [
+		{
+			"name": "book",
+			"item": [
+				{
+					"name": "{market_id}",
+					"item": [
+						{
+							"name": "snapshot",
+							"item": [
+								{
+									"name": "/book/:market_id/snapshot",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrlMD}}/book/{{btcUsdcMarketId}}/snapshot?mbp=false&mbo=false&levels=100",
+											"host": [
+												"{{baseUrlMD}}"
+											],
+											"path": [
+												"book",
+												"{{btcUsdcMarketId}}",
+												"snapshot"
+											],
+											"query": [
+												{
+													"key": "mbp",
+													"value": "false"
+												},
+												{
+													"key": "mbo",
+													"value": "false"
+												},
+												{
+													"key": "levels",
+													"value": "100"
+												}
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "Untitled Response",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/book/:market_id/snapshot?mbp=false&mbo=false&levels=",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"book",
+														":market_id",
+														"snapshot"
+													],
+													"query": [
+														{
+															"key": "mbp",
+															"value": "false"
+														},
+														{
+															"key": "mbo",
+															"value": "false"
+														},
+														{
+															"key": "levels",
+															"value": ""
+														}
+													],
+													"variable": [
+														{
+															"key": "market_id"
+														}
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"result\": {\n    \"lastTradePrice\": \"<integer>\",\n    \"lastTransactTime\": \"<integer>\",\n    \"levels\": [\n      {\n        \"price\": \"<integer>\",\n        \"quantity\": \"<integer>\",\n        \"side\": \"<integer>\"\n      },\n      {\n        \"price\": \"<integer>\",\n        \"quantity\": \"<integer>\",\n        \"side\": \"<integer>\"\n      }\n    ]\n  }\n}"
+										},
+										{
+											"name": "An error occurred while processing the request",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/book/:market_id/snapshot?mbp=false&mbo=false&levels=",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"book",
+														":market_id",
+														"snapshot"
+													],
+													"query": [
+														{
+															"key": "mbp",
+															"value": "false"
+														},
+														{
+															"key": "mbo",
+															"value": "false"
+														},
+														{
+															"key": "levels",
+															"value": ""
+														}
+													],
+													"variable": [
+														{
+															"key": "market_id"
+														}
+													]
+												}
+											},
+											"status": "Internal Server Error",
+											"code": 500,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"error\": \"<string>\"\n}"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "recent-trades",
+							"item": [
+								{
+									"name": "/book/:market_id/recent-trades",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/book/:market_id/recent-trades",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"book",
+												":market_id",
+												"recent-trades"
+											],
+											"variable": [
+												{
+													"key": "market_id"
+												}
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "Untitled Response",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/book/:market_id/recent-trades",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"book",
+														":market_id",
+														"recent-trades"
+													],
+													"variable": [
+														{
+															"key": "market_id"
+														}
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"result\": {\n    \"trades\": [\n      {\n        \"aggressingExchangeOrderId\": \"<integer>\",\n        \"aggressingSide\": \"<integer>\",\n        \"fillQuantity\": \"<integer>\",\n        \"price\": \"<integer>\",\n        \"restingExchangeOrderId\": \"<integer>\",\n        \"tradeId\": \"<integer>\",\n        \"transactTime\": \"<integer>\"\n      },\n      {\n        \"aggressingExchangeOrderId\": \"<integer>\",\n        \"aggressingSide\": \"<integer>\",\n        \"fillQuantity\": \"<integer>\",\n        \"price\": \"<integer>\",\n        \"restingExchangeOrderId\": \"<integer>\",\n        \"tradeId\": \"<integer>\",\n        \"transactTime\": \"<integer>\"\n      }\n    ]\n  }\n}"
+										},
+										{
+											"name": "An error occurred while processing the request",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/book/:market_id/recent-trades",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"book",
+														":market_id",
+														"recent-trades"
+													],
+													"variable": [
+														{
+															"key": "market_id"
+														}
+													]
+												}
+											},
+											"status": "Internal Server Error",
+											"code": 500,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"error\": \"<string>\"\n}"
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "tickers",
+			"item": [
+				{
+					"name": "snapshot",
+					"item": [
+						{
+							"name": "/tickers/snapshot",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/tickers/snapshot",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"tickers",
+										"snapshot"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Untitled Response",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/tickers/snapshot",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tickers",
+												"snapshot"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"result\": {\n    \"summaries\": [\n      {\n        \"baseVolumeHi\": \"<integer>\",\n        \"baseVolumeLo\": \"<integer>\",\n        \"close\": \"<integer>\",\n        \"high\": \"<integer>\",\n        \"low\": \"<integer>\",\n        \"open\": \"<integer>\",\n        \"quoteVolumeHi\": \"<integer>\",\n        \"quoteVolumeLo\": \"<integer>\"\n      },\n      {\n        \"baseVolumeHi\": \"<integer>\",\n        \"baseVolumeLo\": \"<integer>\",\n        \"close\": \"<integer>\",\n        \"high\": \"<integer>\",\n        \"low\": \"<integer>\",\n        \"open\": \"<integer>\",\n        \"quoteVolumeHi\": \"<integer>\",\n        \"quoteVolumeLo\": \"<integer>\"\n      }\n    ],\n    \"tops\": [\n      {\n        \"askPrice\": \"<integer>\",\n        \"askQuantity\": \"<integer>\",\n        \"bidPrice\": \"<integer>\",\n        \"bidQuantity\": \"<integer>\",\n        \"lastPrice\": \"<integer>\",\n        \"marketId\": \"<integer>\",\n        \"rolling24hPrice\": \"<integer>\",\n        \"transactTime\": \"<integer>\"\n      },\n      {\n        \"askPrice\": \"<integer>\",\n        \"askQuantity\": \"<integer>\",\n        \"bidPrice\": \"<integer>\",\n        \"bidQuantity\": \"<integer>\",\n        \"lastPrice\": \"<integer>\",\n        \"marketId\": \"<integer>\",\n        \"rolling24hPrice\": \"<integer>\",\n        \"transactTime\": \"<integer>\"\n      }\n    ]\n  }\n}"
+								},
+								{
+									"name": "An error occurred while processing the request",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/tickers/snapshot",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"tickers",
+												"snapshot"
+											]
+										}
+									},
+									"status": "Internal Server Error",
+									"code": 500,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"error\": \"<string>\"\n}"
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "parsed",
+			"item": [
+				{
+					"name": "tickers",
+					"item": [
+						{
+							"name": "/parsed/tickers",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/parsed/tickers",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"parsed",
+										"tickers"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Untitled Response",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/parsed/tickers",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"parsed",
+												"tickers"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"result\": [\n    {\n      \"base_currency\": \"<string>\",\n      \"base_volume\": \"<double>\",\n      \"last_price\": \"<double>\",\n      \"quote_currency\": \"<string>\",\n      \"quote_volume\": \"<double>\",\n      \"ticker_id\": \"<string>\",\n      \"bid\": \"<double>\",\n      \"ask\": \"<double>\",\n      \"high\": \"<double>\",\n      \"low\": \"<double>\",\n      \"open\": \"<double>\"\n    },\n    {\n      \"base_currency\": \"<string>\",\n      \"base_volume\": \"<double>\",\n      \"last_price\": \"<double>\",\n      \"quote_currency\": \"<string>\",\n      \"quote_volume\": \"<double>\",\n      \"ticker_id\": \"<string>\",\n      \"bid\": \"<double>\",\n      \"ask\": \"<double>\",\n      \"high\": \"<double>\",\n      \"low\": \"<double>\",\n      \"open\": \"<double>\"\n    }\n  ]\n}"
+								},
+								{
+									"name": "An error occurred while processing the request",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/parsed/tickers",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"parsed",
+												"tickers"
+											]
+										}
+									},
+									"status": "Internal Server Error",
+									"code": 500,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"error\": \"<string>\"\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "book",
+					"item": [
+						{
+							"name": "{market_symbol}",
+							"item": [
+								{
+									"name": "snapshot",
+									"item": [
+										{
+											"name": "/parsed/book/:market_symbol/snapshot",
+											"request": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrlMD}}/parsed/book/{{btcUsdcMarketSymbol}}/snapshot?depth=1000",
+													"host": [
+														"{{baseUrlMD}}"
+													],
+													"path": [
+														"parsed",
+														"book",
+														"{{btcUsdcMarketSymbol}}",
+														"snapshot"
+													],
+													"query": [
+														{
+															"key": "depth",
+															"value": "1000"
+														}
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "Untitled Response",
+													"originalRequest": {
+														"method": "GET",
+														"header": [
+															{
+																"key": "Accept",
+																"value": "application/json"
+															}
+														],
+														"url": {
+															"raw": "{{baseUrl}}/parsed/book/:market_symbol/snapshot?depth=<integer>",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"parsed",
+																"book",
+																":market_symbol",
+																"snapshot"
+															],
+															"query": [
+																{
+																	"key": "depth",
+																	"value": "<integer>"
+																}
+															],
+															"variable": [
+																{
+																	"key": "market_symbol"
+																}
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "json",
+													"header": [
+														{
+															"key": "Content-Type",
+															"value": "application/json"
+														}
+													],
+													"cookie": [],
+													"body": "{\n  \"result\": {\n    \"asks\": [\n      [\n        -1964542.5010752082,\n        -76117854.419399\n      ],\n      [\n        -48627074.70006073,\n        15592604.967865542\n      ]\n    ],\n    \"bids\": [\n      [\n        -76359130.0737338,\n        -48612219.66155567\n      ],\n      [\n        74155020.48386112,\n        -81582308.43956815\n      ]\n    ],\n    \"ticker_id\": \"<string>\",\n    \"timestamp\": \"<integer>\"\n  }\n}"
+												},
+												{
+													"name": "An error occurred while processing the request",
+													"originalRequest": {
+														"method": "GET",
+														"header": [
+															{
+																"key": "Accept",
+																"value": "application/json"
+															}
+														],
+														"url": {
+															"raw": "{{baseUrl}}/parsed/book/:market_symbol/snapshot?depth=<integer>",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"parsed",
+																"book",
+																":market_symbol",
+																"snapshot"
+															],
+															"query": [
+																{
+																	"key": "depth",
+																	"value": "<integer>"
+																}
+															],
+															"variable": [
+																{
+																	"key": "market_symbol"
+																}
+															]
+														}
+													},
+													"status": "Internal Server Error",
+													"code": 500,
+													"_postman_previewlanguage": "json",
+													"header": [
+														{
+															"key": "Content-Type",
+															"value": "application/json"
+														}
+													],
+													"cookie": [],
+													"body": "{\n  \"error\": \"<string>\"\n}"
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "recent-trades",
+									"item": [
+										{
+											"name": "/parsed/book/:market_symbol/recent-trades",
+											"request": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/parsed/book/:market_symbol/recent-trades",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"parsed",
+														"book",
+														":market_symbol",
+														"recent-trades"
+													],
+													"variable": [
+														{
+															"key": "market_symbol"
+														}
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "Untitled Response",
+													"originalRequest": {
+														"method": "GET",
+														"header": [
+															{
+																"key": "Accept",
+																"value": "application/json"
+															}
+														],
+														"url": {
+															"raw": "{{baseUrl}}/parsed/book/:market_symbol/recent-trades",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"parsed",
+																"book",
+																":market_symbol",
+																"recent-trades"
+															],
+															"variable": [
+																{
+																	"key": "market_symbol"
+																}
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "json",
+													"header": [
+														{
+															"key": "Content-Type",
+															"value": "application/json"
+														}
+													],
+													"cookie": [],
+													"body": "{\n  \"result\": {\n    \"ticker_id\": \"<string>\",\n    \"trades\": [\n      {\n        \"id\": \"<integer>\",\n        \"p\": \"<double>\",\n        \"q\": \"<double>\",\n        \"side\": \"Bid\",\n        \"ts\": \"<integer>\"\n      },\n      {\n        \"id\": \"<integer>\",\n        \"p\": \"<double>\",\n        \"q\": \"<double>\",\n        \"side\": \"Bid\",\n        \"ts\": \"<integer>\"\n      }\n    ]\n  }\n}"
+												},
+												{
+													"name": "An error occurred while processing the request",
+													"originalRequest": {
+														"method": "GET",
+														"header": [
+															{
+																"key": "Accept",
+																"value": "application/json"
+															}
+														],
+														"url": {
+															"raw": "{{baseUrl}}/parsed/book/:market_symbol/recent-trades",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"parsed",
+																"book",
+																":market_symbol",
+																"recent-trades"
+															],
+															"variable": [
+																{
+																	"key": "market_symbol"
+																}
+															]
+														}
+													},
+													"status": "Internal Server Error",
+													"code": 500,
+													"_postman_previewlanguage": "json",
+													"header": [
+														{
+															"key": "Content-Type",
+															"value": "application/json"
+														}
+													],
+													"cookie": [],
+													"body": "{\n  \"error\": \"<string>\"\n}"
+												}
+											]
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "/"
+		}
+	]
+}
