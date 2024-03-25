@@ -1,5 +1,5 @@
 //GET MARKETS
-async function responseMarkets() {
+async function getMarkets() {
   const response = await fetch("https://api.cube.exchange/ir/v0/markets", {
     method: "GET",
     headers: {},
@@ -9,7 +9,7 @@ async function responseMarkets() {
 }
 
 //GET SNAPSHOT
-async function responseSnapshot() {
+async function getSnapshot() {
   const response = await fetch(
     "https://api.cube.exchange/md/v0/book/100036/snapshot",
     {
@@ -22,7 +22,7 @@ async function responseSnapshot() {
 }
 
 // GET RECENT TRADES
-async function responseRecentTrades() {
+async function getRecentTrades() {
   const response = await fetch(
     "https://api.cube.exchange/md/v0/book/{market_id}/recent-trades",
     {
@@ -35,7 +35,7 @@ async function responseRecentTrades() {
 }
 
 // GET TICKERS SNAPSHOT
-async function responseTickersSnapshot() {
+async function getTickersSnapshot() {
   const response = await fetch(
     "https://api.cube.exchange/md/v0/tickers/snapshot",
     {
@@ -48,7 +48,7 @@ async function responseTickersSnapshot() {
 }
 
 // GET PARSED TICKERS
-async function responseParsedTickers() {
+async function getParsedTickers() {
   const response = await fetch(
     "https://api.cube.exchange/md/v0/parsed/tickers",
     {
@@ -61,18 +61,20 @@ async function responseParsedTickers() {
 }
 
 // GET MARKET SYMBOL SNAPSHOT
-const responseMarketSymbolSnapshot = await fetch(
-  "https://api.cube.exchange/md/v0/parsed/book/{market_symbol}/snapshot",
-  {
-    method: "GET",
-    headers: {},
-  }
-);
-const dataMarketSymbolSnapshot = await responseMarketSymbolSnapshot.json();
-console.log(dataMarketSymbolSnapshot);
+async function getMarketSymbolSnapshot() {
+  const response = await fetch(
+    "https://api.cube.exchange/md/v0/parsed/book/{market_symbol}/snapshot",
+    {
+      method: "GET",
+      headers: {},
+    }
+  );
+  const data = await response.json();
+  console.log(data);
+}
 
 // GET MARKET SYMBOL RECENT TRADES
-async function responseMarketSymbolRecentTrades() {
+async function getMarketSymbolRecentTrades() {
   const response = await fetch(
     "https://api.cube.exchange/md/v0/parsed/book/{market_symbol}/recent-trades",
     {
@@ -85,7 +87,7 @@ async function responseMarketSymbolRecentTrades() {
 }
 
 // GET ORDERS
-async function responseOrders() {
+async function getOrders() {
   const response = await fetch("https://api.cube.exchange/os/v0/orders", {
     method: "GET",
     headers: {},
@@ -95,7 +97,7 @@ async function responseOrders() {
 }
 
 // DELETE ORDERS
-async function responseDeleteOrders() {
+async function deleteOrders() {
   const response = await fetch("https://api.cube.exchange/os/v0/orders", {
     method: "DELETE",
     headers: {},
@@ -105,7 +107,7 @@ async function responseDeleteOrders() {
 }
 
 // POST ORDERS
-async function responseOrdersPost() {
+async function postOrders() {
   const response = await fetch("https://api.cube.exchange/os/v0/orders", {
     method: "POST",
     headers: {},
@@ -115,7 +117,7 @@ async function responseOrdersPost() {
 }
 
 // DELETE ORDER
-async function responseDeleteOrder() {
+async function deleteOrder() {
   const response = await fetch("https://api.cube.exchange/os/v0/order", {
     method: "DELETE",
     headers: {
@@ -128,7 +130,7 @@ async function responseDeleteOrder() {
 }
 
 // PATCH ORDER
-async function responsePatchOrder() {
+async function patchOrder() {
   const response = await fetch("https://api.cube.exchange/os/v0/order", {
     method: "PATCH",
     headers: {
