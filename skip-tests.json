@@ -702,6 +702,9 @@
             }
         }
     },
+    "cube": {
+        "skip": "<TODO!!!>"
+    },
     "currencycom": {
         "skipMethods": {
             "loadMarkets": {
