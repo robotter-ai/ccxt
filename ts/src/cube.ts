@@ -1,11 +1,12 @@
 
 // ---------------------------------------------------------------------------
 
-import { Market } from '../ccxt.js';
-import Exchange from './abstract/tradeogre.js';
-import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeError } from './base/errors.js';
+// import { Market } from '../ccxt.js'; // TODO verify!!!
+import Exchange from './abstract/cube.js';
+import { InsufficientFunds, AuthenticationError, BadRequest } from './base/errors.js';
+// import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeError } from './base/errors.js'; // TODO verify!!!
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType } from './base/types.js';
+// import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType } from './base/types.js'; // TODO verify!!!
 
 // ---------------------------------------------------------------------------
 
@@ -14,7 +15,6 @@ import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType } fr
  * @augments Exchange
  */
 export default class cube extends Exchange {
-
     describe () {
         // TODO verify all!!!
         return this.deepExtend (super.describe (), {
@@ -53,6 +53,7 @@ export default class cube extends Exchange {
                 'fetchClosedOrders': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
@@ -112,7 +113,12 @@ export default class cube extends Exchange {
                 'referral': '',
                 'logo': 'https://github.com/ccxt/ccxt/assets/43336371/3aa748b7-ea44-45e9-a9e7-b1d207a2578a',
                 'api': {
-                    'rest': 'https://tradeogre.com/api/v1',
+                    'iridium': 'https://api.cube.exchange/ir/v0',
+                    'mendelev': 'https://api.cube.exchange/md/v0',
+                    'osmium': 'https://api.cube.exchange/os/v0',
+                    'iridiumStaging': 'https://staging.cube.exchange/ir/v0',
+                    'mendelevStaging': 'https://staging.cube.exchange/md/v0',
+                    'osmiumStaging': 'https://staging.cube.exchange/os/v0',
                 },
                 'www': 'https://tradeogre.com',
                 'doc': 'https://tradeogre.com/help/api',
@@ -164,17 +170,38 @@ export default class cube extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    // TODO fix implementation!!!
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api']['iridium'] + '/' + this.implodeParams (path, params);
+        params = this.omit (params, this.extractParams (path));
+        if (method === 'GET') {
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        }
+        if (api === 'private') {
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Referer': 'CCXT',
+                'authorization': 'Basic ' + this.stringToBase64 (this.apiKey + ':' + this.secret),
+            };
+            if (method !== 'GET') {
+                body = this.urlencode (params);
+            }
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    async fetchCurrencies (params = {}) {
         /**
          * @method
-         * @name cube#fetchMarkets
-         * @description retrieves data on all markets for cube
+         * @name cube#fetchCurrencies
+         * @description fetches all available currencies on an exchange
          * @see https://cubexch.gitbook.io/cube-api/rest-iridium-api#markets
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object} an associative dictionary of currencies
          */
         const response = await this.publicGetMarkets (params);
-
         // {
         //     "result": {
         //         "assets": [
@@ -244,18 +271,148 @@ export default class cube extends Exchange {
         //         ]
         //     }
         // }
-
         const result = [];
-        const rawMarkets = this.safeDictN(response, ['result', 'markets']);
+        const rawCurrencies = this.safeDict (this.safeDict (response, 'result'), 'assets');
+        for (let i = 0; i < rawCurrencies.length; i++) {
+            const rawCurrency = rawCurrencies[i];
+            const id = this.safeString (rawCurrency, 'symbol');
+            // TODO verify!!!
+            const currency = this.safeCurrencyStructure ({
+                'id': id,
+                'numericId': this.safeInteger (rawCurrency, 'assetId'),
+                'code': this.safeString (rawCurrency, 'symbol'),
+                'precision': this.safeInteger (rawCurrency, 'decimals'),
+                'type': this.safeString (rawCurrency, 'assetType'),
+                'name': this.safeString (rawCurrency, 'symbol'),
+                'active': (this.safeInteger (rawCurrency, 'status') === 1),
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'fees': {},
+                'networks': {},
+                'limits': {
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': rawCurrency,
+            });
+            result.push (currency);
+        }
+        return result;
+    }
+
+    async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name cube#fetchMarkets
+         * @description retrieves data on all markets for cube
+         * @see https://cubexch.gitbook.io/cube-api/rest-iridium-api#markets
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
+        const response = await this.publicGetMarkets (params);
+        // {
+        //     "result": {
+        //         "assets": [
+        //             {
+        //                 "assetId": 1,
+        //                 "symbol": "BTC",
+        //                 "decimals": 8,
+        //                 "displayDecimals": 5,
+        //                 "settles": true,
+        //                 "assetType": "Crypto",
+        //                 "sourceId": 1,
+        //                 "metadata": {
+        //                     "dustAmount": 3000
+        //                 },
+        //                 "status": 1
+        //             },
+        //             ...
+        //         ],
+        //         "sources": [
+        //             {
+        //                 "sourceId": 0,
+        //                 "name": "fiat",
+        //                 "metadata": {}
+        //             },
+        //             ...
+        //         ],
+        //         "markets": [
+        //             {
+        //                 "marketId": 100004,
+        //                 "symbol": "BTCUSDC",
+        //                 "baseAssetId": 1,
+        //                 "baseLotSize": "1000",
+        //                 "quoteAssetId": 7,
+        //                 "quoteLotSize": "1",
+        //                 "priceDisplayDecimals": 2,
+        //                 "protectionPriceLevels": 3000,
+        //                 "priceBandBidPct": 25,
+        //                 "priceBandAskPct": 400,
+        //                 "priceTickSize": "0.1",
+        //                 "quantityTickSize": "0.00001",
+        //                 "status": 1,
+        //                 "feeTableId": 2
+        //             },
+        //             ...
+        //         ],
+        //         "feeTables": [
+        //             {
+        //                 "feeTableId": 1,
+        //                 "feeTiers": [
+        //                     {
+        //                         "priority": 0,
+        //                         "makerFeeRatio": 0.0,
+        //                         "takerFeeRatio": 0.0
+        //                     }
+        //                 ]
+        //             },
+        //             {
+        //                 "feeTableId": 2,
+        //                 "feeTiers": [
+        //                     {
+        //                         "priority": 0,
+        //                         "makerFeeRatio": 0.0004,
+        //                         "takerFeeRatio": 0.0008
+        //                     }
+        //                 ]
+        //             }
+        //         ]
+        //     }
+        // }
+        const result = [];
+        const rawMarkets = this.safeDict (this.safeDict (response, 'result'), 'markets');
+        const rawAssets = this.safeDict (this.safeDict (response, 'result'), 'assets');
         for (let i = 0; i < rawMarkets.length; i++) {
-            const rawMarket = rawMarkets[i];
-            const id = this.safeString (rawMarket, 'marketId');
-            const baseId = this.safeString (rawMarket, 'baseAssetId');
-            const quoteId = this.safeString (rawMarket, 'quoteAssetId');
+            const rawMarket = this.safeDict(rawMarkets, i);
+            const id = this.safeStringLower (rawMarket, 'symbol');
+            let rawBaseAsset = undefined;
+            for (let i = 0; i < rawAssets.length; i++) {
+                if (this.safeString(this.safeDict(rawAssets, i), 'assetId') === this.safeString (rawMarket, 'baseAssetId')) {
+                    rawBaseAsset = this.safeDict(rawAssets, i);
+                    break;
+                }
+            }
+            let rawQuoteAsset = undefined;
+            for (let i = 0; i < rawAssets.length; i++) {
+                if (this.safeString(this.safeDict(rawAssets, i), 'assetId') === this.safeString (rawMarket, 'quoteAssetId')) {
+                    rawQuoteAsset = this.safeDict(rawAssets, i);
+                    break;
+                }
+            }
+            const baseId = this.safeString (rawBaseAsset, 'symbol');
+            const quoteId = this.safeString (rawQuoteAsset, 'symbol');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const market = this.safeMarketStructure ({
                 'id': id,
+                'lowercaseId': id,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
@@ -274,8 +431,8 @@ export default class cube extends Exchange {
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
-                'taker': this.safeNumberN (this.fees, ['trading', 'taker']),
-                'maker': this.safeNumberN (this.fees, ['trading', 'maker']),
+                'taker': this.safeNumber (this.safeDict (this.fees, 'trading'), 'taker'),
+                'maker': this.safeNumber (this.safeDict (this.fees, 'trading'), 'maker'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
