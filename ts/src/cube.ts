@@ -282,7 +282,7 @@ export default class cube extends Exchange {
                 'numericId': this.safeInteger (rawCurrency, 'assetId'),
                 'code': this.safeStringUpper (rawCurrency, 'symbol'),
                 'precision': this.safeInteger (rawCurrency, 'decimals'),
-                'type': this.safeString (rawCurrency, 'assetType'),
+                'type': this.safeStringLower (rawCurrency, 'assetType'),
                 'name': this.safeString (rawCurrency, 'symbol'),
                 'active': (this.safeInteger (rawCurrency, 'status') === 1),
                 'deposit': undefined,
