@@ -718,7 +718,6 @@
         }
     },
     "cube": {
-        "skip": "<TODO!!!>"
     },
     "currencycom": {
         "skipMethods": {
