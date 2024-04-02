@@ -1,0 +1,29 @@
+fetchMarkets = true
+fetchCurrencies = nao tem tradeogre / binance = true
+fetchTradingLimits = trade = false / binance = emulated
+fetchTradingFees = nao tem tradeogre / binance = true
+fetchFundingLimits = nenhum tem
+
+fetchTicker = true
+fetchOrderBook = true
+fetchTrades = true
+fetchOHLCV =  false / true
+
+fetchBalance = true
+fetchAccounts = false / undefined
+createOrder = true
+cancelOrder = true
+editOrder = nao tem / true
+
+fetchOrder = true
+fetchOpenOrders = true
+fetchOrders = false / true
+fetchMyTrades = false / true
+
+fetchDepositAddress = false / true
+fetchDeposits = false / true
+fetchWithdrawals = false / true
+fetchTransactions = false / false
+fetchLedger = false / true
+withdraw = false / true
+transfer = false / true
