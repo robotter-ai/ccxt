@@ -123,25 +123,38 @@ export default class cube extends Exchange {
                     mendelevStaging: "https://staging.cube.exchange/md/v0",
                     osmiumStaging: "https://staging.cube.exchange/os/v0",
                 },
-                www: "https://tradeogre.com",
-                doc: "https://tradeogre.com/help/api",
-                fees: "https://tradeogre.com/help/fees",
+                www: "https://www.cube.exchange/",
+                doc: "https://cubexch.gitbook.io/cube-api",
+                fees: "hhttps://www.cube.exchange/fees",
             },
             fees: {
                 trading: {
-                    maker: this.parseNumber("0.002"),
-                    taker: this.parseNumber("0.002"),
+                    maker: this.parseNumber("0.004"),
+                    taker: this.parseNumber("0.008"),
                 },
             },
             api: {
                 iridium: {
                     public: {
                         get: {
-                            markets: 1,
+                            "/markets": 1,
                         },
                     },
                     private: {
-                        get: {},
+                        get: {
+                            "/users/check": 1,
+                            "/users/info": 1,
+                            "/users/positions": 1,
+                            "/users/transfers": 1,
+                            "/users/deposits": 1,
+                            "/users/withdrawals": 1,
+                            "/users/orders": 1,
+                            "/users/fills": 1,
+                        },
+                        post: {
+                            "/users/subaccounts": 1,
+                            "/users/subaccounts/{subaccount_id}": 1,
+                        }
                     },
                 },
                 mendelev: {
@@ -151,6 +164,8 @@ export default class cube extends Exchange {
                             "/parsed/book/{market_symbol}/snapshot": 1,
                             "/book/{market_id}/recent-trades": 1,
                             "/parsed/book/{market_symbol}/recent-trades": 1,
+                            "/tickers/snapshot": 1,
+                            "/parsed/tickers": 1,
                         },
                     },
                     private: {
@@ -159,12 +174,22 @@ export default class cube extends Exchange {
                 },
                 osmium: {
                     public: {
-                        get: {
-                            markets: 1,
-                        },
+                        get: {},
                     },
                     private: {
-                        get: {},
+                        get: {
+                            "/orders": 1,
+                        },
+                        delete: {
+                            "/orders": 1,
+                            "/order": 1,
+                        },
+                        post: {
+                            "/order": 1,
+                        },
+                        patch: {
+                            "/order": 1,
+                        }
                     },
                 },
             },
@@ -222,7 +247,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetMarkets(params);
+        const response = await this.iridiumPublicGetMarkets(params);
         // {
         //     "result": {
         //         "assets": [
@@ -340,7 +365,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.publicGetMarkets(params);
+        const response = await this.iridiumPublicGetMarkets(params);
         // {
         //     "result": {
         //         "assets": [
@@ -523,7 +548,7 @@ export default class cube extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {};
-        // const response = await this.publicMendelevGetBookMarketIdSnapshot(this.extend(request, params));
+        // const response = await this.mendelevPublicGetBookMarketIdSnapshot(this.extend(request, params));
         //
         // {
         //   result: {
@@ -544,7 +569,7 @@ export default class cube extends Exchange {
         //   },
         // }
         //
-        const response = await this.publicMendelevGetParsedBookMarketSymbolSnapshot(this.extend(request, params));
+        const response = await this.mendelevPublicGetParsedBookMarketSymbolSnapshot(this.extend(request, params));
         //
         // {
         //   "result":{
@@ -594,7 +619,7 @@ export default class cube extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {};
-        // const response = await this.publicMendelevGetParsedBookMarketIdRecentTrades(this.extend(request, params));
+        // const response = await this.mendelevPublicGetParsedBookMarketIdRecentTrades(this.extend(request, params));
         //
         // {
         //     "result":{
@@ -621,7 +646,7 @@ export default class cube extends Exchange {
         //     }
         // }
         //
-        const response = await this.publicMendelevGetParsedBookMarketSymbolRecentTrades(this.extend(request, params))
+        const response = await this.mendelevPublicGetParsedBookMarketSymbolRecentTrades(this.extend(request, params))
         //
         // {
         //     "result":{
@@ -659,5 +684,79 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
+        // IMPLEMENTAR A LÓGICA!!!
     }
+
+    parseBalance(response) { }
+
+    async createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @name cube#createOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type not used by tradeogre
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        // IMPLEMENTAR A LÓGICA!!!
+    }
+
+    async cancelOrder(id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name cube#cancelOrder
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        // IMPLEMENTAR A LÓGICA!!!
+    }
+
+    async cancelAllOrders(symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name cube#cancelAllOrders
+         * @description cancel all open orders
+         * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        return await this.cancelOrder('all', symbol, params);
+    }
+
+    async fetchOpenOrders(symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name cube#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        // IMPLEMENTAR A LÓGICA!!!
+    }
+
+    async fetchOrder(id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name cube#fetchOrder
+         * @description fetches information on an order made by the user
+         * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        // IMPLEMENTAR A LÓGICA!!!
+    }
+
+    parseOrder(order, market: Market = undefined): Order { }
 }
