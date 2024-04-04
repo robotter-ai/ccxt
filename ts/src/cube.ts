@@ -14,7 +14,7 @@ import { TICK_SIZE } from "./base/functions/number.js";
 // ---------------------------------------------------------------------------
 
 /**
- * @class tradeogre
+ * @class cube
  * @augments Exchange
  */
 export default class cube extends Exchange {
@@ -685,6 +685,10 @@ export default class cube extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         // IMPLEMENTAR A LÓGICA!!!
+        await this.loadMarkets();
+        const response = await this.privateGetAccountBalances(params);
+        const result = this.safeDict(response, 'balances', {});
+        return this.parseBalance(result);
     }
 
     parseBalance(response) { }
@@ -703,6 +707,23 @@ export default class cube extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         // IMPLEMENTAR A LÓGICA!!!
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'market': market['id'],
+            'quantity': this.parseToNumeric(this.amountToPrecision(symbol, amount)),
+            'price': this.parseToNumeric(this.priceToPrecision(symbol, price)),
+        };
+        if (type === 'market') {
+            throw new BadRequest(this.id + ' createOrder does not support market orders');
+        }
+        let response = undefined;
+        if (side === 'buy') {
+            response = await this.privatePostOrderBuy(this.extend(request, params));
+        } else {
+            response = await this.privatePostOrderSell(this.extend(request, params));
+        }
+        return this.parseOrder(response, market);
     }
 
     async cancelOrder(id: string, symbol: Str = undefined, params = {}) {
@@ -716,6 +737,12 @@ export default class cube extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         // IMPLEMENTAR A LÓGICA!!!
+        await this.loadMarkets();
+        const request = {
+            'uuid': id,
+        };
+        const response = await this.privatePostOrderCancel(this.extend(request, params));
+        return this.parseOrder(response);
     }
 
     async cancelAllOrders(symbol: Str = undefined, params = {}) {
@@ -743,6 +770,17 @@ export default class cube extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         // IMPLEMENTAR A LÓGICA!!!
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        const request = {};
+        if (symbol !== undefined) {
+            request['market'] = market['id'];
+        }
+        const response = await this.privatePostAccountOrders(this.extend(request, params));
+        return this.parseOrders(response, market, since, limit);
     }
 
     async fetchOrder(id: string, symbol: Str = undefined, params = {}) {
@@ -756,7 +794,11 @@ export default class cube extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         // IMPLEMENTAR A LÓGICA!!!
+        await this.loadMarkets();
+        const request = {};
+        const response = await this.osmiumPrivateGetOrders(this.extend(request, params));
+        return this.parseOrder(response, undefined);
     }
 
     parseOrder(order, market: Market = undefined): Order { }
-}
+} 
