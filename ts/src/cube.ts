@@ -6,6 +6,26 @@ import {
     InsufficientFunds,
     AuthenticationError,
     BadRequest,
+    ArgumentsRequired,
+    OperationFailed,
+    OperationRejected,
+    InsufficientFunds,
+    OrderNotFound,
+    InvalidOrder,
+    DDoSProtection,
+    InvalidNonce,
+    AuthenticationError,
+    RateLimitExceeded,
+    PermissionDenied,
+    NotSupported,
+    BadRequest,
+    BadSymbol,
+    AccountSuspended,
+    OrderImmediatelyFillable,
+    OnMaintenance, BadResponse,
+    RequestTimeout,
+    OrderNotFillable,
+    MarginModeAlreadySet
 } from "./base/errors.js";
 // import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeError } from './base/errors.js'; // TODO verify!!!
 import { TICK_SIZE } from "./base/functions/number.js";
@@ -793,11 +813,22 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        // IMPLEMENTAR A LÓGICA!!!
         await this.loadMarkets();
         const request = {};
         const response = await this.osmiumPrivateGetOrders(this.extend(request, params));
-        return this.parseOrder(response, undefined);
+        const rawOrders = this.safeDict(this.safeDict(response, "result"), "orders");
+        let targetRawOrder = undefined;
+        for (let i = 0; i < rawOrders.length; i++) {
+            const rawOrder = rawOrders[i];
+            const rawOrderId = this.safeDict(rawOrder, "orderId");
+            if (rawOrderId == id) {
+                targetRawOrder = rawOrder;
+            }
+        }
+        if (target) {
+            return this.parseOrder(targetRawOrder, undefined);
+        }
+        throw new OrderNotFound('Order "' + id + '" not found.');
     }
 
     parseOrder(order, market: Market = undefined): Order { }
