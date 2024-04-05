@@ -236,23 +236,16 @@ export default class cube extends Exchange {
     }
 
     // TODO fix implementation!!!
-    sign (
-        path: string,
-        api = 'public',
-        method = 'GET',
-        params = {},
-        headers = undefined,
-        body = undefined
-    ) {
+    sign (path: string, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let baseUrl: string = undefined;
-        if (path.startsWith ('iridium')) {
+        if (api.indexOf ('iridium') >= 0) {
             baseUrl = this.urls['api']['iridium'];
-        } else if (path.startsWith ('mendelev')) {
+        } else if (api.indexOf ('mendelev') >= 0) {
             baseUrl = this.urls['api']['mendelev'];
-        } else if (path.startsWith ('osmium')) {
+        } else if (api.indexOf ('osmium') >= 0) {
             baseUrl = this.urls['api']['osmium'];
         }
-        let url = baseUrl + '/' + this.implodeParams (path, params);
+        let url = baseUrl + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
             if (Object.keys (params).length) {
