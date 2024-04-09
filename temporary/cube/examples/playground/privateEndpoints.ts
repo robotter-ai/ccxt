@@ -58,8 +58,8 @@ class Auth {
   }
 }
 
-//USERS CHECK
-async function getUsersCheck() {
+// IRIDIUM GET USERS CHECK
+async function iridiumGetUsersCheck() {
   const apiKey = Deno.env.get("CUBE_API_KEY");
   const apiSecret = Deno.env.get("CUBE_API_SECRET");
 
@@ -88,8 +88,8 @@ async function getUsersCheck() {
   }
 }
 
-//USERS INFO
-async function getUsersInfo() {
+// IRIDIUM GET USERS INFO
+async function iridiumGetUsersInfo() {
   const apiKey = Deno.env.get("CUBE_API_KEY");
   const apiSecret = Deno.env.get("CUBE_API_SECRET");
 
@@ -118,8 +118,8 @@ async function getUsersInfo() {
   }
 }
 
-//USERS POSITIONS
-async function getUsersPositions() {
+// IRIDIUM GET USERS POSITIONS
+async function iridiumGetUsersPositions() {
   const apiKey = Deno.env.get("CUBE_API_KEY");
   const apiSecret = Deno.env.get("CUBE_API_SECRET");
 
@@ -148,9 +148,8 @@ async function getUsersPositions() {
   }
 }
 
-
-//USERS TRANSFERS
-async function getUsersTransfers() {
+// IRIDIUM GET USERS TRANSFERS
+async function iridiumGetUsersTransfers() {
   const apiKey = Deno.env.get("CUBE_API_KEY");
   const apiSecret = Deno.env.get("CUBE_API_SECRET");
 
@@ -179,8 +178,8 @@ async function getUsersTransfers() {
   }
 }
 
-//USERS DEPOSITS
-async function getUsersDeposits() {
+// IRIDIUM GET USERS DEPOSITS
+async function iridiumGetUsersDeposits() {
   const apiKey = Deno.env.get("CUBE_API_KEY");
   const apiSecret = Deno.env.get("CUBE_API_SECRET");
 
@@ -209,8 +208,8 @@ async function getUsersDeposits() {
   }
 }
 
-//USERS WITHDRAWALS
-async function getUsersWithdrawals() {
+// IRIDIUM GET USERS WITHDRAWALS
+async function iridiumGetUsersWithdrawals() {
   const apiKey = Deno.env.get("CUBE_API_KEY");
   const apiSecret = Deno.env.get("CUBE_API_SECRET");
 
@@ -239,8 +238,8 @@ async function getUsersWithdrawals() {
   }
 }
 
-//USERS ORDERS
-async function getUsersOrders() {
+// IRIDIUM GET USERS ORDERS
+async function iridiumGetUsersOrders() {
   const apiKey = Deno.env.get("CUBE_API_KEY");
   const apiSecret = Deno.env.get("CUBE_API_SECRET");
 
@@ -249,7 +248,8 @@ async function getUsersOrders() {
   const type = "ir";
   const baseUrl = `https://staging.cube.exchange/${type}/v0`;
   const endpoint = "/users/orders";
-  const url = `${baseUrl}${endpoint}`;
+  const params = new URLSearchParams({ subaccountId: "161" });
+  const url = `${baseUrl}${endpoint}?${params.toString()}`;
 
   let request: any = {
     method: "GET",
@@ -263,14 +263,14 @@ async function getUsersOrders() {
 
     const data = await response.json();
 
-    console.log(data);
+    console.log(JSON.stringify(data, null, 2));
   } catch (exception) {
     console.error(exception);
   }
 }
 
-//USERS FILLS
-async function getUsersFills() {
+// IRIDIUM GET USERS FILLS
+async function iridiumGetUsersFills() {
   const apiKey = Deno.env.get("CUBE_API_KEY");
   const apiSecret = Deno.env.get("CUBE_API_SECRET");
 
@@ -299,8 +299,8 @@ async function getUsersFills() {
   }
 }
 
-//USERS SUBACCOUNTS
-async function postUsersSubaccounts() {
+// IRIDIUM POST USERS SUBACCOUNTS
+async function iridiumPostUsersSubaccounts() {
   const apiKey = Deno.env.get("CUBE_API_KEY");
   const apiSecret = Deno.env.get("CUBE_API_SECRET");
 
@@ -316,7 +316,7 @@ async function postUsersSubaccounts() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       "accountType": "spot",
-      "name": "text"
+      "name": "teste"
     }),
   };
 
@@ -333,8 +333,8 @@ async function postUsersSubaccounts() {
   }
 }
 
-//USERS SUBACCOUNTS ID
-async function postUsersSubaccountsId() {
+// IRIDIUM POST USERS SUBACCOUNTS ID
+async function iridiumPostUsersSubaccountsId() {
   const apiKey = Deno.env.get("CUBE_API_KEY");
   const apiSecret = Deno.env.get("CUBE_API_SECRET");
 
@@ -342,14 +342,14 @@ async function postUsersSubaccountsId() {
 
   const type = "ir";
   const baseUrl = `https://staging.cube.exchange/${type}/v0`;
-  const endpoint = "/users/subaccounts/{subaccount_id}";
+  const endpoint = "/users/subaccounts/161";
   const url = `${baseUrl}${endpoint}`;
 
   let request: any = {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      "name": "text"
+      "name": "teste"
     }),
   };
 
@@ -366,8 +366,8 @@ async function postUsersSubaccountsId() {
   }
 }
 
-//GET ORDERS
-async function getOrders() {
+// OSMIUM GET ORDERS
+async function osmiumGetOrders() {
   const apiKey = Deno.env.get("CUBE_API_KEY");
   const apiSecret = Deno.env.get("CUBE_API_SECRET");
 
@@ -376,7 +376,8 @@ async function getOrders() {
   const type = "os";
   const baseUrl = `https://staging.cube.exchange/${type}/v0`;
   const endpoint = "/orders";
-  const url = `${baseUrl}${endpoint}`;
+  const params = new URLSearchParams({ subaccountId: "161" });
+  const url = `${baseUrl}${endpoint}?${params.toString()}`;
 
   let request: any = {
     method: "GET",
@@ -390,14 +391,14 @@ async function getOrders() {
 
     const data = await response.json();
 
-    console.log(data);
+    console.log(JSON.stringify(data, null, 2));
   } catch (exception) {
     console.error(exception);
   }
 }
 
-//DELETE ORDERS
-async function deleteOrders() {
+// OSMIUM DELETE ORDERS
+async function osmiumDeleteOrders() {
   const apiKey = Deno.env.get("CUBE_API_KEY");
   const apiSecret = Deno.env.get("CUBE_API_SECRET");
 
@@ -427,8 +428,8 @@ async function deleteOrders() {
   }
 }
 
-//POST ORDER
-async function postOrder() {
+// OSMIUM POST ORDER
+async function osmiumPostOrder() {
   const apiKey = Deno.env.get("CUBE_API_KEY");
   const apiSecret = Deno.env.get("CUBE_API_SECRET");
 
@@ -442,7 +443,20 @@ async function postOrder() {
   let request: any = {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ "cancelOnDisconnect": false }),
+    body: JSON.stringify({
+      "clientOrderId": 1,
+      "requestId": 1,
+      "marketId": 200047,
+      "price": 1,
+      "quantity": 1,
+      "side": 0,
+      "timeInForce": 1,
+      "orderType": 0,
+      "subaccountId": 161,
+      "selfTradePrevention": 0,
+      "postOnly": 0,
+      "cancelOnDisconnect": false,
+    }),
   };
 
   request = auth.authenticateRequest(request);
@@ -458,8 +472,8 @@ async function postOrder() {
   }
 }
 
-//DELETE ORDER
-async function deleteOrder() {
+// OSMIUM DELETE ORDER
+async function osmiumDeleteOrder() {
   const apiKey = Deno.env.get("CUBE_API_KEY");
   const apiSecret = Deno.env.get("CUBE_API_SECRET");
 
@@ -489,8 +503,8 @@ async function deleteOrder() {
   }
 }
 
-//PATCH ORDER
-async function patchOrder() {
+// OSMIUM PATCH ORDER
+async function osmiumPatchOrder() {
   const apiKey = Deno.env.get("CUBE_API_KEY");
   const apiSecret = Deno.env.get("CUBE_API_SECRET");
 
@@ -520,4 +534,4 @@ async function patchOrder() {
   }
 }
 
-await usersPositions();
+await iridiumGetUsersInfo();
