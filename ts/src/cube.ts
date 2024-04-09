@@ -144,12 +144,18 @@ export default class cube extends Exchange {
                 'referral': '',
                 'logo': 'https://github.com/ccxt/ccxt/assets/43336371/3aa748b7-ea44-45e9-a9e7-b1d207a2578a',
                 'api': {
-                    'iridium': 'https://api.cube.exchange/ir/v0',
-                    'mendelev': 'https://api.cube.exchange/md/v0',
-                    'osmium': 'https://api.cube.exchange/os/v0',
-                    'iridiumStaging': 'https://staging.cube.exchange/ir/v0',
-                    'mendelevStaging': 'https://staging.cube.exchange/md/v0',
-                    'osmiumStaging': 'https://staging.cube.exchange/os/v0',
+                    'rest': {
+                        'production': {
+                            'iridium': 'https://api.cube.exchange/ir/v0',
+                            'mendelev': 'https://api.cube.exchange/md/v0',
+                            'osmium': 'https://api.cube.exchange/os/v0',
+                        },
+                        'staging': {
+                            'iridium': 'https://staging.cube.exchange/ir/v0',
+                            'mendelev': 'https://staging.cube.exchange/md/v0',
+                            'osmium': 'https://staging.cube.exchange/os/v0',
+                        },
+                    },
                 },
                 'www': 'https://www.cube.exchange/',
                 'doc': 'https://cubexch.gitbook.io/cube-api',
@@ -162,61 +168,63 @@ export default class cube extends Exchange {
                 },
             },
             'api': {
-                'iridium': {
-                    'public': {
-                        'get': {
-                            '/markets': 1,
+                'rest': {
+                    'iridium': {
+                        'public': {
+                            'get': {
+                                '/markets': 1,
+                            },
+                        },
+                        'private': {
+                            'get': {
+                                '/users/check': 1,
+                                '/users/info': 1,
+                                '/users/positions': 1,
+                                '/users/transfers': 1,
+                                '/users/deposits': 1,
+                                '/users/withdrawals': 1,
+                                '/users/orders': 1,
+                                '/users/fills': 1,
+                            },
+                            'post': {
+                                '/users/subaccounts': 1,
+                                '/users/subaccounts/{subaccount_id}': 1,
+                            },
                         },
                     },
-                    'private': {
-                        'get': {
-                            '/users/check': 1,
-                            '/users/info': 1,
-                            '/users/positions': 1,
-                            '/users/transfers': 1,
-                            '/users/deposits': 1,
-                            '/users/withdrawals': 1,
-                            '/users/orders': 1,
-                            '/users/fills': 1,
+                    'mendelev': {
+                        'public': {
+                            'get': {
+                                '/book/{market_id}/snapshot': 1,
+                                '/parsed/book/{market_symbol}/snapshot': 1,
+                                '/book/{market_id}/recent-trades': 1,
+                                '/parsed/book/{market_symbol}/recent-trades': 1,
+                                '/tickers/snapshot': 1,
+                                '/parsed/tickers': 1,
+                            },
                         },
-                        'post': {
-                            '/users/subaccounts': 1,
-                            '/users/subaccounts/{subaccount_id}': 1,
-                        },
-                    },
-                },
-                'mendelev': {
-                    'public': {
-                        'get': {
-                            '/book/{market_id}/snapshot': 1,
-                            '/parsed/book/{market_symbol}/snapshot': 1,
-                            '/book/{market_id}/recent-trades': 1,
-                            '/parsed/book/{market_symbol}/recent-trades': 1,
-                            '/tickers/snapshot': 1,
-                            '/parsed/tickers': 1,
+                        'private': {
+                            'get': {},
                         },
                     },
-                    'private': {
-                        'get': {},
-                    },
-                },
-                'osmium': {
-                    'public': {
-                        'get': {},
-                    },
-                    'private': {
-                        'get': {
-                            '/orders': 1,
+                    'osmium': {
+                        'public': {
+                            'get': {},
                         },
-                        'delete': {
-                            '/orders': 1,
-                            '/order': 1,
-                        },
-                        'post': {
-                            '/order': 1,
-                        },
-                        'patch': {
-                            '/order': 1,
+                        'private': {
+                            'get': {
+                                '/orders': 1,
+                            },
+                            'delete': {
+                                '/orders': 1,
+                                '/order': 1,
+                            },
+                            'post': {
+                                '/order': 1,
+                            },
+                            'patch': {
+                                '/order': 1,
+                            },
                         },
                     },
                 },
@@ -237,13 +245,14 @@ export default class cube extends Exchange {
 
     // TODO fix implementation!!!
     sign (path: string, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const environment = 'production';
         let baseUrl: string = undefined;
         if (api.indexOf ('iridium') >= 0) {
-            baseUrl = this.urls['api']['iridium'];
+            baseUrl = this.urls['api']['rest'][environment]['iridium'];
         } else if (api.indexOf ('mendelev') >= 0) {
-            baseUrl = this.urls['api']['mendelev'];
+            baseUrl = this.urls['api']['rest'][environment]['mendelev'];
         } else if (api.indexOf ('osmium') >= 0) {
-            baseUrl = this.urls['api']['osmium'];
+            baseUrl = this.urls['api']['rest'][environment]['osmium'];
         }
         let url = baseUrl + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
