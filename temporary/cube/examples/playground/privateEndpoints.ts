@@ -112,7 +112,7 @@ async function iridiumGetUsersInfo() {
 
     const data = await response.json();
 
-    console.log(data);
+    console.log(JSON.stringify(data, null, 2));
   } catch (exception) {
     console.error(exception);
   }
@@ -142,7 +142,7 @@ async function iridiumGetUsersPositions() {
 
     const data = await response.json();
 
-    console.log(data);
+    console.log(JSON.stringify(data, null, 2));
   } catch (exception) {
     console.error(exception);
   }
@@ -172,7 +172,7 @@ async function iridiumGetUsersTransfers() {
 
     const data = await response.json();
 
-    console.log(data);
+    console.log(JSON.stringify(data, null, 2));
   } catch (exception) {
     console.error(exception);
   }
@@ -202,7 +202,7 @@ async function iridiumGetUsersDeposits() {
 
     const data = await response.json();
 
-    console.log(data);
+    console.log(JSON.stringify(data, null, 2));
   } catch (exception) {
     console.error(exception);
   }
@@ -232,7 +232,7 @@ async function iridiumGetUsersWithdrawals() {
 
     const data = await response.json();
 
-    console.log(data);
+    console.log(JSON.stringify(data, null, 2));
   } catch (exception) {
     console.error(exception);
   }
@@ -279,7 +279,8 @@ async function iridiumGetUsersFills() {
   const type = "ir";
   const baseUrl = `https://staging.cube.exchange/${type}/v0`;
   const endpoint = "/users/fills";
-  const url = `${baseUrl}${endpoint}`;
+  const params = new URLSearchParams({ subaccountId: "161" });
+  const url = `${baseUrl}${endpoint}?${params.toString()}`;
 
   let request: any = {
     method: "GET",
@@ -293,7 +294,7 @@ async function iridiumGetUsersFills() {
 
     const data = await response.json();
 
-    console.log(data);
+    console.log(JSON.stringify(data, null, 2));
   } catch (exception) {
     console.error(exception);
   }
@@ -327,7 +328,7 @@ async function iridiumPostUsersSubaccounts() {
 
     const data = await response.json();
 
-    console.log(data);
+    console.log(JSON.stringify(data, null, 2));
   } catch (exception) {
     console.error(exception);
   }
@@ -345,11 +346,11 @@ async function iridiumPostUsersSubaccountsId() {
   const endpoint = "/users/subaccounts/161";
   const url = `${baseUrl}${endpoint}`;
 
+
   let request: any = {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      "name": "teste"
     }),
   };
 
@@ -358,9 +359,10 @@ async function iridiumPostUsersSubaccountsId() {
   try {
     const response = await fetch(url, request);
 
+    console.log(JSON.stringify(response, null, 2))
     const data = await response.json();
 
-    console.log(data);
+    console.log(JSON.stringify(data, null, 2));
   } catch (exception) {
     console.error(exception);
   }
@@ -412,7 +414,12 @@ async function osmiumDeleteOrders() {
   let request: any = {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({}),
+    body: JSON.stringify({
+      "subaccountId": 161,
+      "requestId": 1,
+      "marketId": 200047,
+      "side": 1,
+    }),
   };
 
   request = auth.authenticateRequest(request);
@@ -422,7 +429,7 @@ async function osmiumDeleteOrders() {
 
     const data = await response.json();
 
-    console.log(data);
+    console.log(JSON.stringify(data, null, 2));
   } catch (exception) {
     console.error(exception);
   }
@@ -444,12 +451,12 @@ async function osmiumPostOrder() {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      "clientOrderId": 1,
+      "clientOrderId": 1712612349538,
       "requestId": 1,
       "marketId": 200047,
-      "price": 1,
-      "quantity": 1,
-      "side": 0,
+      "price": 30600,
+      "quantity": 10000,
+      "side": 1,
       "timeInForce": 1,
       "orderType": 0,
       "subaccountId": 161,
@@ -466,7 +473,7 @@ async function osmiumPostOrder() {
 
     const data = await response.json();
 
-    console.log(data);
+    console.log(JSON.stringify(data, null, 2));
   } catch (exception) {
     console.error(exception);
   }
@@ -487,7 +494,12 @@ async function osmiumDeleteOrder() {
   let request: any = {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({}),
+    body: JSON.stringify({
+      marketId: 200047,
+      clientOrderId: 1712612349538,
+      requestId: 1,
+      subaccountId: 161,
+    }),
   };
 
   request = auth.authenticateRequest(request);
@@ -497,7 +509,7 @@ async function osmiumDeleteOrder() {
 
     const data = await response.json();
 
-    console.log(data);
+    console.log(JSON.stringify(data, null, 2));
   } catch (exception) {
     console.error(exception);
   }
@@ -518,7 +530,17 @@ async function osmiumPatchOrder() {
   let request: any = {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({}),
+    body: JSON.stringify({
+      marketId: 200047,
+      clientOrderId: 1712612349538,
+      requestId: 1,
+      subaccountId: 161,
+      newPrice: 30700,
+      newQuantity: 11000,
+      orderType: 0,
+      selfTradePrevention: 0,
+      postOnly: 0,
+    }),
   };
 
   request = auth.authenticateRequest(request);
@@ -528,10 +550,10 @@ async function osmiumPatchOrder() {
 
     const data = await response.json();
 
-    console.log(data);
+    console.log(JSON.stringify(data, null, 2));
   } catch (exception) {
     console.error(exception);
   }
 }
 
-await iridiumGetUsersInfo();
+await osmiumDeleteOrder();
