@@ -157,6 +157,18 @@ export default class cube extends Exchange {
                             'osmium': 'https://staging.cube.exchange/os/v0',
                         },
                     },
+                    'ws': {
+                        'production': {
+                            'iridium': 'wss://api.cube.exchange/ir',
+                            'mendelev': 'wss://api.cube.exchange/md',
+                            'osmium': 'wss://api.cube.exchange/os',
+                        },
+                        'staging': {
+                            'iridium': 'wss://staging.cube.exchange/ir',
+                            'mendelev': 'wss://staging.cube.exchange/md',
+                            'osmium': 'wss://staging.cube.exchange/os',
+                        },
+                    },
                 },
                 'www': 'https://www.cube.exchange/',
                 'doc': 'https://cubexch.gitbook.io/cube-api',
@@ -204,14 +216,8 @@ export default class cube extends Exchange {
                                 '/parsed/tickers': 1,
                             },
                         },
-                        'private': {
-                            'get': {},
-                        },
                     },
                     'osmium': {
-                        'public': {
-                            'get': {},
-                        },
                         'private': {
                             'get': {
                                 '/orders': 1,
