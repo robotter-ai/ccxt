@@ -1,12 +1,12 @@
 
 // ----------------------------------------------------------------------------
 
-import CubeRest from '../cube.js';
+import cubeRest from '../cube.js';
 import { Int, OrderBook } from '../base/types.js';
 
 // -----------------------------------------------------------------------------
 
-export default class Cube extends CubeRest {
+export default class cube extends cubeRest {
     describe () {
         // TODO check all info!!!
         return this.deepExtend (super.describe (), {
@@ -87,10 +87,10 @@ export default class Cube extends CubeRest {
          */
         await this.loadMarkets ();
         const environment = this.options['environment'];
-        // const marketId = symbol;
-        // const market = this.market (symbol);
-        // symbol = this.safeSymbol (marketId, market);
-        const url = this.urls['api']['ws'][environment] + '/' + this.api['ws'][environment]['mendelev']['public']['orderbook'];
+        const marketId = this.safeStringLower (symbol);
+        const market = this.market (marketId);
+        symbol = this.safeSymbol (marketId, market);
+        const url = this.urls['api']['ws'][environment]['mendelev'] + this.options['api']['ws']['mendelev']['public']['orderbook'];
         const requestId = '';
         const subParams = [];
         const request = {
