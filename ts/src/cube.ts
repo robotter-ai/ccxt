@@ -26,7 +26,7 @@ import {
 } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import {
-    Balances,
+    Balances, Currencies,
     IndexType,
     Int,
     Market,
@@ -275,7 +275,7 @@ export default class cube extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name cube#fetchCurrencies
@@ -284,7 +284,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.iridiumPublicGetMarkets (params);
+        const response = await this.restIridiumPublicGetMarkets (params);
         // {
         //     "result": {
         //         "assets": [
@@ -354,7 +354,7 @@ export default class cube extends Exchange {
         //         ]
         //     }
         // }
-        const result = [];
+        const result: Currencies = {};
         const rawCurrencies = this.safeDict (
             this.safeDict (response, 'result'),
             'assets'
@@ -362,6 +362,7 @@ export default class cube extends Exchange {
         for (let i = 0; i < rawCurrencies.length; i++) {
             const rawCurrency = rawCurrencies[i];
             const id = this.safeStringUpper (rawCurrency, 'symbol');
+            const code = this.safeCurrencyCode (id);
             // TODO verify!!!
             const currency = this.safeCurrencyStructure ({
                 'id': id,
@@ -388,12 +389,12 @@ export default class cube extends Exchange {
                 },
                 'info': rawCurrency,
             });
-            result.push (currency);
+            result[code] = currency;
         }
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name cube#fetchMarkets
@@ -402,7 +403,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.iridiumPublicGetMarkets (params);
+        const response = await this.restIridiumPublicGetMarkets (params);
         // {
         //     "result": {
         //         "assets": [
@@ -584,7 +585,7 @@ export default class cube extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        // const response = await this.mendelevPublicGetBookMarketIdSnapshot(this.extend(request, params));
+        // const response = await this.restMendelevPublicGetBookMarketIdSnapshot(this.extend(request, params));
         //
         // {
         //   result: {
@@ -605,7 +606,7 @@ export default class cube extends Exchange {
         //   },
         // }
         //
-        const response = await this.mendelevPublicGetParsedBookMarketSymbolSnapshot (this.extend (request, params));
+        const response = await this.restMendelevPublicGetParsedBookMarketSymbolSnapshot (this.extend (request, params));
         //
         // {
         //   "result":{
@@ -657,7 +658,7 @@ export default class cube extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {};
-        // const response = await this.mendelevPublicGetParsedBookMarketIdRecentTrades(this.extend(request, params));
+        // const response = await this.restMendelevPublicGetParsedBookMarketIdRecentTrades(this.extend(request, params));
         //
         // {
         //     "result":{
@@ -684,7 +685,7 @@ export default class cube extends Exchange {
         //     }
         // }
         //
-        const response = await this.mendelevPublicGetParsedBookMarketSymbolRecentTrades (this.extend (request, params));
+        const response = await this.restMendelevPublicGetParsedBookMarketSymbolRecentTrades (this.extend (request, params));
         //
         // {
         //     "result":{
@@ -726,7 +727,7 @@ export default class cube extends Exchange {
          */
         // IMPLEMENTAR A LÓGICA!!!
         await this.loadMarkets ();
-        const response = await this.iridiumPrivateGetUsersPositions (params);
+        const response = await this.restIridiumPrivateGetUsersPositions (params);
         const result = this.safeDict (response, 'balances', {});
         return this.parseBalances (result);
     }
@@ -761,9 +762,9 @@ export default class cube extends Exchange {
         }
         let response = undefined;
         if (side === 'buy') {
-            response = await this.osmiumPrivatePostOrder (this.extend (request, params));
+            response = await this.restOsmiumPrivatePostOrder (this.extend (request, params));
         } else {
-            response = await this.osmiumPrivatePostOrder (this.extend (request, params));
+            response = await this.restOsmiumPrivatePostOrder (this.extend (request, params));
         }
         return this.parseOrder (response, market);
     }
@@ -783,7 +784,7 @@ export default class cube extends Exchange {
         const request = {
             'uuid': id,
         };
-        const response = await this.osmiumPrivateDeleteOrder (this.extend (request, params));
+        const response = await this.restOsmiumPrivateDeleteOrder (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -821,7 +822,7 @@ export default class cube extends Exchange {
         if (symbol !== undefined) {
             request['market'] = market['id'];
         }
-        const response = await this.osmiumPrivateGetOrders (this.extend (request, params));
+        const response = await this.restOsmiumPrivateGetOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -837,7 +838,7 @@ export default class cube extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        const response = await this.osmiumPrivateGetOrders (this.extend (request, params));
+        const response = await this.restOsmiumPrivateGetOrders (this.extend (request, params));
         const rawOrders = this.safeDict (this.safeDict (response, 'result'), 'orders');
         let targetRawOrder = undefined;
         for (let i = 0; i < rawOrders.length; i++) {
