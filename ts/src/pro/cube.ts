@@ -2,8 +2,7 @@
 // ----------------------------------------------------------------------------
 
 import CubeRest from '../cube.js';
-import {Int, OrderBook} from "../base/types";
-import {NotSupported} from "../base/errors";
+import { Int, OrderBook } from '../base/types.js';
 
 // -----------------------------------------------------------------------------
 
@@ -59,18 +58,18 @@ export default class Cube extends CubeRest {
                     },
                 },
             },
-            'api': {
-                'ws': {
-                    'mendelev': {
-                        'public': {
-                            'orderbook': '/book/:market_id',
-                            'orderbookTops': '/tops',
+            'options': {
+                'environment': 'staging',
+                'api': {
+                    'ws': {
+                        'mendelev': {
+                            'public': {
+                                'orderbook': '/book/:market_id',
+                                'orderbookTops': '/tops',
+                            },
                         },
                     },
                 },
-            },
-            'options': {
-                'environment': 'staging',
             },
         });
     }
