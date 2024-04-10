@@ -243,7 +243,6 @@ export default class cube extends Exchange {
         });
     }
 
-    // TODO fix implementation!!!
     sign (path: string, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const environment = 'production';
         let baseUrl: string = undefined;
@@ -567,11 +566,7 @@ export default class cube extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (
-        symbol: string,
-        limit: Int = undefined,
-        params = {}
-    ): Promise<OrderBook> {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name cube#fetchOrderBook
