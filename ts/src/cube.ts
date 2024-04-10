@@ -38,6 +38,7 @@ import {
     Str,
     Trade,
 } from './base/types';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 // ---------------------------------------------------------------------------
 
@@ -243,8 +244,37 @@ export default class cube extends Exchange {
         });
     }
 
+    private generateSignature (): any {
+        const timestamp = Math.floor (Date.now () / 1000);
+        const timestampBuffer = Buffer.alloc (8);
+        timestampBuffer.writeUInt32LE (timestamp, 0);
+        const fixedString = 'cube.xyz';
+        const payload = Buffer.concat ([ Buffer.from (fixedString, 'utf-8'), timestampBuffer ]);
+        const secretKeyBytes = Buffer.from (this.secret, 'hex');
+        const hmac = this.hmac (payload, secretKeyBytes, sha256);
+        const signatureB64 = hmac.toString ('base64');
+        return [ signatureB64, timestamp ];
+    }
+
+    private generateAuthenticationHeaders (): any {
+        const [ signature, timestamp ] = this.generateSignature ();
+        return {
+            'x-api-key': this.apiKey,
+            'x-api-signature': signature,
+            'x-api-timestamp': timestamp.toString (),
+        };
+    }
+
+    private authenticateRequest (request: any): any {
+        const headers: Record<string, string> = request.headers ?? {};
+        Object.assign (headers, this.generateAuthenticationHeaders ());
+        request.headers = headers;
+        return request;
+    }
+
     sign (path: string, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const environment = 'production';
+        // TODO revert to production!!!
+        const environment = 'staging';
         let baseUrl: string = undefined;
         if (api.indexOf ('iridium') >= 0) {
             baseUrl = this.urls['api']['rest'][environment]['iridium'];
@@ -260,13 +290,15 @@ export default class cube extends Exchange {
                 url += '?' + this.urlencode (params);
             }
         }
-        if (api === 'private') {
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Referer': 'CCXT',
-                'authorization':
-                    'Basic ' + this.stringToBase64 (this.apiKey + ':' + this.secret),
+        if (api.indexOf ('private') >= 0) {
+            let request: any = {
+                'headers': {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Referer': 'CCXT',
+                },
             };
+            request = this.authenticateRequest (request);
+            headers = request.headers;
             if (method !== 'GET') {
                 body = this.urlencode (params);
             }
