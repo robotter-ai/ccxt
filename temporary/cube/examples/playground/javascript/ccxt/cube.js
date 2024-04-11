@@ -5,18 +5,36 @@ function log(target) {
 }
 
 async function test() {
+    let response: any = undefined;
+
     // log(ccxt.exchanges)
-    const cube = new ccxt.cube()
-    cube.apiKey = process.env['CUBE_API_KEY']
-    cube.secret = process.env['CUBE_API_SECRET']
-    const cubePro = new ccxt.pro.cube()
-    cubePro.apiKey = process.env['CUBE_API_KEY']
-    cubePro.secret = process.env['CUBE_API_SECRET']
-    // log(cube)
-    // log(cubePro)
-    const response = await cube.fetchBalance()
-    log(response)
-    // const response = await cubePro.watchOrderBook('tbtctusdc')
+
+    const exchangeId = 'cube';
+
+    const exchange = new ccxt[exchangeId]()
+    exchange.apiKey = process.env['API_KEY']
+    exchange.secret = process.env['API_SECRET']
+    exchange.options['environment'] = 'staging';
+    // log(exchange)
+
+    const exchangePro = new ccxt.pro[exchangeId]()
+    exchangePro.apiKey = process.env['API_KEY']
+    exchangePro.secret = process.env['API_SECRET']
+    // log(exchangePro)
+
+    // response = await exchange.fetchCurrencies()
+    // log(response)
+    //
+    // response = await exchange.fetchMarkets()
+    // log(response)
+    //
+    // response = await exchange.fetchOrderBook()
+    // log(response)
+    //
+    // response = await exchange.fetchBalance()
+    // log(response)
+    //
+    // response = await cubePro.watchOrderBook('tbtctusdc')
     // log(response)
 }
 
