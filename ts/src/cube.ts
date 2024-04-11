@@ -259,8 +259,8 @@ export default class cube extends Exchange {
         const fixedString = 'cube.xyz';
         const payload = Buffer.concat ([ Buffer.from (fixedString, 'utf-8'), timestampBuffer ]);
         const secretKeyBytes = Buffer.from (this.secret, 'hex');
-        const hmac = this.hmac (payload, secretKeyBytes, sha256);
-        const signatureB64 = hmac.toString ('base64');
+        const hmac = this.hmac (payload, secretKeyBytes, sha256, 'binary');
+        const signatureB64 = Buffer.from (hmac).toString ('base64');
         return [ signatureB64, timestamp ];
     }
 

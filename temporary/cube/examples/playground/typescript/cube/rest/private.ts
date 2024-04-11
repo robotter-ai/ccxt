@@ -35,8 +35,7 @@ class Auth {
   }
 
   private generateSignature(): [string, number] {
-    // const timestamp = Math.floor(Date.now() / 1000);
-    const timestamp = 1712794668;
+    const timestamp = Math.floor(Date.now() / 1000);
 
     const timestampBuffer = Buffer.alloc(8);
     timestampBuffer.writeUInt32LE(timestamp, 0);
@@ -557,4 +556,4 @@ async function osmiumPatchOrder() {
   }
 }
 
-await osmiumDeleteOrder();
+await iridiumGetUsersPositions();
