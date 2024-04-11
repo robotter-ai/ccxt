@@ -237,7 +237,7 @@ export default class cube extends Exchange {
             },
             'options': {
                 'environment': 'production',
-                'subAccountId': undefined,
+                'subaccountId': undefined,
             },
         });
     }
@@ -809,11 +809,7 @@ export default class cube extends Exchange {
             symbol = this.safeSymbol (marketId, market);
         }
         const request = {};
-        if (this.options['subAccountId'] !== undefined) {
-            request['subaccountId'] = this.options['subAccountId'];
-        } else if (params['subAccountId'] !== undefined) {
-            request['subaccountId'] = params['subAccountId'];
-        }
+        this.injectSubAccountId (request, params);
         const response = await this.restOsmiumPrivateGetOrders (this.extend (request, params));
         const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
         return this.parseOrders (rawOrders, market, since, limit);
@@ -832,30 +828,45 @@ export default class cube extends Exchange {
          * @method
          * @name cube#fetchOrder
          * @description fetches information on an order made by the user
-         * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
+         * @see https://cubexch.gitbook.io/cube-api/rest-osmium-api#orders
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets();
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            const marketId = symbol.toLowerCase ();
+            market = this.market (marketId);
+            symbol = this.safeSymbol (marketId, market);
+        }
         const request = {};
-        const response = await this.restOsmiumPrivateGetOrders(this.extend(request, params));
-        const rawOrders = this.safeDict(this.safeDict(response, 'result'), 'orders');
-        let targetRawOrder = undefined;
+        this.injectSubAccountId (request, params);
+        const response = await this.restOsmiumPrivateGetOrders (this.extend (request, params));
+        const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
+        let rawOrder = undefined;
         for (let i = 0; i < rawOrders.length; i++) {
-            const rawOrder = rawOrders[i];
-            const rawOrderId = this.safeString(rawOrder, 'orderId');
-            if (rawOrderId === id) {
-                targetRawOrder = rawOrder;
+            const currentRawOrder = this.safeDict (rawOrders, i);
+            if (id == currentRawOrder['id']) {
+                rawOrder = currentRawOrder['']
             }
         }
-        if (targetRawOrder) {
-            return this.parseOrder(targetRawOrder, undefined);
+        const order = this.parseOrder (rawOrder, market);
+        if (order !== undefined) {
+            return order;
         }
         throw new OrderNotFound('Order "' + id + '" not found.');
     }
     parseOrder(order, market = undefined) {
         // TODO implement!!!
         return this.safeOrder ();
+    }
+
+    injectSubAccountId(request, params) {
+        if (this.safeInteger (params, 'subaccountId') !== undefined) {
+            request['subaccountId'] = this.safeInteger (params, 'subaccountId');
+        } else if (this.safeInteger (this.options, 'subaccountId') !== undefined) {
+            request['subaccountId'] = this.safeInteger (this.options, 'subaccountId');
+        }
     }
 }

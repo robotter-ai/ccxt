@@ -37,7 +37,12 @@ async function test() {
     //
     // response = await exchange.fetchBalance()
     // log(response)
-    response = await exchange.fetchOpenOrders(marketSymbol, undefined, undefined, {
+    // response = await exchange.fetchOpenOrders(marketSymbol, undefined, undefined, {
+    //     subAccountId
+    // })
+    // log(response)
+    const orderId = ''
+    response = await exchange.fetchOrder(orderId, marketSymbol, {
         subAccountId
     })
     log(response)
