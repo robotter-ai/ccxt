@@ -246,7 +246,9 @@ export default class cube extends Exchange {
                     'Order not found': BadRequest,
                 },
             },
-            'options': {},
+            'options': {
+                'environment': 'staging', // TODO revert to production!!!
+            },
         });
     }
 
@@ -279,8 +281,7 @@ export default class cube extends Exchange {
     }
 
     sign (path: string, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        // TODO revert to production!!!
-        const environment = 'staging';
+        const environment = this.options['environment'];
         let baseUrl: string = undefined;
         if (api.indexOf ('iridium') >= 0) {
             baseUrl = this.urls['api']['rest'][environment]['iridium'];
@@ -298,8 +299,9 @@ export default class cube extends Exchange {
         }
         if (api.indexOf ('private') >= 0) {
             let request: any = {
+                'body': body,
                 'headers': {
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Type': 'application/json',
                     'Referer': 'CCXT',
                 },
             };
@@ -758,7 +760,6 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
-        // IMPLEMENTAR A LÓGICA!!!
         await this.loadMarkets ();
         const response = await this.restIridiumPrivateGetUsersPositions (params);
         const result = this.safeDict (response, 'balances', {});

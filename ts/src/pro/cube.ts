@@ -87,7 +87,7 @@ export default class cube extends cubeRest {
          */
         await this.loadMarkets ();
         const environment = this.options['environment'];
-        const marketId = this.safeStringLower (symbol);
+        const marketId = symbol.toLowerCase ();
         const market = this.market (marketId);
         symbol = this.safeSymbol (marketId, market);
         const url = this.urls['api']['ws'][environment]['mendelev'] + this.options['api']['ws']['mendelev']['public']['orderbook'];
