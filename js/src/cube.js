@@ -740,25 +740,33 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        // IMPLEMENTAR A LÓGICA!!!
         await this.loadMarkets();
-        const market = this.market(symbol);
+        const marketId = symbol.toLowerCase();
+        const market = this.market(marketId);
+        const rawMarketId = this.safeInteger(this.safeDict(market, 'info'), 'marketId');
+        const exchangePrice = price * 100;
+        const exchangeAmount = amount * 100;
+        const exchangeSide = side;
+        const exchangeOrderType = type;
+        const timestamp = Date.now();
+        const clientOrderIdFromParams = this.safeInteger(params, 'clientOrderId')
+        const clientOrderId = (clientOrderIdFromParams === null || clientOrderIdFromParams === undefined) ? timestamp : clientOrderIdFromParams;
         const request = {
-            'market': market['id'],
-            'quantity': this.parseToNumeric(this.amountToPrecision(symbol, amount)),
-            'price': this.parseToNumeric(this.priceToPrecision(symbol, price)),
+            'clientOrderId': clientOrderId,
+            'requestId': this.safeInteger(params, 'requestId'),
+            'marketId': rawMarketId,
+            'price': exchangePrice,
+            'quantity': exchangeAmount,
+            'side': exchangeSide,
+            'timeInForce': this.safeInteger(params, 'timeInForce'),
+            'orderType': exchangeOrderType,
+            'selfTradePrevention': this.safeInteger(params, 'selfTradePrevention'),
+            'postOnly': this.safeInteger(params, 'postOnly'),
+            'cancelOnDisconnect': this.safeBool(params, 'cancelOnDisconnect'),
         };
-        if (type === 'market') {
-            throw new BadRequest(this.id + ' createOrder does not support market orders');
-        }
-        let response = undefined;
-        if (side === 'buy') {
-            response = await this.restOsmiumPrivatePostOrder(this.extend(request, params));
-        }
-        else {
-            response = await this.restOsmiumPrivatePostOrder(this.extend(request, params));
-        }
-        return this.parseOrder(response, market);
+        this.injectSubAccountId (request, params);
+        const response = await this.restOsmiumPrivatePostOrder(request);
+        return this.parseOrder(response);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
