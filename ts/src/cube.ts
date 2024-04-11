@@ -887,6 +887,8 @@ export default class cube extends Exchange {
     }
 
     parseOrder (order, market: Market = undefined): Order {
-        throw Error ('Not implemented!'); // TODO implement!!!
+        return this.safeOrder ({
+
+        });
     }
 }
