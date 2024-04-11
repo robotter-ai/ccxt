@@ -59,7 +59,7 @@ export default class cube extends cubeRest {
                 },
             },
             'options': {
-                'environment': 'staging',
+                'environment': 'production',
                 'api': {
                     'ws': {
                         'mendelev': {

@@ -247,7 +247,7 @@ export default class cube extends Exchange {
                 },
             },
             'options': {
-                'environment': 'staging', // TODO revert to production!!!
+                'environment': 'production',
             },
         });
     }
