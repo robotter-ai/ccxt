@@ -39,7 +39,6 @@ import {
     Trade,
 } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import {output} from "./static_dependencies/noble-hashes/_assert.ts";
 
 // ---------------------------------------------------------------------------
 
@@ -780,21 +779,23 @@ export default class cube extends Exchange {
         const marketId = symbol.toLowerCase ();
         const market = this.market (symbol);
         const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
-        const transformedPrice = price * 100;
-        const transformedAmount = amount * 100;
+        const exchangePrice = price * 100;
+        const exchangeAmount = amount * 100;
+        const exchangeSide = 1; // TODO fix!!!
+        const exchangeOrderType = 0; // TODO fix!!!
         const request = {
             'clientOrderId': this.safeInteger (params, 'clientOrderId'),
             'requestId': this.safeInteger (params, 'requestId'),
             'marketId': rawMarketId,
-            'price': transformedPrice,
-            'quantity': transformedAmount,
-            'side': 1,
-            'timeInForce': 1, // TODO verify!!!
-            'orderType': 0,
-            'subaccountId': 161,
-            'selfTradePrevention': 0,
-            'postOnly': 0,
-            'cancelOnDisconnect': false,
+            'price': exchangePrice,
+            'quantity': exchangeAmount,
+            'side': exchangeSide,
+            'timeInForce': this.safeInteger (params, 'timeInForce'),
+            'orderType': exchangeOrderType,
+            'subaccountId': this.safeInteger (params, 'subaccountId'),
+            'selfTradePrevention': this.safeInteger (params, 'selfTradePrevention'),
+            'postOnly': this.safeInteger (params, 'postOnly'),
+            'cancelOnDisconnect': this.safeBool (params, 'cancelOnDisconnect'),
         };
         const response = await this.restOsmiumPrivatePostOrder (this.extend (request, params));
         return this.parseOrder (response, market);
