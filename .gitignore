@@ -41,7 +41,3 @@ __pycache__
 *.pyc
 bin/
 obj/
-
-# TODO This is temporary, remove!!!
-!js/src/cube.js
-!js/src/pro/cube.js
