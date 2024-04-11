@@ -39,6 +39,7 @@ import {
     Trade,
 } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import {output} from "./static_dependencies/noble-hashes/_assert.ts";
 
 // ---------------------------------------------------------------------------
 
@@ -750,7 +751,15 @@ export default class cube extends Exchange {
     }
 
     parseBalances (response): Balances {
-        throw Error ('Not implemented!'); // TODO fix!!!
+        // TODO fill and fix!!!
+        return this.safeBalance ({
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'free': {},
+            'used': {},
+            'total': {},
+        });
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -758,31 +767,36 @@ export default class cube extends Exchange {
          * @method
          * @name cube#createOrder
          * @description create a trade order
+         * @see https://cubexch.gitbook.io/cube-api/rest-osmium-api#order
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type not used by tradeogre
+         * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency
+         * @param {float} amount how much of you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        // IMPLEMENTAR A LÓGICA!!!
         await this.loadMarkets ();
+        const marketId = symbol.toLowerCase ();
         const market = this.market (symbol);
+        const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
+        const transformedPrice = price * 100;
+        const transformedAmount = amount * 100;
         const request = {
-            'market': market['id'],
-            'quantity': this.parseToNumeric (this.amountToPrecision (symbol, amount)),
-            'price': this.parseToNumeric (this.priceToPrecision (symbol, price)),
+            'clientOrderId': this.safeInteger (params, 'clientOrderId'),
+            'requestId': this.safeInteger (params, 'requestId'),
+            'marketId': rawMarketId,
+            'price': transformedPrice,
+            'quantity': transformedAmount,
+            'side': 1,
+            'timeInForce': 1, // TODO verify!!!
+            'orderType': 0,
+            'subaccountId': 161,
+            'selfTradePrevention': 0,
+            'postOnly': 0,
+            'cancelOnDisconnect': false,
         };
-        if (type === 'market') {
-            throw new BadRequest (this.id + ' createOrder does not support market orders');
-        }
-        let response = undefined;
-        if (side === 'buy') {
-            response = await this.restOsmiumPrivatePostOrder (this.extend (request, params));
-        } else {
-            response = await this.restOsmiumPrivatePostOrder (this.extend (request, params));
-        }
+        const response = await this.restOsmiumPrivatePostOrder (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 

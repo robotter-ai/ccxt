@@ -5,21 +5,23 @@ function log(target) {
 }
 
 async function test() {
-    let response: any = undefined;
+    let response = undefined;
 
     // log(ccxt.exchanges)
 
+    const environment = 'staging';
     const exchangeId = 'cube';
 
     const exchange = new ccxt[exchangeId]()
     exchange.apiKey = process.env['API_KEY']
     exchange.secret = process.env['API_SECRET']
-    exchange.options['environment'] = 'staging';
+    exchange.options['environment'] = environment
     // log(exchange)
 
     const exchangePro = new ccxt.pro[exchangeId]()
     exchangePro.apiKey = process.env['API_KEY']
     exchangePro.secret = process.env['API_SECRET']
+    exchange.options['environment'] = environment
     // log(exchangePro)
 
     // response = await exchange.fetchCurrencies()
@@ -31,8 +33,8 @@ async function test() {
     // response = await exchange.fetchOrderBook()
     // log(response)
     //
-    // response = await exchange.fetchBalance()
-    // log(response)
+    response = await exchange.fetchBalance()
+    log(response)
     //
     // response = await cubePro.watchOrderBook('tbtctusdc')
     // log(response)
