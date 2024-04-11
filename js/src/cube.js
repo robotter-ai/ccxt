@@ -865,8 +865,12 @@ export default class cube extends Exchange {
     injectSubAccountId(request, params) {
         if (this.safeInteger (params, 'subaccountId') !== undefined) {
             request['subaccountId'] = this.safeInteger (params, 'subaccountId');
+        } else if (this.safeInteger (params, 'subAccountId') !== undefined) {
+            request['subaccountId'] = this.safeInteger (params, 'subAccountId');
         } else if (this.safeInteger (this.options, 'subaccountId') !== undefined) {
-            request['subaccountId'] = this.safeInteger (this.options, 'subaccountId');
+            request['subaccountId'] = this.safeInteger(this.options, 'subaccountId');
+        } else if (this.safeInteger (this.options, 'subAccountId') !== undefined) {
+            request['subaccountId'] = this.safeInteger (this.options, 'subAccountId');
         }
     }
 }

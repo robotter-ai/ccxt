@@ -18,6 +18,7 @@ async function test() {
     exchange.apiKey = process.env['API_KEY']
     exchange.secret = process.env['API_SECRET']
     exchange.options['environment'] = environment
+    exchange.options['subaccountId'] = subAccountId
     // log(exchange)
 
     // const exchangePro = new ccxt.pro[exchangeId]()
