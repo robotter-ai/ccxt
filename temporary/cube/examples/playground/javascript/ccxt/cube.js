@@ -33,7 +33,7 @@ async function test() {
     // response = await exchange.fetchMarkets()
     // log(response)
     //
-    // response = await exchange.fetchOrderBook()
+    // response = await exchange.fetchOrderBook('tSOLtUSDC')
     // log(response)
     //
     // response = await exchange.fetchBalance()
@@ -42,14 +42,26 @@ async function test() {
     //     subAccountId
     // })
     // log(response)
-    const orderId = ''
-    response = await exchange.fetchOrder(orderId, marketSymbol, {
-        subAccountId
-    })
-    log(response)
-
+    // const orderId = ''
+    // response = await exchange.fetchOrder(orderId, marketSymbol, {
+    //     subAccountId
+    // })
+    // log(response)
+    //
     // response = await cubePro.watchOrderBook('tbtctusdc')
     // log(response)
+    response = await exchange.createOrder(
+        'tSOLtUSDC', 1, 1, 0.1, 180.0,
+        {
+            "requestId": 1,
+            "subaccountId": subAccountId,
+            "selfTradePrevention": 0,
+            "postOnly": 0,
+            "timeInForce": 1,
+            "cancelOnDisconnect": false
+        }
+    )
+    log(response)
 }
 
 test()
