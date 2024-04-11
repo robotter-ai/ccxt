@@ -776,7 +776,7 @@ export default class cube extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const marketId = symbol.toLowerCase ();
+        // const marketId = symbol.toLowerCase ();
         const market = this.market (symbol);
         const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
         const exchangePrice = price * 100;

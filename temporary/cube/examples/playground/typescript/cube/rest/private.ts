@@ -60,8 +60,8 @@ class Auth {
 
 // IRIDIUM GET USERS CHECK
 async function iridiumGetUsersCheck() {
-  const apiKey = Deno.env.get("CUBE_API_KEY");
-  const apiSecret = Deno.env.get("CUBE_API_SECRET");
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
 
   const auth = new Auth(apiKey, apiSecret);
 
@@ -90,8 +90,8 @@ async function iridiumGetUsersCheck() {
 
 // IRIDIUM GET USERS INFO
 async function iridiumGetUsersInfo() {
-  const apiKey = Deno.env.get("CUBE_API_KEY");
-  const apiSecret = Deno.env.get("CUBE_API_SECRET");
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
 
   const auth = new Auth(apiKey, apiSecret);
 
@@ -120,8 +120,8 @@ async function iridiumGetUsersInfo() {
 
 // IRIDIUM GET USERS POSITIONS
 async function iridiumGetUsersPositions() {
-  const apiKey = Deno.env.get("CUBE_API_KEY");
-  const apiSecret = Deno.env.get("CUBE_API_SECRET");
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
 
   const auth = new Auth(apiKey, apiSecret);
 
@@ -150,8 +150,8 @@ async function iridiumGetUsersPositions() {
 
 // IRIDIUM GET USERS TRANSFERS
 async function iridiumGetUsersTransfers() {
-  const apiKey = Deno.env.get("CUBE_API_KEY");
-  const apiSecret = Deno.env.get("CUBE_API_SECRET");
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
 
   const auth = new Auth(apiKey, apiSecret);
 
@@ -180,8 +180,8 @@ async function iridiumGetUsersTransfers() {
 
 // IRIDIUM GET USERS DEPOSITS
 async function iridiumGetUsersDeposits() {
-  const apiKey = Deno.env.get("CUBE_API_KEY");
-  const apiSecret = Deno.env.get("CUBE_API_SECRET");
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
 
   const auth = new Auth(apiKey, apiSecret);
 
@@ -210,8 +210,8 @@ async function iridiumGetUsersDeposits() {
 
 // IRIDIUM GET USERS WITHDRAWALS
 async function iridiumGetUsersWithdrawals() {
-  const apiKey = Deno.env.get("CUBE_API_KEY");
-  const apiSecret = Deno.env.get("CUBE_API_SECRET");
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
 
   const auth = new Auth(apiKey, apiSecret);
 
@@ -240,8 +240,8 @@ async function iridiumGetUsersWithdrawals() {
 
 // IRIDIUM GET USERS ORDERS
 async function iridiumGetUsersOrders() {
-  const apiKey = Deno.env.get("CUBE_API_KEY");
-  const apiSecret = Deno.env.get("CUBE_API_SECRET");
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
 
   const auth = new Auth(apiKey, apiSecret);
 
@@ -271,8 +271,8 @@ async function iridiumGetUsersOrders() {
 
 // IRIDIUM GET USERS FILLS
 async function iridiumGetUsersFills() {
-  const apiKey = Deno.env.get("CUBE_API_KEY");
-  const apiSecret = Deno.env.get("CUBE_API_SECRET");
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
 
   const auth = new Auth(apiKey, apiSecret);
 
@@ -302,8 +302,8 @@ async function iridiumGetUsersFills() {
 
 // IRIDIUM POST USERS SUBACCOUNTS
 async function iridiumPostUsersSubaccounts() {
-  const apiKey = Deno.env.get("CUBE_API_KEY");
-  const apiSecret = Deno.env.get("CUBE_API_SECRET");
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
 
   const auth = new Auth(apiKey, apiSecret);
 
@@ -336,8 +336,8 @@ async function iridiumPostUsersSubaccounts() {
 
 // IRIDIUM POST USERS SUBACCOUNTS ID
 async function iridiumPostUsersSubaccountsId() {
-  const apiKey = Deno.env.get("CUBE_API_KEY");
-  const apiSecret = Deno.env.get("CUBE_API_SECRET");
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
 
   const auth = new Auth(apiKey, apiSecret);
 
@@ -370,8 +370,8 @@ async function iridiumPostUsersSubaccountsId() {
 
 // OSMIUM GET ORDERS
 async function osmiumGetOrders() {
-  const apiKey = Deno.env.get("CUBE_API_KEY");
-  const apiSecret = Deno.env.get("CUBE_API_SECRET");
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
 
   const auth = new Auth(apiKey, apiSecret);
 
@@ -401,8 +401,8 @@ async function osmiumGetOrders() {
 
 // OSMIUM DELETE ORDERS
 async function osmiumDeleteOrders() {
-  const apiKey = Deno.env.get("CUBE_API_KEY");
-  const apiSecret = Deno.env.get("CUBE_API_SECRET");
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
 
   const auth = new Auth(apiKey, apiSecret);
 
@@ -437,8 +437,8 @@ async function osmiumDeleteOrders() {
 
 // OSMIUM POST ORDER
 async function osmiumPostOrder() {
-  const apiKey = Deno.env.get("CUBE_API_KEY");
-  const apiSecret = Deno.env.get("CUBE_API_SECRET");
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
 
   const auth = new Auth(apiKey, apiSecret);
 
@@ -481,8 +481,8 @@ async function osmiumPostOrder() {
 
 // OSMIUM DELETE ORDER
 async function osmiumDeleteOrder() {
-  const apiKey = Deno.env.get("CUBE_API_KEY");
-  const apiSecret = Deno.env.get("CUBE_API_SECRET");
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
 
   const auth = new Auth(apiKey, apiSecret);
 
@@ -517,8 +517,8 @@ async function osmiumDeleteOrder() {
 
 // OSMIUM PATCH ORDER
 async function osmiumPatchOrder() {
-  const apiKey = Deno.env.get("CUBE_API_KEY");
-  const apiSecret = Deno.env.get("CUBE_API_SECRET");
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
 
   const auth = new Auth(apiKey, apiSecret);
 
