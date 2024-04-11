@@ -11,6 +11,8 @@ async function test() {
 
     const environment = 'staging';
     const exchangeId = 'cube';
+    const subAccountId = process.env['SUB_ACCOUNT_ID'];
+    const marketSymbol = 'tsoltusdc';
 
     const exchange = new ccxt[exchangeId]()
     exchange.apiKey = process.env['API_KEY']
@@ -18,10 +20,10 @@ async function test() {
     exchange.options['environment'] = environment
     // log(exchange)
 
-    const exchangePro = new ccxt.pro[exchangeId]()
-    exchangePro.apiKey = process.env['API_KEY']
-    exchangePro.secret = process.env['API_SECRET']
-    exchange.options['environment'] = environment
+    // const exchangePro = new ccxt.pro[exchangeId]()
+    // exchangePro.apiKey = process.env['API_KEY']
+    // exchangePro.secret = process.env['API_SECRET']
+    // exchange.options['environment'] = environment
     // log(exchangePro)
 
     // response = await exchange.fetchCurrencies()
@@ -33,9 +35,13 @@ async function test() {
     // response = await exchange.fetchOrderBook()
     // log(response)
     //
-    response = await exchange.fetchBalance()
+    // response = await exchange.fetchBalance()
+    // log(response)
+    response = await exchange.fetchOpenOrders(marketSymbol, undefined, undefined, {
+        subAccountId
+    })
     log(response)
-    //
+
     // response = await cubePro.watchOrderBook('tbtctusdc')
     // log(response)
 }

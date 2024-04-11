@@ -237,6 +237,7 @@ export default class cube extends Exchange {
             },
             'options': {
                 'environment': 'production',
+                'subAccountId': undefined,
             },
         });
     }
@@ -800,19 +801,32 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        // IMPLEMENTAR A LÓGICA!!!
-        await this.loadMarkets();
+        await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
+            const marketId = symbol.toLowerCase ();
+            market = this.market (marketId);
+            symbol = this.safeSymbol (marketId, market);
         }
         const request = {};
-        if (symbol !== undefined) {
-            request['market'] = market['id'];
+        if (this.options['subAccountId'] !== undefined) {
+            request['subaccountId'] = this.options['subAccountId'];
+        } else if (params['subAccountId'] !== undefined) {
+            request['subaccountId'] = params['subAccountId'];
         }
-        const response = await this.restOsmiumPrivateGetOrders(this.extend(request, params));
-        return this.parseOrders(response, market, since, limit);
+        const response = await this.restOsmiumPrivateGetOrders (this.extend (request, params));
+        const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
+        return this.parseOrders (rawOrders, market, since, limit);
     }
+
+    parseOrders(orders, market = undefined, since = undefined, limit = undefined, params = {}) {
+        for (let i = 0; i < orders.length; i++) {
+            const order = this.safeDict (orders, i);
+            order['id'] = this.safeString (order, 'exchangeOrderId');
+        }
+        return super.parseOrders (orders, market, since, limit, params);
+    }
+
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
          * @method
@@ -841,6 +855,7 @@ export default class cube extends Exchange {
         throw new OrderNotFound('Order "' + id + '" not found.');
     }
     parseOrder(order, market = undefined) {
-        throw Error('Not implemented!'); // TODO implement!!!
+        // TODO implement!!!
+        return this.safeOrder ();
     }
 }
