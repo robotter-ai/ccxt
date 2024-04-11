@@ -589,28 +589,11 @@ export default class cube extends Exchange {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
-        const request = {};
-        // const response = await this.restMendelevPublicGetBookMarketIdSnapshot(this.extend(request, params));
-        //
-        // {
-        //   result: {
-        //       levels: [
-        //           {
-        //               price: 49301,
-        //               quantity: 33350,
-        //               side: 0,
-        //           },
-        //           {
-        //               price: 50535,
-        //               quantity: 63259,
-        //               side: 1,
-        //           }
-        //       ],
-        //       lastTransactTime: 1711543858131858200,
-        //       lastTradePrice: 48676,
-        //   },
-        // }
-        //
+        const marketId = symbol.toLowerCase();
+        const market = this.market(marketId);
+        const marketInfo = this.safeDict(market, 'info');
+        const symbolFromInfo = this.safeString(marketInfo, 'symbol');
+        const request = { 'market_symbol': symbolFromInfo };
         const response = await this.restMendelevPublicGetParsedBookMarketSymbolSnapshot(this.extend(request, params));
         //
         // {
@@ -638,11 +621,11 @@ export default class cube extends Exchange {
             'bids': rawBids,
             'asks': rawAsks,
         };
-        const orderbook = this.parseOrderBook(rawOrderbook, symbol);
-        return orderbook;
+        const timestamp = this.safeTimestamp(this.safeDict(response, 'result'), 'timestamp');
+        return this.parseOrderBook(rawOrderbook, symbol, timestamp, 'bids', 'asks');
     }
     parseBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
-        throw Error('Not implemented!'); // TODO fix!!!
+        return bidasks;
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
