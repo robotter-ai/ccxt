@@ -47,9 +47,7 @@ async function test() {
     //     subAccountId
     // })
     // log(response)
-    //
-    // response = await cubePro.watchOrderBook('tbtctusdc')
-    // log(response)
+
     // response = await exchange.createOrder(
     //     'tSOLtUSDC', 1, 1, 0.1, 180.0,
     //     {
@@ -69,6 +67,10 @@ async function test() {
         "side": 1, // 0: buy, 1: sell
     })
     log(response)
+
+    //
+    // response = await cubePro.watchOrderBook('tbtctusdc')
+    // log(response)
 }
 
 test()

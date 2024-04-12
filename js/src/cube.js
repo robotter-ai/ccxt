@@ -295,8 +295,10 @@ export default class cube extends Exchange {
             };
             request = this.authenticateRequest(request);
             headers = request.headers;
-            if (method !== 'GET') {
+            if (method === 'GET') {
                 body = this.urlencode(params);
+            } else {
+                body = params
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -765,7 +767,7 @@ export default class cube extends Exchange {
             'cancelOnDisconnect': this.safeBool(params, 'cancelOnDisconnect'),
         };
         this.injectSubAccountId (request, params);
-        const response = await this.restOsmiumPrivatePostOrder(request);
+        const response = await this.restOsmiumPrivatePostOrder(this.extend(request, params));
         return this.parseOrder(response);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
