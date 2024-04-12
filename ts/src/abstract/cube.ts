@@ -18,6 +18,7 @@ interface Exchange {
     restIridiumPrivateGetUsersWithdrawals (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersOrders (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersFills (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivateGetUsersFeeEstimateMarketId(params?: {}): Promise<implicitReturnType>;
     restIridiumPrivatePostUsersSubaccounts (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivatePostUsersSubaccountsSubaccountId (params?: {}): Promise<implicitReturnType>;
     restMendelevPublicGetBookMarketIdSnapshot (params?: {}): Promise<implicitReturnType>;

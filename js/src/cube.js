@@ -30,6 +30,7 @@ BadRequest,
  } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import {safeInteger} from "./base/functions/type.js";
 // ---------------------------------------------------------------------------
 /**
  * @class cube
@@ -113,6 +114,7 @@ export default class cube extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
                 'fetchTradingLimits': false,
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
@@ -187,6 +189,7 @@ export default class cube extends Exchange {
                                 '/users/withdrawals': 1,
                                 '/users/orders': 1,
                                 '/users/fills': 1,
+                                '/users/fee-estimate/{market_id}': 1,
                             },
                             'post': {
                                 '/users/subaccounts': 1,
@@ -879,9 +882,159 @@ export default class cube extends Exchange {
         }
         throw new OrderNotFound('Order "' + id + '" not found.');
     }
+
     parseOrder(order, market = undefined) {
-        // TODO implement!!!
-        return this.safeOrder ();
+        return this.parseOrderAssync(order, market);
+    }
+
+    async parseOrderAssync(order, market = undefined) {
+        const orderExample = {
+            "msgSeqNum": 2145835,
+            "clientOrderId": 1712612349538,
+            "requestId": 1,
+            "exchangeOrderId": 5144313456,
+            "marketId": 200047,
+            "price": 30500,
+            "quantity": 10000,
+            "side": 1,
+            "timeInForce": 1,
+            "orderType": 0,
+            "transactTime": 1712683658954820900,
+            "subaccountId": 161,
+            "cancelOnDisconnect": false
+        }
+        const marketExample = {
+            "id": "tsoltusdc",
+            "lowercaseId": "tsoltusdc",
+            "symbol": "TSOL/TUSDC",
+            "base": "TSOL",
+            "quote": "TUSDC",
+            "baseId": "TSOL",
+            "quoteId": "TUSDC",
+            "type": "spot",
+            "spot": true,
+            "margin": false,
+            "swap": false,
+            "future": false,
+            "option": false,
+            "index": false,
+            "active": true,
+            "contract": false,
+            "taker": 0.008,
+            "maker": 0.004,
+            "precision": {
+                "amount": 1,
+                "price": 1
+            },
+            "limits": {
+                "leverage": {},
+                "amount": {},
+                "price": {},
+                "cost": {}
+            },
+            "info": {
+                "marketId": "200047",
+                "symbol": "tSOLtUSDC",
+                "baseAssetId": "80005",
+                "baseLotSize": "100000",
+                "quoteAssetId": "80007",
+                "quoteLotSize": "1",
+                "priceDisplayDecimals": "2",
+                "protectionPriceLevels": "1000",
+                "priceBandBidPct": "25",
+                "priceBandAskPct": "400",
+                "priceTickSize": "0.01",
+                "quantityTickSize": "0.0001",
+                "feeTableId": "2",
+                "status": "1",
+                "displayRank": "3",
+                "listedAt": "2023-10-29T00:00:00Z",
+                "isPrimary": true
+            }
+        }
+        const timestampInNanoseconds = this.safeString (orderExample, 'transactTime');
+        const timestampInMilliseconds = timestampInNanoseconds / 1000000;
+        const datetime = new Date(timestampInMilliseconds);
+        const orderSide = this.safeString (orderExample, 'clientOrderId')  == 0 ? 'buy' : 'sell';
+        const orderType = '';
+        if (this.safeString (orderExample, 'orderType') == 0) {
+            orderType = 'limit';
+        } else if (this.safeString (orderExample, 'orderType') == 1) {
+            orderType = 'market';
+        } else if (this.safeString (orderExample, 'orderType') == 2) {
+            orderType = 'MARKET_WITH_PROTECTION';
+        } else {
+            throw Error('OrderType was not recognized.');
+        }
+        const price = this.safeString (orderExample, 'price') / 100;
+        // const amount = this.safeString (orderExample, 'quantity') / 100;
+        const symbol = this.safeString (marketExample, 'base') +  '/' + this.safeString (marketExample, 'quote');
+        const timeInForce = '';
+        if (this.safeString (orderExample, 'timeInForce') == 0) {
+            timeInForce = 'IOC';
+        } else if (this.safeString (orderExample, 'timeInForce') == 1) {
+            timeInForce = 'GTC';
+        } else if (this.safeString (orderExample, 'timeInForce') == 2) {
+            timeInForce = 'FOK';
+        } else {
+            throw Error('Time-in-force (TIF) was not recognized.');
+        }
+
+        const subaccountId = this.safeInteger(this.options, 'subaccountId');
+        const marketSymbol = this.safeString(this.safeDict(marketExample, 'info'), 'symbol');
+        const exchangeOrderId = this.safeInteger(orderExample, 'exchangeOrderId');
+
+        const orderMoreInfo = await this.fetchOrder(exchangeOrderId, marketSymbol,
+            {
+                subaccountId
+            }
+        )
+
+        // {
+        //     "clientOrderId": "<integer>",
+        //     "cumulativeQuantity": "<integer>",
+        //     "exchangeOrderId": "<integer>",
+        //     "marketId": "<integer>",
+        //     "orderQuantity": "<integer>",
+        //     "orderType": "<integer>",
+        //     "price": "<integer>",
+        //     "remainingQuantity": "<integer>",
+        //     "restTime": "<integer>",
+        //     "side": "<integer>",
+        //     "subaccountId": "<integer>",
+        //     "timeInForce": "<integer>"
+        // }
+
+        const amount = this.safeInteger(orderMoreInfo, 'orderQuantity');
+        const remainingAmount = this.safeInteger(orderMoreInfo, 'remainingQuantity');
+        const filledAmount = amount - remainingAmount;
+
+        const result = {
+            "id": this.selfString (orderExample, 'exchangeOrderId'),
+            "clientOrderId": this.selfString (orderExample, 'clientOrderId'),
+            "datetime": datetime,
+            "timestamp": timestampInMilliseconds,
+            "lastTradeTimestamp": 1502962956216,
+            "status": 'open',
+            "symbol": symbol,
+            "type": orderType,
+            "timeInForce": timeInForce,
+            "side": orderSide,
+            "price": price,
+            "average": 0.06917684,
+            "amount": amount / 100,
+            "filled": filledAmount / 100,
+            "remaining": remainingAmount / 100,
+            "cost": 0.076094524,
+            "trades": [],
+            "fee": {
+                "currency": "BTC",
+                "cost": 0,
+                "rate": 0
+            },
+            "info": orderMoreInfo
+        }
+        return this.safeOrder (result);
     }
 
     injectSubAccountId(request, params) {
@@ -894,5 +1047,56 @@ export default class cube extends Exchange {
         } else if (this.safeInteger (this.options, 'subAccountId') !== undefined) {
             request['subaccountId'] = this.safeInteger (this.options, 'subAccountId');
         }
+    }
+
+    // async fetchTradingFee(symbol, params = {}) {
+    //     /**
+    //      * @method
+    //      * @name cube#feeEstimate
+    //      * @description brings the estimated rates that the user will pay in this market
+    //      * @param {string} marketId market id
+    //      * @param {object} [params] extra parameters specific to the exchange API endpoint
+    //      */
+    //     await this.loadMarkets();
+    //     const request = {
+    //         'market_id': marketId
+    //     }
+    //     const response = await this.restIridiumPrivateGetUsersFeeEstimateMarketId(this.extend(request, params));
+    //     return response;
+    // }
+
+    async fetchTradingFee(symbol, params = {}) {
+        /**
+         * @method
+         * @name luno#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @see https://cubexch.gitbook.io/cube-api/rest-iridium-api#users-fee-estimate-market-id
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         */
+        await this.loadMarkets();
+        const marketId = symbol.toLowerCase();
+        const market = this.market(marketId);
+        const rawMarketId = this.safeInteger(this.safeDict(market, 'info'), 'marketId');
+        const request = {
+            'market_id': marketId
+        }
+        // {
+        //     "result": {
+        //     "userKey": "123e4567-e89b-12d3-a456-426614174000",
+        //     "makerFeeRatio": 0,
+        //     "takerFeeRatio": 0
+        //     }
+        // }
+        const response = await this.restIridiumPrivateGetUsersFeeEstimateMarketId(this.extend(request, params));
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': this.safeNumber(response, 'maker_fee'),
+            'taker': this.safeNumber(response, 'taker_fee'),
+            'percentage': undefined,
+            'tierBased': undefined,
+        };
     }
 }

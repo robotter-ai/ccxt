@@ -60,17 +60,23 @@ async function test() {
     //     }
     // )
     // log(response)
-
-    response = await exchange.cancelAllOrders(marketSymbol, {
-        "subaccountId": subAccountId,
-        "requestId": 1,
-        "side": 1, // 0: buy, 1: sell
-    })
-    log(response)
-
+    //
+    // response = await exchange.cancelAllOrders(marketSymbol, {
+    //     "subaccountId": subAccountId,
+    //     "requestId": 1,
+    //     "side": 1, // 0: buy, 1: sell
+    // })
+    // log(response)
+    //
+    // response = await exchange.parseOrder({})
+    // log(response)
+    //
+    // response = await exchange.fetchEstimatedFees(marketSymbol)
+    // log(response)
     //
     // response = await cubePro.watchOrderBook('tbtctusdc')
     // log(response)
+    //
 }
 
 test()
