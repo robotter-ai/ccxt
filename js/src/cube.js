@@ -784,11 +784,17 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        // IMPLEMENTAR A LÓGICA!!!
         await this.loadMarkets();
+        const marketId = symbol.toLowerCase ();
+        const market = this.market (marketId);
+        symbol = this.safeSymbol (marketId, market);
+        const rawMarketId = this.safeInteger(this.safeDict(market, 'info'), 'marketId');
         const request = {
-            'uuid': id,
+            'clientOrderId': this.safeInteger(params, 'clientOrderId'),
+            'requestId': this.safeInteger(params, 'requestId'),
+            'marketId': rawMarketId,
         };
+        this.injectSubAccountId (request, params);
         const response = await this.restOsmiumPrivateDeleteOrder(this.extend(request, params));
         return this.parseOrder(response);
     }
