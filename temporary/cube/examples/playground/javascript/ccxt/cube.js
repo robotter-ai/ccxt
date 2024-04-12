@@ -50,17 +50,24 @@ async function test() {
     //
     // response = await cubePro.watchOrderBook('tbtctusdc')
     // log(response)
-    response = await exchange.createOrder(
-        'tSOLtUSDC', 1, 1, 0.1, 180.0,
-        {
-            "requestId": 1,
-            "subaccountId": subAccountId,
-            "selfTradePrevention": 0,
-            "postOnly": 0,
-            "timeInForce": 1,
-            "cancelOnDisconnect": false
-        }
-    )
+    // response = await exchange.createOrder(
+    //     'tSOLtUSDC', 1, 1, 0.1, 180.0,
+    //     {
+    //         "requestId": 1,
+    //         "subaccountId": subAccountId,
+    //         "selfTradePrevention": 0,
+    //         "postOnly": 0,
+    //         "timeInForce": 1,
+    //         "cancelOnDisconnect": false
+    //     }
+    // )
+    // log(response)
+
+    response = await exchange.cancelAllOrders(marketSymbol, {
+        "subaccountId": subAccountId,
+        "requestId": 1,
+        "side": 1, // 0: buy, 1: sell
+    })
     log(response)
 }
 

@@ -773,6 +773,7 @@ export default class cube extends Exchange {
          * @method
          * @name cube#cancelOrder
          * @description cancels an open order
+         * @see https://cubexch.gitbook.io/cube-api/rest-osmium-api#order-1
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -791,12 +792,23 @@ export default class cube extends Exchange {
          * @method
          * @name cube#cancelAllOrders
          * @description cancel all open orders
-         * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+         * @see https://cubexch.gitbook.io/cube-api/rest-osmium-api#orders-1
+         * @param {string} symbol cube cancelAllOrders cannot setting symbol, it will cancel all open orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
-        return await this.cancelOrder('all', symbol, params);
+        const marketId = symbol.toLowerCase ();
+        const market = this.market (marketId );
+        symbol = this.safeSymbol (marketId, market);
+        const rawMarkeId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
+        const request = {
+            marketId: rawMarkeId,
+            requestId: this.safeInteger (params, 'requestId'),
+            side: this.safeInteger (params, 'side'),
+        };
+        this.injectSubAccountId (request, params);
+        return await this.restOsmiumPrivateDeleteOrders (this.extend (request, params));
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
