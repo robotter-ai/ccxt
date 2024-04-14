@@ -771,7 +771,7 @@ export default class cube extends Exchange {
         };
         this.injectSubAccountId (request, params);
         const response = await this.restOsmiumPrivatePostOrder(this.extend(request, params));
-        return this.parseOrder(response);
+        return await this.parseOrder(response);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -796,7 +796,7 @@ export default class cube extends Exchange {
         };
         this.injectSubAccountId (request, params);
         const response = await this.restOsmiumPrivateDeleteOrder(this.extend(request, params));
-        return this.parseOrder(response);
+        return await this.parseOrder(response);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -843,15 +843,53 @@ export default class cube extends Exchange {
         this.injectSubAccountId (request, params);
         const response = await this.restOsmiumPrivateGetOrders (this.extend (request, params));
         const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
-        return this.parseOrders (rawOrders, market, since, limit);
+        return await this.parseOrders (rawOrders, market, since, limit);
     }
 
-    parseOrders(orders, market = undefined, since = undefined, limit = undefined, params = {}) {
+    async parseOrders(orders, market = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        // the value of orders is either a dict or a list
+        //
+        // dict
+        //
+        //     {
+        //         'id1': { ... },
+        //         'id2': { ... },
+        //         'id3': { ... },
+        //         ...
+        //     }
+        //
+        // list
+        //
+        //     [
+        //         { 'id': 'id1', ... },
+        //         { 'id': 'id2', ... },
+        //         { 'id': 'id3', ... },
+        //         ...
+        //     ]
+        //
         for (let i = 0; i < orders.length; i++) {
             const order = this.safeDict (orders, i);
             order['id'] = this.safeString (order, 'exchangeOrderId');
         }
-        return super.parseOrders (orders, market, since, limit, params);
+        let results = [];
+        if (Array.isArray(orders)) {
+            for (let i = 0; i < orders.length; i++) {
+                const order = this.extend(this.parseOrder(orders[i], market), params);
+                results.push(order);
+            }
+        }
+        else {
+            const ids = Object.keys(orders);
+            for (let i = 0; i < ids.length; i++) {
+                const id = ids[i];
+                const order = this.extend(this.parseOrder(this.extend({ 'id': id }, orders[id]), market), params);
+                results.push(order);
+            }
+        }
+        results = this.sortBy(results, 'timestamp');
+        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        return this.filterBySymbolSinceLimit(results, symbol, since, limit);
     }
 
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -882,18 +920,14 @@ export default class cube extends Exchange {
                 rawOrder = currentRawOrder['']
             }
         }
-        const order = this.parseOrder (rawOrder, market);
+        const order = await this.parseOrder (rawOrder, market);
         if (order !== undefined) {
             return order;
         }
         throw new OrderNotFound('Order "' + id + '" not found.');
     }
 
-    parseOrder(order, market = undefined) {
-        return this.parseOrderAssync(order, market);
-    }
-
-    async parseOrderAssync(order, market = undefined) {
+    async parseOrder(order, market = undefined) {
         const orderExample = {
             "msgSeqNum": 2145835,
             "clientOrderId": 1712612349538,
@@ -990,7 +1024,7 @@ export default class cube extends Exchange {
         const marketSymbol = this.safeString(this.safeDict(marketExample, 'info'), 'symbol');
         const exchangeOrderId = this.safeInteger(orderExample, 'exchangeOrderId');
 
-        const orderMoreInfo = await this.fetchOrder(exchangeOrderId, marketSymbol,
+        const orderMoreInfo = await this.fetchRawOrder (exchangeOrderId, marketSymbol,
             {
                 subaccountId
             }
@@ -1025,7 +1059,7 @@ export default class cube extends Exchange {
             "clientOrderId": this.selfString (orderExample, 'clientOrderId'),
             "datetime": datetime,
             "timestamp": timestampInMilliseconds,
-            "lastTradeTimestamp": 1502962956216,
+            "lastTradeTimestamp": timestampInMilliseconds,
             "status": 'open',
             "symbol": symbol,
             "type": orderType,
