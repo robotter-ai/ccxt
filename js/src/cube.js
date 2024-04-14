@@ -1014,7 +1014,12 @@ export default class cube extends Exchange {
         const amount = this.safeInteger(orderMoreInfo, 'orderQuantity');
         const remainingAmount = this.safeInteger(orderMoreInfo, 'remainingQuantity');
         const filledAmount = amount - remainingAmount;
-
+        const currency = '';
+        if (orderSide === 'buy') {
+            currency = this.safeString (marketExample, 'base')
+        } else {
+            currency = this.safeString (marketExample, 'quote')
+        }
         const result = {
             "id": this.selfString (orderExample, 'exchangeOrderId'),
             "clientOrderId": this.selfString (orderExample, 'clientOrderId'),
@@ -1034,8 +1039,8 @@ export default class cube extends Exchange {
             "cost": 0.076094524,
             "trades": [],
             "fee": {
-                "currency": "BTC",
-                "cost": 0,
+                "currency": currency, // a deduction from the asset received in this trade
+                "cost": 0, // TODO - create calculation
                 "rate": 0
             },
             "info": orderMoreInfo
@@ -1086,7 +1091,7 @@ export default class cube extends Exchange {
         const market = this.market(marketId);
         const rawMarketId = this.safeInteger(this.safeDict(market, 'info'), 'marketId');
         const request = {
-            'market_id': marketId
+            'market_id': rawMarketId
         }
         // {
         //     "result": {

@@ -71,7 +71,7 @@ async function test() {
     // response = await exchange.parseOrder({})
     // log(response)
     //
-    // response = await exchange.fetchEstimatedFees(marketSymbol)
+    // response = await exchange.fetchTradingFee(marketSymbol)
     // log(response)
     //
     // response = await cubePro.watchOrderBook('tbtctusdc')
