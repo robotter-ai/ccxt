@@ -25,29 +25,39 @@ async function test() {
     // exchangePro.apiKey = process.env['API_KEY']
     // exchangePro.secret = process.env['API_SECRET']
     // exchange.options['environment'] = environment
+    // exchange.options['subaccountId'] = subAccountId
     // log(exchangePro)
 
+    // // Working, but we need the output from the parser.
     // response = await exchange.fetchCurrencies()
     // log(response)
     //
+    // // Working, but we need the output from the parser.
     // response = await exchange.fetchMarkets()
     // log(response)
     //
+    // // Working, but we need the output from the parser (specially the datetime).
     // response = await exchange.fetchOrderBook('tSOLtUSDC')
     // log(response)
     //
+    // // ???
     // response = await exchange.fetchBalance()
     // log(response)
+    //
+    // // ???
     // response = await exchange.fetchOpenOrders(marketSymbol, undefined, undefined, {
     //     subAccountId
     // })
     // log(response)
+    //
+    // // ???
     // const orderId = ''
     // response = await exchange.fetchOrder(orderId, marketSymbol, {
     //     subAccountId
     // })
     // log(response)
-
+    //
+    // // Working, but the parse is not complete.
     // response = await exchange.createOrder(
     //     'tSOLtUSDC', 1, 1, 0.1, 180.0,
     //     {
@@ -61,6 +71,7 @@ async function test() {
     // )
     // log(response)
     //
+    // // Not ready, it needs to be revisited.
     // response = await exchange.cancelAllOrders(marketSymbol, {
     //     "subaccountId": subAccountId,
     //     "requestId": 1,
@@ -68,12 +79,11 @@ async function test() {
     // })
     // log(response)
     //
-    // response = await exchange.parseOrder({})
-    // log(response)
-    //
+    // // Not ready, it needs to be revisited.
     // response = await exchange.fetchTradingFee(marketSymbol)
     // log(response)
     //
+    // // Not implemented.
     // response = await cubePro.watchOrderBook('tbtctusdc')
     // log(response)
     //
