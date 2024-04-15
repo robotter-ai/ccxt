@@ -908,24 +908,25 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            const marketId = symbol.toLowerCase ();
-            market = this.market (marketId);
-            symbol = this.safeSymbol (marketId, market);
-        }
-        const request = {};
-        this.injectSubAccountId (request, params);
-        const response = await this.restOsmiumPrivateGetOrders (this.extend (request, params));
-        const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
-        let rawOrder = undefined;
-        for (let i = 0; i < rawOrders.length; i++) {
-            const currentRawOrder = this.safeDict (rawOrders, i);
-            if (id == currentRawOrder['id']) {
-                rawOrder = currentRawOrder['']
-            }
-        }
+        // await this.loadMarkets ();
+        // let market = undefined;
+        // if (symbol !== undefined) {
+        //     const marketId = symbol.toLowerCase ();
+        //     market = this.market (marketId);
+        //     symbol = this.safeSymbol (marketId, market);
+        // }
+        // const request = {};
+        // this.injectSubAccountId (request, params);
+        // const response = await this.restOsmiumPrivateGetOrders (this.extend (request, params));
+        // const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
+        // let rawOrder = undefined;
+        // for (let i = 0; i < rawOrders.length; i++) {
+        //     const currentRawOrder = this.safeDict (rawOrders, i);
+        //     if (id == currentRawOrder['id']) {
+        //         rawOrder = currentRawOrder['']
+        //     }
+        // }
+        const rawOrder = await this.fetchRawOrder(id, symbol, params);
         const order = await this.parseOrder (rawOrder, market);
         if (order !== undefined) {
             return order;
@@ -1002,7 +1003,7 @@ export default class cube extends Exchange {
         const timestampInMilliseconds = timestampInNanoseconds / 1000000;
         const datetime = new Date(timestampInMilliseconds);
         const orderSide = this.safeString (orderExample, 'clientOrderId')  == 0 ? 'buy' : 'sell';
-        const orderType = '';
+        let orderType = '';
         if (this.safeString (orderExample, 'orderType') == 0) {
             orderType = 'limit';
         } else if (this.safeString (orderExample, 'orderType') == 1) {
@@ -1015,7 +1016,7 @@ export default class cube extends Exchange {
         const price = this.safeString (orderExample, 'price') / 100;
         // const amount = this.safeString (orderExample, 'quantity') / 100;
         const symbol = this.safeString (marketExample, 'base') +  '/' + this.safeString (marketExample, 'quote');
-        const timeInForce = '';
+        let timeInForce = '';
         if (this.safeString (orderExample, 'timeInForce') == 0) {
             timeInForce = 'IOC';
         } else if (this.safeString (orderExample, 'timeInForce') == 1) {
@@ -1025,17 +1026,11 @@ export default class cube extends Exchange {
         } else {
             throw Error('Time-in-force (TIF) was not recognized.');
         }
-
         const subaccountId = this.safeInteger(this.options, 'subaccountId');
         const marketSymbol = this.safeString(this.safeDict(marketExample, 'info'), 'symbol');
+        const marketId = this.safeString (marketExample, 'id');
         const exchangeOrderId = this.safeInteger(orderExample, 'exchangeOrderId');
-
-        const orderMoreInfo = await this.fetchRawOrder (exchangeOrderId, marketSymbol,
-            {
-                subaccountId
-            }
-        )
-
+        const rawOrder = await this.fetchRawOrder(exchangeOrderId, marketId);
         // {
         //     "clientOrderId": "<integer>",
         //     "cumulativeQuantity": "<integer>",
@@ -1050,19 +1045,25 @@ export default class cube extends Exchange {
         //     "subaccountId": "<integer>",
         //     "timeInForce": "<integer>"
         // }
-
-        const amount = this.safeInteger(orderMoreInfo, 'orderQuantity');
-        const remainingAmount = this.safeInteger(orderMoreInfo, 'remainingQuantity');
+        const amount = this.safeInteger(rawOrder, 'orderQuantity');
+        const remainingAmount = this.safeInteger(rawOrder, 'remainingQuantity');
         const filledAmount = amount - remainingAmount;
-        const currency = '';
+        let currency = '';
         if (orderSide === 'buy') {
             currency = this.safeString (marketExample, 'base')
         } else {
             currency = this.safeString (marketExample, 'quote')
         }
+        const tradeFeeRatios = await this.fetchTradingFee(marketId);;
+        const rate = orderSide === 'buy' ? this.safeString (tradeFeeRatios, 'maker') : this.safeString (tradeFeeRatios, 'taker');
+        const decimalAmount = amount / 100;
+        const decimalFilledAmount = filledAmount / 100;
+        const decimalRemainingAmount = remainingAmount / 100;
+        const cost = filledAmount * price;
+        const feeCost = decimalAmount * parseFloat(rate);
         const result = {
-            "id": this.selfString (orderExample, 'exchangeOrderId'),
-            "clientOrderId": this.selfString (orderExample, 'clientOrderId'),
+            "id": this.safeString (orderExample, 'exchangeOrderId'),
+            "clientOrderId": this.safeString (orderExample, 'clientOrderId'),
             "datetime": datetime,
             "timestamp": timestampInMilliseconds,
             "lastTradeTimestamp": timestampInMilliseconds,
@@ -1073,17 +1074,17 @@ export default class cube extends Exchange {
             "side": orderSide,
             "price": price,
             "average": 0.06917684,
-            "amount": amount / 100,
-            "filled": filledAmount / 100,
-            "remaining": remainingAmount / 100,
-            "cost": 0.076094524,
+            "amount": decimalAmount,
+            "filled": decimalFilledAmount,
+            "remaining": decimalRemainingAmount,
+            "cost": cost,
             "trades": [],
             "fee": {
                 "currency": currency, // a deduction from the asset received in this trade
-                "cost": 0, // TODO - create calculation
-                "rate": 0
+                "cost": feeCost,
+                "rate": rate
             },
-            "info": orderMoreInfo
+            "info": rawOrder
         }
         return this.safeOrder (result);
     }
@@ -1099,22 +1100,6 @@ export default class cube extends Exchange {
             request['subaccountId'] = this.safeInteger (this.options, 'subAccountId');
         }
     }
-
-    // async fetchTradingFee(symbol, params = {}) {
-    //     /**
-    //      * @method
-    //      * @name cube#feeEstimate
-    //      * @description brings the estimated rates that the user will pay in this market
-    //      * @param {string} marketId market id
-    //      * @param {object} [params] extra parameters specific to the exchange API endpoint
-    //      */
-    //     await this.loadMarkets();
-    //     const request = {
-    //         'market_id': marketId
-    //     }
-    //     const response = await this.restIridiumPrivateGetUsersFeeEstimateMarketId(this.extend(request, params));
-    //     return response;
-    // }
 
     async fetchTradingFee(symbol, params = {}) {
         /**
@@ -1150,5 +1135,29 @@ export default class cube extends Exchange {
             'percentage': undefined,
             'tierBased': undefined,
         };
+    }
+
+    async fetchRawOrder(id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name cube#fetchRawOrder
+         * @description fetches information on an order made by the user
+         * @see https://cubexch.gitbook.io/cube-api/rest-osmium-api#orders
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            const marketId = symbol.toLowerCase();
+            market = this.market (marketId);
+            symbol = this.safeSymbol (marketId, market);
+        }
+        const request = {};
+        this.injectSubAccountId (request, params);
+        const rawResponse = await this.restOsmiumPrivateGetOrders (this.extend (request, params));
+        const result = this.safeList(this.safeDict (rawResponse, 'result'), 'orders');
+        return result[0]
     }
 }

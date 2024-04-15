@@ -124,6 +124,15 @@ async function cancelAllOrders() {
     log(response)
 }
 
+async function fetchRawOrder() {
+    // ???
+    const orderId = '0'
+    response = await communityExchange.fetchRawOrder(orderId, marketSymbol, {
+        subAccountId
+    })
+    log(response)
+}
+
 // DEVELOPMENT (incompleto)
 async function fetchOrder() {
     // ???
@@ -188,6 +197,7 @@ async function test() {
     // await createOrder()
     // await cancelOrder()
     // await fetchBalance()
+    // await fetchRawOrder()
     // await fetchOrder()
     // await fetchOpenOrders()
     // await fetchOrderBook()
