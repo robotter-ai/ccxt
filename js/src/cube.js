@@ -385,6 +385,10 @@ export default class cube extends Exchange {
         //         ]
         //     }
         // }
+        return this.parseCurrencies (response);
+    }
+
+    parseCurrencies(response) {
         const result = {};
         const rawCurrencies = this.safeDict(this.safeDict(response, 'result'), 'assets');
         for (let i = 0; i < rawCurrencies.length; i++) {
@@ -421,6 +425,7 @@ export default class cube extends Exchange {
         }
         return result;
     }
+
     async fetchMarkets(params = {}) {
         /**
          * @method
@@ -500,6 +505,10 @@ export default class cube extends Exchange {
         //         ]
         //     }
         // }
+        return this.parseMarkets(response)
+    }
+
+    parseMarkets(response) {
         const result = [];
         const rawMarkets = this.safeDict(this.safeDict(response, 'result'), 'markets');
         const rawAssets = this.safeDict(this.safeDict(response, 'result'), 'assets');
@@ -582,6 +591,7 @@ export default class cube extends Exchange {
         }
         return result;
     }
+
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
          * @method

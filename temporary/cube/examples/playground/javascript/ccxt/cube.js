@@ -40,14 +40,14 @@ async function createProExchange() {
     // log(proExchange)
 }
 
-// DEVELOPMENT (externalizar o parser e conferir o objeto)
+// DEVELOPMENT (conferir o objeto)
 async function fetchMarkets() {
     // Working, but we need the output from the parser.
     response = await communityExchange.fetchMarkets()
     log(response)
 }
 
-// DEVELOPMENT (externalizar o parser e conferir o objeto)
+// DEVELOPMENT (conferir o objeto)
 async function fetchCurrencies() {
     // Working, but we need the output from the parser.
     response = await communityExchange.fetchCurrencies()
