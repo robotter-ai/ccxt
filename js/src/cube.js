@@ -808,7 +808,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets();
+        await this.loadMarkets ();
         const marketId = symbol.toLowerCase ();
         const market = this.market (marketId );
         symbol = this.safeSymbol (marketId, market);
