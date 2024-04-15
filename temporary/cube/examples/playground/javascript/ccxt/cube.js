@@ -5,6 +5,9 @@ const environment = 'staging'
 const exchangeId = 'cube'
 const subAccountId = Number(process.env['SUB_ACCOUNT_ID'])
 const marketSymbol = 'tsoltusdc'
+const marketId = "200047"
+const ctOrderId = 1712612349538
+const orderId = "5281285747"
 
 let communityExchange = undefined
 let proExchange = undefined
@@ -122,6 +125,7 @@ async function cancelAllOrders() {
         "side": 1, // 0: buy, 1: sell
     })
     log(response)
+    // TODO response object is correct lasting only parse the answer!!!
 }
 
 // DEVELOPMENT (incompleto)
@@ -164,6 +168,8 @@ async function deposit() {
 
 // BACKLOG
 async function withdraw() {
+    response = await communityExchange.withdraw()
+    log(response)
 }
 
 // DEVELOPMENT (incompleto)

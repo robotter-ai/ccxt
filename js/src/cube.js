@@ -194,6 +194,7 @@ export default class cube extends Exchange {
                             'post': {
                                 '/users/subaccounts': 1,
                                 '/users/subaccounts/{subaccount_id}': 1,
+                                '/users/subaccounts/{subaccount_id}/withdrawals': 1,
                             },
                         },
                     },
@@ -654,9 +655,17 @@ export default class cube extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {};
-        // const response = await this.restMendelevPublicGetParsedBookMarketIdRecentTrades(this.extend(request, params));
+        const marketId = symbol.toLowerCase ();
+        const market = this.market (marketId );
+        symbol = this.safeSymbol (marketId, market);
+        const rawMarketId = this.safeString (this.safeDict (market, 'info'), 'marketId');
+        const rawMarketSymbol = this.safeString (this.safeDict (market, 'info'), 'symbol')
+        let request = undefined;
+        request = {
+            'market_id': rawMarketId
+        }
+        let response = undefined;
+        response = await this.restMendelevPublicGetBookMarketIdRecentTrades(this.extend(request, params));
         //
         // {
         //     "result":{
@@ -683,7 +692,10 @@ export default class cube extends Exchange {
         //     }
         // }
         //
-        const response = await this.restMendelevPublicGetParsedBookMarketSymbolRecentTrades(this.extend(request, params));
+        request = {
+            'market_symbol': rawMarketSymbol
+        }
+        response = await this.restMendelevPublicGetParsedBookMarketSymbolRecentTrades(this.extend(request, params));
         //
         // {
         //     "result":{
@@ -1150,5 +1162,26 @@ export default class cube extends Exchange {
             'percentage': undefined,
             'tierBased': undefined,
         };
+    }
+    async withdraw(code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name cube#withdraw
+         * @description make a withdrawal
+         * @see https://binance-docs.github.io/apidocs/spot/en/#withdraw-user_data
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets();
+        const marketId = symbol.toLowerCase();
+        const market = this.market(marketId);
+        const rawMarketId = this.safeInteger(this.safeDict(market, 'info'), 'marketId');
+        const request = {
+            'market_id': marketId
+        }
     }
 }
