@@ -13,10 +13,12 @@ function log(target) {
     console.log(JSON.stringify(target, null, 2))
 }
 
+// DONE
 async function getAllExchanges() {
     log(ccxt.exchanges)
 }
 
+// DONE
 async function createCommunityExchange() {
     communityExchange = new ccxt[exchangeId]()
     communityExchange.apiKey = process.env['API_KEY']
@@ -27,6 +29,7 @@ async function createCommunityExchange() {
     // log(exchange)
 }
 
+// DONE
 async function createProExchange() {
     const proExchange = new ccxt.pro[exchangeId]()
     proExchange.apiKey = process.env['API_KEY']
@@ -37,49 +40,59 @@ async function createProExchange() {
     // log(proExchange)
 }
 
+// DEVELOPMENT (externalizar o parser e conferir o objeto)
 async function fetchMarkets() {
     // Working, but we need the output from the parser.
     response = await communityExchange.fetchMarkets()
     log(response)
 }
 
+// DEVELOPMENT (externalizar o parser e conferir o objeto)
 async function fetchCurrencies() {
     // Working, but we need the output from the parser.
     response = await communityExchange.fetchCurrencies()
     log(response)
 }
 
+// TODO
 async function fetchTicker() {
 
 }
 
+// BACKLOG
 async function fetchTickers() {
 
 }
 
+// DEVELOPMENT (checar)
 async function fetchOrderBook() {
     // Working, but we need the output from the parser (specially the datetime).
     response = await communityExchange.fetchOrderBook('tSOLtUSDC')
     log(response)
 }
 
+// TODO
 async function fetchOHLCV() {
 }
 
+// BACKLOG?
 async function fetchStatus() {
 
 }
 
+// BACKLOG?
 async function fetchTrades() {
 
 }
 
+// DEVELOPMENT (incompleto)
 async function fetchBalance() {
     // ???
     response = await communityExchange.fetchBalance()
     log(response)
 }
 
+// DEVELOPMENT (incompleto)
 async function createOrder() {
     // Working, but the parse is not complete.
     response = await communityExchange.createOrder(
@@ -96,10 +109,12 @@ async function createOrder() {
     log(response)
 }
 
+// DEVELOPMENT (incompleto)
 async function cancelOrder() {
 
 }
 
+// DEVELOPMENT (incompleto)
 async function cancelAllOrders() {
     // Not ready, it needs to be revisited.
     response = await communityExchange.cancelAllOrders(marketSymbol, {
@@ -110,6 +125,7 @@ async function cancelAllOrders() {
     log(response)
 }
 
+// DEVELOPMENT (incompleto)
 async function fetchOrder() {
     // ???
     const orderId = ''
@@ -119,10 +135,12 @@ async function fetchOrder() {
     log(response)
 }
 
+// DEVELOPMENT (incompleto)
 async function fetchOrders() {
 
 }
 
+// TODO
 async function fetchOpenOrders() {
     // ???
     response = await communityExchange.fetchOpenOrders(marketSymbol, undefined, undefined, {
@@ -131,26 +149,32 @@ async function fetchOpenOrders() {
     log(response)
 }
 
+// BACKLOG
 async function fetchClosedOrders() {
 
 }
 
+// BACKLOG
 async function fetchMyTrades() {
 
 }
 
+// BACKLOG
 async function deposit() {
 }
 
+// BACKLOG
 async function withdraw() {
 }
 
+// DEVELOPMENT (incompleto)
 async function fetchTradingFee() {
     // Not ready, it needs to be revisited.
     response = await communityExchange.fetchTradingFee(marketSymbol)
     log(response)
 }
 
+// DEVELOPMENT (incompleto)
 async function watchOrderBook() {
     // Not implemented.
     response = await proExchange.watchOrderBook(marketSymbol)
