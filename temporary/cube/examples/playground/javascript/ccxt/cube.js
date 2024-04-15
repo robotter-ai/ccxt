@@ -184,7 +184,7 @@ async function test() {
     createProExchange()
     // await fetchCurrencies()
     // await fetchMarkets()
-    await fetchTradingFee()
+    // await fetchTradingFee()
     // await createOrder()
     // await cancelOrder()
     // await fetchBalance()
