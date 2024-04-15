@@ -272,7 +272,7 @@ export default class cube extends Exchange {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const environment = this.options['environment'];
         let baseUrl = undefined;
-        if (api.indexOf('iridium') >= 0) {
+        if (api.indexOf ('iridium') >= 0) {
             baseUrl = this.urls['api']['rest'][environment]['iridium'];
         }
         else if (api.indexOf('mendelev') >= 0) {
@@ -281,25 +281,24 @@ export default class cube extends Exchange {
         else if (api.indexOf('osmium') >= 0) {
             baseUrl = this.urls['api']['rest'][environment]['osmium'];
         }
-        let url = baseUrl + this.implodeParams(path, params);
-        params = this.omit(params, this.extractParams(path));
-        if (method === 'GET') {
-            if (Object.keys(params).length) {
-                url += '?' + this.urlencode(params);
+        let url = baseUrl + this.implodeParams (path, params);
+        params = this.omit (params, this.extractParams (path));
+        if (['GET', 'HEAD'].indexOf (method) >= 0) {
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
             }
+        } else {
+            body = JSON.stringify (params)
         }
-        if (api.indexOf('private') >= 0) {
+        if (api.indexOf ('private') >= 0) {
             let request = {
                 'headers': {
                     'Content-Type': 'application/json',
                     'Referer': 'CCXT',
                 },
             };
-            request = this.authenticateRequest(request);
+            request = this.authenticateRequest (request);
             headers = request.headers;
-            if (['GET', 'HEAD'].indexOf (method) < 0) {
-                body = params
-            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

@@ -1,13 +1,13 @@
 import { default as ccxt } from '../../../../../../js/ccxt.js'
 
-let response = undefined;
-const environment = 'staging';
-const exchangeId = 'cube';
-const subAccountId = process.env['SUB_ACCOUNT_ID'];
-const marketSymbol = 'tsoltusdc';
+let response = undefined
+const environment = 'staging'
+const exchangeId = 'cube'
+const subAccountId = Number(process.env['SUB_ACCOUNT_ID'])
+const marketSymbol = 'tsoltusdc'
 
-let communityExchange = undefined;
-let proExchange = undefined;
+let communityExchange = undefined
+let proExchange = undefined
 
 function log(target) {
     console.log(JSON.stringify(target, null, 2))
