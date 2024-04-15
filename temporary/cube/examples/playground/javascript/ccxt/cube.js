@@ -17,7 +17,7 @@ function log(target) {
 async function getAllExchanges() {
     const exchanges = ccxt.exchanges
 
-    // log(exchanges)
+    log(exchanges)
 }
 
 // DONE
@@ -51,7 +51,6 @@ async function fetchMarkets() {
 
 // DEVELOPMENT (conferir o objeto)
 async function fetchCurrencies() {
-    // Working, but we need the output from the parser.
     response = await communityExchange.fetchCurrencies()
     log(response)
 }
@@ -187,7 +186,7 @@ async function test() {
     getAllExchanges()
     createCommunityExchange()
     createProExchange()
-    // await fetchCurrencies()
+    await fetchCurrencies()
     // await fetchMarkets()
     // await fetchTradingFee()
     // await createOrder()
