@@ -15,7 +15,9 @@ function log(target) {
 
 // DONE
 async function getAllExchanges() {
-    log(ccxt.exchanges)
+    const exchanges = ccxt.exchanges
+
+    // log(exchanges)
 }
 
 // DONE
@@ -182,29 +184,29 @@ async function watchOrderBook() {
 }
 
 async function test() {
-    // getAllExchanges()
-    // createCommunityExchange()
-    // createProExchange()
-    // fetchMarkets()
+    getAllExchanges()
+    createCommunityExchange()
+    createProExchange()
     // fetchCurrencies()
-    // fetchTicker()
-    // fetchTickers()
-    // fetchOrderBook()
-    // fetchOHLCV()
-    // fetchStatus()
-    // fetchTrades()
-    // fetchBalance()
+    // fetchMarkets()
+    // fetchTradingFee()
     // createOrder()
     // cancelOrder()
-    // cancelAllOrders()
+    // fetchBalance()
     // fetchOrder()
-    // fetchOrders()
     // fetchOpenOrders()
-    // fetchClosedOrders()
+    // fetchOrderBook()
+    // fetchTicker()
+    // fetchTickers()
+    // cancelAllOrders()
+    // fetchOrders()
+    // fetchOHLCV()
+    // fetchTrades()
     // fetchMyTrades()
+    // fetchClosedOrders()
+    // fetchStatus()
     // deposit()
     // withdraw()
-    // fetchTradingFee()
     // watchOrderBook()
 }
 
