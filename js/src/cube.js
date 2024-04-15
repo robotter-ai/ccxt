@@ -1151,4 +1151,125 @@ export default class cube extends Exchange {
             'tierBased': undefined,
         };
     }
+    async fetchTicker(symbol, params = {}) {
+        /**
+         * @method
+         * @name cube#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.restMendelevPublicGetParsedTickers(this.extend(request, params));
+        //
+        //    {
+        //     result: [
+        //       {
+        //         ticker_id: "JTOUSDC",
+        //         base_currency: "JTO",
+        //         quote_currency: "USDC",
+        //         timestamp: 1713217334960,
+        //         last_price: 2.6624,
+        //         base_volume: 337.12,
+        //         quote_volume: 961.614166,
+        //         bid: 2.6627,
+        //         ask: 2.6715,
+        //         high: 3.0515,
+        //         low: 2.6272,
+        //         open: 2.8051,
+        //       },
+        //     ],
+        //   }
+        //
+        return this.parseTicker(response, market);
+    }
+    async fetchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name cube#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://coinmate.docs.apiary.io/#reference/ticker/get-ticker-all/get
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const response = await this.restMendelevPublicGetParsedTickers(params);
+        //
+        //  {
+        //     result: [
+        //       {
+        //     ticker_id: "JTOUSDC",
+        //     base_currency: "JTO",
+        //     quote_currency: "USDC",
+        //     timestamp: 1713216571697,
+        //     last_price: 2.6731,
+        //     base_volume: 333.66,
+        //     quote_volume: 953.635304,
+        //     bid: 2.6653,
+        //     ask: 2.6761,
+        //     high: 3.0515,
+        //     low: 2.6272,
+        //     open: 2.8231,
+        //      },
+        //    ],
+        //  }
+        //
+        const data = this.safeValue(response, 'data', {});
+        const keys = Object.keys(data);
+        const result = {};
+        for (let i = 0; i < keys.length; i++) {
+            const market = this.market(keys[i]);
+            const ticker = this.parseTicker(this.safeValue(data, keys[i]), market);
+            result[market['symbol']] = ticker;
+        }
+        return this.filterByArrayTickers(result, 'symbol', symbols);
+    }
+    parseTicker(ticker, market = undefined) {
+        //
+        //       {
+        //         ticker_id: "JTOUSDC",
+        //         base_currency: "JTO",
+        //         quote_currency: "USDC",
+        //         timestamp: 1713217334960,
+        //         last_price: 2.6624,
+        //         base_volume: 337.12,
+        //         quote_volume: 961.614166,
+        //         bid: 2.6627,
+        //         ask: 2.6715,
+        //         high: 3.0515,
+        //         low: 2.6272,
+        //         open: 2.8051,
+        //       }
+        //    
+        const timestamp = Math.floor(Date.now() / 1000);
+        return this.safeTicker({
+            'symbol': this.safeString(market, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeNumber(ticker, 'high'),
+            'low': this.safeNumber(ticker, 'low'),
+            'bid': this.safeNumber(ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeNumber(ticker, 'ask'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeNumber(ticker, 'open'),
+            'close': undefined,
+            'last': this.safeNumber(ticker, 'last_price'),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeNumber(ticker, 'base_volume'),
+            'quoteVolume': this.safeNumber(ticker, 'quote_volume'),
+            'info': ticker,
+        }, market);
+    }
 }

@@ -4,7 +4,7 @@ let response = undefined
 const environment = 'staging'
 const exchangeId = 'cube'
 const subAccountId = Number(process.env['SUB_ACCOUNT_ID'])
-const marketSymbol = 'tsoltusdc'
+const marketSymbols = ['tsoltusdc','tbtctusdc']
 
 let communityExchange = undefined
 let proExchange = undefined
@@ -56,12 +56,14 @@ async function fetchCurrencies() {
 
 // TODO
 async function fetchTicker() {
-
+    response = await communityExchange.fetchTicker(marketSymbols[0])
+    log(response)
 }
 
 // BACKLOG
 async function fetchTickers() {
-
+    response = await communityExchange.fetchTickers(marketSymbols)
+    log(response)
 }
 
 // DEVELOPMENT (conferir o objeto, em especial o datetime)
@@ -116,7 +118,7 @@ async function cancelOrder() {
 // DEVELOPMENT (incompleto)
 async function cancelAllOrders() {
     // Not ready, it needs to be revisited.
-    response = await communityExchange.cancelAllOrders(marketSymbol, {
+    response = await communityExchange.cancelAllOrders(marketSymbols[0], {
         "subaccountId": subAccountId,
         "requestId": 1,
         "side": 1, // 0: buy, 1: sell
@@ -128,7 +130,7 @@ async function cancelAllOrders() {
 async function fetchOrder() {
     // ???
     const orderId = ''
-    response = await communityExchange.fetchOrder(orderId, marketSymbol, {
+    response = await communityExchange.fetchOrder(orderId, marketSymbols[0], {
         subAccountId
     })
     log(response)
@@ -142,7 +144,7 @@ async function fetchOrders() {
 // TODO
 async function fetchOpenOrders() {
     // ???
-    response = await communityExchange.fetchOpenOrders(marketSymbol, undefined, undefined, {
+    response = await communityExchange.fetchOpenOrders(marketSymbols[0], undefined, undefined, {
         subAccountId
     })
     log(response)
@@ -168,13 +170,13 @@ async function withdraw() {
 
 // DEVELOPMENT (incompleto)
 async function fetchTradingFee() {
-    response = await communityExchange.fetchTradingFee(marketSymbol)
+    response = await communityExchange.fetchTradingFee(marketSymbols[0])
     log(response)
 }
 
 // DEVELOPMENT (incompleto)
 async function watchOrderBook() {
-    response = await proExchange.watchOrderBook(marketSymbol)
+    response = await proExchange.watchOrderBook(marketSymbols[0])
     log(response)
 }
 
@@ -192,7 +194,7 @@ async function test() {
     // await fetchOpenOrders()
     // await fetchOrderBook()
     // await fetchTicker()
-    // await fetchTickers()
+    await fetchTickers()
     // await cancelAllOrders()
     // await fetchOrders()
     // await fetchOHLCV()
