@@ -6,15 +6,15 @@
 
 // ---------------------------------------------------------------------------
 import Exchange from './abstract/cube.js';
-import { 
+import {
 // ArgumentsRequired,
 // OperationFailed,
 // OperationRejected,
-InsufficientFunds, OrderNotFound, 
+InsufficientFunds, OrderNotFound,
 // InvalidOrder,
 // DDoSProtection,
 // InvalidNonce,
-AuthenticationError, 
+AuthenticationError,
 // RateLimitExceeded,
 // PermissionDenied,
 // NotSupported,
@@ -290,7 +290,6 @@ export default class cube extends Exchange {
         }
         if (api.indexOf('private') >= 0) {
             let request = {
-                'body': body,
                 'headers': {
                     'Content-Type': 'application/json',
                     'Referer': 'CCXT',
@@ -298,9 +297,7 @@ export default class cube extends Exchange {
             };
             request = this.authenticateRequest(request);
             headers = request.headers;
-            if (method === 'GET') {
-                body = this.urlencode(params);
-            } else {
+            if (['GET', 'HEAD'].indexOf (method) < 0) {
                 body = params
             }
         }
@@ -1123,33 +1120,34 @@ export default class cube extends Exchange {
     async fetchTradingFee(symbol, params = {}) {
         /**
          * @method
-         * @name luno#fetchTradingFee
+         * @name cube#fetchTradingFee
          * @description fetch the trading fees for a market
          * @see https://cubexch.gitbook.io/cube-api/rest-iridium-api#users-fee-estimate-market-id
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
-        await this.loadMarkets();
-        const marketId = symbol.toLowerCase();
-        const market = this.market(marketId);
-        const rawMarketId = this.safeInteger(this.safeDict(market, 'info'), 'marketId');
+        await this.loadMarkets ();
+        const marketId = symbol.toLowerCase ();
+        const market = this.market (marketId);
+        symbol = this.safeSymbol (marketId, market);
+        const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
         const request = {
             'market_id': rawMarketId
         }
+        const response = await this.restIridiumPrivateGetUsersFeeEstimateMarketId(this.extend(request, params));
         // {
         //     "result": {
-        //     "userKey": "123e4567-e89b-12d3-a456-426614174000",
-        //     "makerFeeRatio": 0,
-        //     "takerFeeRatio": 0
+        //         "userKey": "123e4567-e89b-12d3-a456-426614174000",
+        //         "makerFeeRatio": 0,
+        //         "takerFeeRatio": 0
         //     }
         // }
-        const response = await this.restIridiumPrivateGetUsersFeeEstimateMarketId(this.extend(request, params));
         return {
             'info': response,
             'symbol': symbol,
-            'maker': this.safeNumber(response, 'maker_fee'),
-            'taker': this.safeNumber(response, 'taker_fee'),
+            'maker': this.safeNumber(this.safeDict (response, 'result'), 'makerFeeRatio'),
+            'taker': this.safeNumber(this.safeDict (response, 'result'), 'takerFeeRatio'),
             'percentage': undefined,
             'tierBased': undefined,
         };

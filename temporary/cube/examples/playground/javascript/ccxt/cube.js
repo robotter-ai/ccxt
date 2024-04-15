@@ -17,7 +17,7 @@ function log(target) {
 async function getAllExchanges() {
     const exchanges = ccxt.exchanges
 
-    log(exchanges)
+    // log(exchanges)
 }
 
 // DONE
@@ -44,7 +44,6 @@ async function createProExchange() {
 
 // DEVELOPMENT (conferir o objeto)
 async function fetchMarkets() {
-    // Working, but we need the output from the parser.
     response = await communityExchange.fetchMarkets()
     log(response)
 }
@@ -65,9 +64,8 @@ async function fetchTickers() {
 
 }
 
-// DEVELOPMENT (checar)
+// DEVELOPMENT (conferir o objeto, em especial o datetime)
 async function fetchOrderBook() {
-    // Working, but we need the output from the parser (specially the datetime).
     response = await communityExchange.fetchOrderBook('tSOLtUSDC')
     log(response)
 }
@@ -170,25 +168,23 @@ async function withdraw() {
 
 // DEVELOPMENT (incompleto)
 async function fetchTradingFee() {
-    // Not ready, it needs to be revisited.
     response = await communityExchange.fetchTradingFee(marketSymbol)
     log(response)
 }
 
 // DEVELOPMENT (incompleto)
 async function watchOrderBook() {
-    // Not implemented.
     response = await proExchange.watchOrderBook(marketSymbol)
     log(response)
 }
 
 async function test() {
-    getAllExchanges()
+    // getAllExchanges()
     createCommunityExchange()
     createProExchange()
-    await fetchCurrencies()
+    // await fetchCurrencies()
     // await fetchMarkets()
-    // await fetchTradingFee()
+    await fetchTradingFee()
     // await createOrder()
     // await cancelOrder()
     // await fetchBalance()
