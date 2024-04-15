@@ -719,7 +719,7 @@ export default class cube extends Exchange {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://cubexch.gitbook.io/cube-api/rest-iridium-api#users-positions
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const response = await this.restIridiumPrivateGetUsersPositions (params);
