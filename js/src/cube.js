@@ -789,7 +789,18 @@ export default class cube extends Exchange {
         };
         this.injectSubAccountId (request, params);
         const response = await this.restOsmiumPrivatePostOrder(this.extend(request, params));
-        return await this.parseOrder(response);
+        const order = this.safeDict (this.safeDict (response, 'result'), 'Ack');
+        const exchangeOrderId = this.safeString (order, 'exchangeOrderId');
+        const fetchedOrder = await this.fetchRawOrder(exchangeOrderId, marketId);
+        if (fetchedOrder === undefined) {
+            fetchedOrder = {};
+        }
+        return await this.parseOrder(
+            {
+                "order": order,
+                "fetchedOrder": fetchedOrder
+            }, market
+        );
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -807,14 +818,24 @@ export default class cube extends Exchange {
         const market = this.market (marketId);
         symbol = this.safeSymbol (marketId, market);
         const rawMarketId = this.safeInteger(this.safeDict(market, 'info'), 'marketId');
+        const fetchedOrder = await this.fetchRawOrder(id, marketId);
+        if (fetchedOrder === undefined) {
+            fetchedOrder = {};
+        }
+        const clientOrderId = parseInt(this.safeString (fetchedOrder, 'clientOrderId'));
         const request = {
-            'clientOrderId': this.safeInteger(params, 'clientOrderId'),
+            'clientOrderId': clientOrderId,
             'requestId': this.safeInteger(params, 'requestId'),
             'marketId': rawMarketId,
         };
         this.injectSubAccountId (request, params);
         const response = await this.restOsmiumPrivateDeleteOrder(this.extend(request, params));
-        return await this.parseOrder(response);
+        return await this.parseOrder(
+            {
+                "fetchedOrder": fetchedOrder,
+                "cancellationResponse": response
+            }, market
+        );
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -947,156 +968,113 @@ export default class cube extends Exchange {
     }
 
     async parseOrder(order, market = undefined) {
-        const orderExample = {
-            "msgSeqNum": 2145835,
-            "clientOrderId": 1712612349538,
-            "requestId": 1,
-            "exchangeOrderId": 5144313456,
-            "marketId": 200047,
-            "price": 30500,
-            "quantity": 10000,
-            "side": 1,
-            "timeInForce": 1,
-            "orderType": 0,
-            "transactTime": 1712683658954820900,
-            "subaccountId": 161,
-            "cancelOnDisconnect": false
+        let transactionType = '';
+        let fetchedOrder = this.safeDict(order, 'fetchedOrder');
+        let mainOrderObject = {};
+
+        if (order.hasOwnProperty("cancellationResponse")) {
+            transactionType = 'cancellation';
+            mainOrderObject = this.safeDict(order, 'cancellationResponse');
+        } else {
+            transactionType = 'creation';
+            mainOrderObject = this.safeDict(order, 'order');
         }
-        const marketExample = {
-            "id": "tsoltusdc",
-            "lowercaseId": "tsoltusdc",
-            "symbol": "TSOL/TUSDC",
-            "base": "TSOL",
-            "quote": "TUSDC",
-            "baseId": "TSOL",
-            "quoteId": "TUSDC",
-            "type": "spot",
-            "spot": true,
-            "margin": false,
-            "swap": false,
-            "future": false,
-            "option": false,
-            "index": false,
-            "active": true,
-            "contract": false,
-            "taker": 0.008,
-            "maker": 0.004,
-            "precision": {
-                "amount": 1,
-                "price": 1
-            },
-            "limits": {
-                "leverage": {},
-                "amount": {},
-                "price": {},
-                "cost": {}
-            },
-            "info": {
-                "marketId": "200047",
-                "symbol": "tSOLtUSDC",
-                "baseAssetId": "80005",
-                "baseLotSize": "100000",
-                "quoteAssetId": "80007",
-                "quoteLotSize": "1",
-                "priceDisplayDecimals": "2",
-                "protectionPriceLevels": "1000",
-                "priceBandBidPct": "25",
-                "priceBandAskPct": "400",
-                "priceTickSize": "0.01",
-                "quantityTickSize": "0.0001",
-                "feeTableId": "2",
-                "status": "1",
-                "displayRank": "3",
-                "listedAt": "2023-10-29T00:00:00Z",
-                "isPrimary": true
-            }
-        }
-        const timestampInNanoseconds = this.safeString (orderExample, 'transactTime');
+
+        const timestampInNanoseconds = this.safeString (mainOrderObject, 'transactTime');
         const timestampInMilliseconds = timestampInNanoseconds / 1000000;
         const datetime = new Date(timestampInMilliseconds);
-        const orderSide = this.safeString (orderExample, 'clientOrderId')  == 0 ? 'buy' : 'sell';
-        let orderType = '';
-        if (this.safeString (orderExample, 'orderType') == 0) {
-            orderType = 'limit';
-        } else if (this.safeString (orderExample, 'orderType') == 1) {
-            orderType = 'market';
-        } else if (this.safeString (orderExample, 'orderType') == 2) {
-            orderType = 'MARKET_WITH_PROTECTION';
-        } else {
-            throw Error('OrderType was not recognized.');
-        }
-        const price = this.safeString (orderExample, 'price') / 100;
-        // const amount = this.safeString (orderExample, 'quantity') / 100;
-        const symbol = this.safeString (marketExample, 'base') +  '/' + this.safeString (marketExample, 'quote');
-        let timeInForce = '';
-        if (this.safeString (orderExample, 'timeInForce') == 0) {
-            timeInForce = 'IOC';
-        } else if (this.safeString (orderExample, 'timeInForce') == 1) {
-            timeInForce = 'GTC';
-        } else if (this.safeString (orderExample, 'timeInForce') == 2) {
-            timeInForce = 'FOK';
-        } else {
-            throw Error('Time-in-force (TIF) was not recognized.');
-        }
-        const subaccountId = this.safeInteger(this.options, 'subaccountId');
-        const marketSymbol = this.safeString(this.safeDict(marketExample, 'info'), 'symbol');
-        const marketId = this.safeString (marketExample, 'id');
-        const exchangeOrderId = this.safeInteger(orderExample, 'exchangeOrderId');
-        const rawOrder = await this.fetchRawOrder(exchangeOrderId, marketId);
-        // {
-        //     "clientOrderId": "<integer>",
-        //     "cumulativeQuantity": "<integer>",
-        //     "exchangeOrderId": "<integer>",
-        //     "marketId": "<integer>",
-        //     "orderQuantity": "<integer>",
-        //     "orderType": "<integer>",
-        //     "price": "<integer>",
-        //     "remainingQuantity": "<integer>",
-        //     "restTime": "<integer>",
-        //     "side": "<integer>",
-        //     "subaccountId": "<integer>",
-        //     "timeInForce": "<integer>"
+
+        // let orderStatus = ''; // TODO - !!!
+        // if (Object.keys(fetchedOrder).length === 0) {
+        //     orderStatus = 'canceled'
+        // } else {
+        //     orderStatus = 'open'
         // }
-        const amount = this.safeInteger(rawOrder, 'orderQuantity');
-        const remainingAmount = this.safeInteger(rawOrder, 'remainingQuantity');
-        const filledAmount = amount - remainingAmount;
-        let currency = '';
-        if (orderSide === 'buy') {
-            currency = this.safeString (marketExample, 'base')
-        } else {
-            currency = this.safeString (marketExample, 'quote')
-        }
-        const tradeFeeRatios = await this.fetchTradingFee(marketId);;
-        const rate = orderSide === 'buy' ? this.safeString (tradeFeeRatios, 'maker') : this.safeString (tradeFeeRatios, 'taker');
-        const decimalAmount = amount / 100;
-        const decimalFilledAmount = filledAmount / 100;
-        const decimalRemainingAmount = remainingAmount / 100;
-        const cost = filledAmount * price;
-        const feeCost = decimalAmount * parseFloat(rate);
-        const result = {
-            "id": this.safeString (orderExample, 'exchangeOrderId'),
-            "clientOrderId": this.safeString (orderExample, 'clientOrderId'),
-            "datetime": datetime,
-            "timestamp": timestampInMilliseconds,
-            "lastTradeTimestamp": timestampInMilliseconds,
-            "status": 'open',
-            "symbol": symbol,
-            "type": orderType,
-            "timeInForce": timeInForce,
-            "side": orderSide,
-            "price": price,
-            "average": 0.06917684,
-            "amount": decimalAmount,
-            "filled": decimalFilledAmount,
-            "remaining": decimalRemainingAmount,
-            "cost": cost,
-            "trades": [],
-            "fee": {
-                "currency": currency, // a deduction from the asset received in this trade
-                "cost": feeCost,
-                "rate": rate
-            },
-            "info": rawOrder
+
+        let result = {};
+
+        if (!(Object.keys(fetchedOrder).length === 0)) {
+            const exchangeOrderId = this.safeInteger(fetchedOrder, 'exchangeOrderId');
+            const clientOrderId = this.safeInteger(fetchedOrder, 'clientOrderId');
+            const subaccountId = this.safeInteger(this.options, 'subaccountId');
+            const marketSymbol = this.safeString(this.safeDict(market, 'info'), 'symbol');
+            const marketId = this.safeString (market, 'id');
+            const orderSide = this.safeString (fetchedOrder, 'side')  == 0 ? 'buy' : 'sell';
+            const price = this.safeString (fetchedOrder, 'price') / 100;
+            const symbol = this.safeString (market, 'base') +  '/' + this.safeString (market, 'quote');
+            const amount = this.safeInteger(fetchedOrder, 'orderQuantity');
+            const remainingAmount = this.safeInteger(fetchedOrder, 'remainingQuantity');
+            const filledAmount = amount - remainingAmount;
+
+            let currency = '';
+            if (orderSide === 'buy') {
+                currency = this.safeString (market, 'base')
+            } else {
+                currency = this.safeString (market, 'quote')
+            }
+
+            let orderType = '';
+            if (this.safeString (fetchedOrder, 'orderType') == 0) {
+                orderType = 'limit';
+            } else if (this.safeString (fetchedOrder, 'orderType') == 1) {
+                orderType = 'market';
+            } else if (this.safeString (fetchedOrder, 'orderType') == 2) {
+                orderType = 'MARKET_WITH_PROTECTION';
+            } else {
+                throw Error('OrderType was not recognized.');
+
+            }
+
+            let timeInForce = '';
+            if (this.safeString (fetchedOrder, 'timeInForce') == 0) {
+                timeInForce = 'IOC';
+            } else if (this.safeString (fetchedOrder, 'timeInForce') == 1) {
+                timeInForce = 'GTC';
+            } else if (this.safeString (fetchedOrder, 'timeInForce') == 2) {
+                timeInForce = 'FOK';
+            } else {
+                throw Error('Time-in-force (TIF) was not recognized.');
+            }
+
+            if (transactionType === 'creation') {
+            }
+
+            const tradeFeeRatios = await this.fetchTradingFee(marketId);;
+            const rate = orderSide === 'buy' ? this.safeString (tradeFeeRatios, 'maker') : this.safeString (tradeFeeRatios, 'taker');
+            const decimalAmount = amount / 100;
+            const decimalFilledAmount = filledAmount / 100;
+            const decimalRemainingAmount = remainingAmount / 100;
+            const cost = filledAmount * price;
+            const feeCost = decimalAmount * parseFloat(rate);
+
+            result = {
+                "id": exchangeOrderId,
+                "clientOrderId": clientOrderId,
+                "datetime": datetime,
+                "timestamp": timestampInMilliseconds,
+                "lastTradeTimestamp": timestampInMilliseconds,
+                "status": 'open',
+                "symbol": symbol,
+                "type": orderType,
+                "timeInForce": timeInForce,
+                "side": orderSide,
+                "price": price,
+                "average": 0.06917684,
+                "amount": decimalAmount,
+                "filled": decimalFilledAmount,
+                "remaining": decimalRemainingAmount,
+                "cost": cost,
+                "trades": [],
+                "fee": {
+                    "currency": currency, // a deduction from the asset received in this trade
+                    "cost": feeCost,
+                    "rate": rate
+                },
+                "info": {
+                    "mainOrderObjetc": mainOrderObject,
+                    "fetchedOrder": fetchedOrder
+                }
+            }
         }
         return this.safeOrder (result);
     }
