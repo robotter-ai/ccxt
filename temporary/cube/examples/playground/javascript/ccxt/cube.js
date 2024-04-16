@@ -5,10 +5,9 @@ const exchangeId = 'cube'
 const useSandBoxMode = true
 const subAccountId = Number(process.env['SUB_ACCOUNT_ID'])
 const marketSymbols = ['tsoltusdc','tbtctusdc']
-const marketIds = ['200047']
+const marketIds = ['200047', '200005']
 const clientOrderId = 1712612349538
-const orderId = '5281285747'
-const exchangeOrderId = ''
+const exchangeOrderId = '5307762315'
 
 let communityExchange = undefined
 let proExchange = undefined
@@ -21,7 +20,7 @@ function log(target) {
 async function getAllExchanges() {
     const exchanges = ccxt.exchanges
 
-    // log(exchanges)
+    log(exchanges)
 }
 
 // DONE
@@ -39,7 +38,7 @@ async function createCommunityExchange() {
 
 // DONE
 async function createProExchange() {
-    const proExchange = new ccxt.pro[exchangeId]()
+    proExchange = new ccxt.pro[exchangeId]()
     proExchange.apiKey = process.env['API_KEY']
     proExchange.secret = process.env['API_SECRET']
     if (useSandBoxMode) {
@@ -147,8 +146,7 @@ async function fetchRawOrder() {
 // DEVELOPMENT (incompleto)
 async function fetchOrder() {
     // ???
-    const orderId = ''
-    response = await communityExchange.fetchOrder(orderId, marketSymbols[0], {
+    response = await communityExchange.fetchOrder(exchangeOrderId, marketSymbols[0], {
         subAccountId
     })
     log(response)
@@ -298,9 +296,9 @@ async function test() {
     // await fetchTradingFee()
     // await createOrder()
     // await cancelOrder()
-    // await fetchBalance()
+    // await fetchBalance() // TODO fix!!!
     // await fetchRawOrder()
-    // await fetchOrder()
+    // await fetchOrder() // TODO fix parser, we need to use as much information as possible from the returned order instead of the fetched one!!!
     // await fetchOpenOrders()
     // await fetchOrders()
     // await fetchOrderBook()
