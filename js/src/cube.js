@@ -103,7 +103,7 @@ export default class cube extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPermissions': false,
                 'fetchPosition': false,
@@ -187,7 +187,7 @@ export default class cube extends Exchange {
                                 '/users/transfers': 1,
                                 '/users/deposits': 1,
                                 '/users/withdrawals': 1,
-                                '/users/orders': 1,
+                                '/users/subaccount/{subaccountId}/orders': 1,
                                 '/users/fills': 1,
                                 '/users/fee-estimate/{market_id}': 1,
                             },
@@ -884,7 +884,30 @@ export default class cube extends Exchange {
         const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
         return await this.parseOrders (rawOrders, market, since, limit);
     }
-
+    async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cube#fetchOrders
+         * @description fetch all unfilled currently open orders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            const marketId = symbol.toLowerCase ();
+            market = this.market (marketId);
+            symbol = this.safeSymbol (marketId, market);
+        }
+        const request = {};
+        this.injectSubAccountId (request, params);
+        const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdOrders (this.extend (request, params));
+        const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
+        return await this.parseOrders (rawOrders, market, since, limit);
+    }
     async parseOrders(orders, market = undefined, since = undefined, limit = undefined, params = {}) {
         //
         // the value of orders is either a dict or a list

@@ -240,15 +240,16 @@ async function iridiumGetUsersWithdrawals() {
 
 // IRIDIUM GET USERS ORDERS
 async function iridiumGetUsersOrders() {
-  const apiKey = Deno.env.get("API_KEY");
-  const apiSecret = Deno.env.get("API_SECRET");
+  const apiKey = Deno.env.get("API_KEY") || '';
+  const apiSecret = Deno.env.get("API_SECRET") || '';
+  const subaccountId = Deno.env.get("SUB_ACCOUNT_ID") || '161';
 
   const auth = new Auth(apiKey, apiSecret);
 
   const type = "ir";
   const baseUrl = `https://staging.cube.exchange/${type}/v0`;
-  const endpoint = "/users/orders";
-  const params = new URLSearchParams({ subaccountId: "161" });
+  const endpoint = `/users/subaccount/${subaccountId}/orders`;
+  const params = new URLSearchParams({ subaccountId: subaccountId });
   const url = `${baseUrl}${endpoint}?${params.toString()}`;
 
   let request: any = {

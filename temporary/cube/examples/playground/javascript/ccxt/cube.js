@@ -150,9 +150,12 @@ async function fetchOrder() {
     log(response)
 }
 
-// DEVELOPMENT (incompleto)
 async function fetchOrders() {
-
+    // ???
+    response = await communityExchange.fetchOrders(marketSymbols[0], undefined, undefined, {
+        subAccountId
+    })
+    log(response)
 }
 
 // TODO
@@ -295,9 +298,10 @@ async function test() {
     // await fetchRawOrder()
     // await fetchOrder()
     // await fetchOpenOrders()
+    await fetchOrders()
     // await fetchOrderBook()
     // await fetchTicker()
-    await fetchTickers()
+    // await fetchTickers()
     // await cancelAllOrders()
     // await fetchOrders()
     // await fetchOHLCV()

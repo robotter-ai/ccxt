@@ -16,7 +16,7 @@ interface Exchange {
     restIridiumPrivateGetUsersTransfers (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersDeposits (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersWithdrawals (params?: {}): Promise<implicitReturnType>;
-    restIridiumPrivateGetUsersOrders (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivateGetUsersSubaccountSubaccountIdOrders (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersFills (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersFeeEstimateMarketId(params?: {}): Promise<implicitReturnType>;
     restIridiumPrivatePostUsersSubaccounts (params?: {}): Promise<implicitReturnType>;
