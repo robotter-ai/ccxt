@@ -116,7 +116,7 @@ async function createOrder() {
 
 async function cancelOrder() {
     // ???
-    response = await communityExchange.cancelOrder(exchangeOrderId, marketSymbol, {"requestId": 1})
+    response = await communityExchange.cancelOrder(exchangeOrderId, marketSymbols[0], {"requestId": 1})
     log(response)
 }
 
@@ -134,7 +134,7 @@ async function cancelAllOrders() {
 
 async function fetchRawOrder() {
     // ???
-    response = await communityExchange.fetchRawOrder(exchangeOrderId, marketSymbol, {
+    response = await communityExchange.fetchRawOrder(exchangeOrderId, marketSymbols[0], {
         subAccountId
     })
     log(response)
