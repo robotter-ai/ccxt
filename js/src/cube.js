@@ -316,6 +316,68 @@ export default class cube extends Exchange {
         }
     }
 
+    async initialize(symbolOrSymbols) {
+        await this.loadMarkets ();
+        if (symbolOrSymbols !== undefined) {
+            if (typeof symbolOrSymbols === 'string') {
+                let marketId = symbol.toLowerCase ().replace ('/', '');
+                const market = this.market (marketId);
+                marketId = market.id;
+                symbolOrSymbols = this.safeSymbol (marketId, market);
+                return {
+                    symbol: symbol,
+                    marketId: marketId,
+                    market: market,
+                    symbols: undefined,
+                    marketIds: undefined,
+                    markets: undefined
+                }
+            } else if (Array.isArray(symbolOrSymbols)) {
+                const marketsIds = [];
+                const markets = [];
+                for (let i = 0; i < symbolOrSymbols.length; i++) {
+                    let marketId = symbolOrSymbols[i].toLowerCase ().replace ('/', '');
+                    const market = this.market (marketId);
+                    marketId = market.id;
+                    symbolOrSymbols[i] = this.safeSymbol (marketId, market);
+                    marketIds.push (marketId);
+                    markets.push (market);
+                }
+                symbolOrSymbols = this.marketSymbols(symbolOrSymbols);
+                return {
+                    symbol: symbol,
+                    marketId: marketId,
+                    market: market,
+                    symbols: symbolOrSymbols,
+                    marketIds: marketIds,
+                    markets: markets
+                }
+            } else {
+                throw Error('Invalid symbol or symbols informed.')
+            }
+        }
+        return {
+            symbol: undefined,
+            marketId: undefined,
+            market: undefined,
+            symbols: undefined,
+            marketIds: undefined,
+            markets: undefined
+        }
+    }
+
+    injectSubAccountId(request, params) {
+        if (this.safeInteger (params, 'subaccountId') !== undefined) {
+            request['subaccountId'] = this.safeInteger (params, 'subaccountId');
+        } else if (this.safeInteger (params, 'subAccountId') !== undefined) {
+            request['subaccountId'] = this.safeInteger (params, 'subAccountId');
+        } else if (this.safeInteger (this.options, 'subaccountId') !== undefined) {
+            request['subaccountId'] = this.safeInteger(this.options, 'subaccountId');
+        } else if (this.safeInteger (this.options, 'subAccountId') !== undefined) {
+            request['subaccountId'] = this.safeInteger (this.options, 'subAccountId');
+        }
+    }
+
     async fetchCurrencies(params = {}) {
         /**
          * @method
@@ -614,9 +676,9 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        await this.loadMarkets();
-        const marketId =  symbol.toLowerCase ().replace ('/', '');
-        const market = this.market(marketId);
+        const meta = await this.initialize (symbol);
+        symbol = this.safeString (meta, 'symbol');
+        const market = this.safeDict (meta, 'market');
         const marketInfo = this.safeDict(market, 'info');
         const symbolFromInfo = this.safeString(marketInfo, 'symbol');
         const request = { 'market_symbol': symbolFromInfo };
@@ -667,10 +729,9 @@ export default class cube extends Exchange {
          * @param {int} params.lastId order id
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets();
-        const marketId =  symbol.toLowerCase ().replace ('/', '');
-        const market = this.market (marketId );
-        symbol = this.safeSymbol (marketId, market);
+        const meta = await this.initialize (symbol);
+        symbol = this.safeString (meta, 'symbol');
+        const market = this.safeDict (meta, 'market');
         const rawMarketId = this.safeString (this.safeDict (market, 'info'), 'marketId');
         const rawMarketSymbol = this.safeString (this.safeDict (market, 'info'), 'symbol')
         let request = undefined;
@@ -746,7 +807,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        await this.loadMarkets ();
+        const meta = await this.initialize ();
         const response = await this.restIridiumPrivateGetUsersPositions (params);
         const result = this.safeDict (response, 'balances', {});
         return this.parseBalances (result);
@@ -776,9 +837,10 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets();
-        const marketId =  symbol.toLowerCase ().replace ('/', '');
-        const market = this.market(marketId);
+        const meta = await this.initialize (symbol);
+        symbol = this.safeString (meta, 'symbol');
+        const marketId = this.safeString (meta, 'marketId');
+        const market = this.safeDict (meta, 'market');
         const rawMarketId = this.safeInteger(this.safeDict(market, 'info'), 'marketId');
         const exchangePrice = price * 100;
         const exchangeAmount = amount * 100;
@@ -823,10 +885,10 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets();
-        const marketId =  symbol.toLowerCase ().replace ('/', '');
-        const market = this.market (marketId);
-        symbol = this.safeSymbol (marketId, market);
+        const meta = await this.initialize (symbol);
+        symbol = this.safeString (meta, 'symbol');
+        const marketId = this.safeString (meta, 'marketId');
+        const market = this.safeDict (meta, 'market');
         const rawMarketId = this.safeInteger(this.safeDict(market, 'info'), 'marketId');
         const fetchedOrder = await this.fetchRawOrder(id, marketId);
         if (fetchedOrder === undefined) {
@@ -857,10 +919,9 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
-        const marketId =  symbol.toLowerCase ().replace ('/', '');
-        const market = this.market (marketId );
-        symbol = this.safeSymbol (marketId, market);
+        const meta = await this.initialize (symbol);
+        symbol = this.safeString (meta, 'symbol');
+        const market = this.safeDict (meta, 'market');
         const rawMarkeId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
         const request = {
             marketId: rawMarkeId,
@@ -881,13 +942,9 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            const marketId =  symbol.toLowerCase ().replace ('/', '');
-            market = this.market (marketId);
-            symbol = this.safeSymbol (marketId, market);
-        }
+        const meta = await this.initialize (symbol);
+        symbol = this.safeString (meta, 'symbol');
+        const market = this.safeDict (meta, 'market');
         const request = {};
         this.injectSubAccountId (request, params);
         const response = await this.restOsmiumPrivateGetOrders (this.extend (request, params));
@@ -905,13 +962,9 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            const marketId =  symbol.toLowerCase ().replace ('/', '');
-            market = this.market (marketId);
-            symbol = this.safeSymbol (marketId, market);
-        }
+        const meta = await this.initialize (symbol);
+        symbol = this.safeString (meta, 'symbol');
+        const market = this.safeDict (meta, 'market');
         const request = {};
         this.injectSubAccountId (request, params);
         const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdOrders (this.extend (request, params));
@@ -974,30 +1027,11 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        // await this.loadMarkets ();
-        // let market = undefined;
-        // if (symbol !== undefined) {
-        //     const marketId =  symbol.toLowerCase ().replace ('/', '');
-        //     market = this.market (marketId);
-        //     symbol = this.safeSymbol (marketId, market);
-        // }
-        // const request = {};
-        // this.injectSubAccountId (request, params);
-        // const response = await this.restOsmiumPrivateGetOrders (this.extend (request, params));
-        // const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
-        // let rawOrder = undefined;
-        // for (let i = 0; i < rawOrders.length; i++) {
-        //     const currentRawOrder = this.safeDict (rawOrders, i);
-        //     if (id == currentRawOrder['id']) {
-        //         rawOrder = currentRawOrder['']
-        //     }
-        // }
-        await this.loadMarkets ();
-        const marketId =  symbol.toLowerCase ().replace ('/', '');
-        const market = this.market (marketId );
-        symbol = this.safeSymbol (marketId, market);
+        const meta = await this.initialize (symbol);
+        symbol = this.safeString (meta, 'symbol');
+        const market = this.safeDict (meta, 'market');
         const rawOrder = await this.fetchRawOrder (id, symbol, params);
-        const order = await this.parseOrder (rawOrder, market);
+        const order = await this.parseOrder ({ fetchedOrder: rawOrder }, market);
         if (order !== undefined) {
             return order;
         }
@@ -1030,6 +1064,7 @@ export default class cube extends Exchange {
 
         let result = {};
 
+        // TODO Improve this part to reuse the original response from create, cancel as much as possible, instead of relying in the fetched order!!!
         if (!(Object.keys(fetchedOrder).length === 0)) {
             const exchangeOrderId = this.safeInteger(fetchedOrder, 'exchangeOrderId');
             const clientOrderId = this.safeInteger(fetchedOrder, 'clientOrderId');
@@ -1116,18 +1151,6 @@ export default class cube extends Exchange {
         return this.safeOrder (result);
     }
 
-    injectSubAccountId(request, params) {
-        if (this.safeInteger (params, 'subaccountId') !== undefined) {
-            request['subaccountId'] = this.safeInteger (params, 'subaccountId');
-        } else if (this.safeInteger (params, 'subAccountId') !== undefined) {
-            request['subaccountId'] = this.safeInteger (params, 'subAccountId');
-        } else if (this.safeInteger (this.options, 'subaccountId') !== undefined) {
-            request['subaccountId'] = this.safeInteger(this.options, 'subaccountId');
-        } else if (this.safeInteger (this.options, 'subAccountId') !== undefined) {
-            request['subaccountId'] = this.safeInteger (this.options, 'subAccountId');
-        }
-    }
-
     async fetchTradingFee(symbol, params = {}) {
         /**
          * @method
@@ -1138,10 +1161,9 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
-        await this.loadMarkets ();
-        const marketId =  symbol.toLowerCase ().replace ('/', '');
-        const market = this.market (marketId);
-        symbol = this.safeSymbol (marketId, market);
+        const meta = await this.initialize (symbol);
+        symbol = this.safeString (meta, 'symbol');
+        const market = this.safeDict (meta, 'market');
         const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
         const request = {
             'market_id': rawMarketId
@@ -1175,13 +1197,9 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            const marketId = symbol.toLowerCase ().replace ('/', '');
-            market = this.market (marketId);
-            symbol = this.safeSymbol (marketId, market);
-        }
+        const meta = await this.initialize (symbol);
+        symbol = this.safeString (meta, 'symbol');
+        const market = this.safeDict (meta, 'market');
         const request = {};
         this.injectSubAccountId (request, params);
         const rawResponse = await this.restOsmiumPrivateGetOrders (this.extend (request, params));
@@ -1201,9 +1219,10 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        await this.loadMarkets();
-        const marketId =  symbol.toLowerCase ().replace ('/', '');
-        const market = this.market(marketId);
+        const meta = await this.initialize (symbol);
+        symbol = this.safeString (meta, 'symbol');
+        const marketId = this.safeString (meta, 'marketId');
+        const market = this.safeDict (meta, 'market');
         const rawMarketId = this.safeInteger(this.safeDict(market, 'info'), 'marketId');
         const request = {
             'market_id': marketId
@@ -1218,10 +1237,12 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        await this.loadMarkets();
-        const market = this.market(symbol);
+        const meta = await this.initialize (symbol);
+        symbol = this.safeString (meta, 'symbol');
+        const marketId = this.safeString (meta, 'marketId');
+        const market = this.safeDict (meta, 'market');
         const request = {
-            'market': market['id'],
+            'market': marketId,
         };
         const response = await this.restMendelevPublicGetParsedTickers(this.extend(request, params));
         //
@@ -1256,8 +1277,8 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        const meta = await this.initialize (symbols);
+        symbols = this.safeString (meta, 'symbols');
         const response = await this.restMendelevPublicGetParsedTickers(params);
         //
         //  {

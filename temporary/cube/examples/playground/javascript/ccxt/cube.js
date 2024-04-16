@@ -291,14 +291,14 @@ async function test() {
     // getAllExchanges()
     createCommunityExchange()
     createProExchange()
-    // await fetchCurrencies()
-    // await fetchMarkets()
-    // await fetchTradingFee()
-    // await createOrder()
-    // await cancelOrder()
+    // await fetchCurrencies() // TODO check parser output!!!
+    // await fetchMarkets() // TODO check parser output!!!
+    // await fetchTradingFee() // TODO check parser output!!!
+    // await createOrder() // TODO check parser output!!!
+    // await cancelOrder() // TODO check parser output!!!
     // await fetchBalance() // TODO fix!!!
     // await fetchRawOrder()
-    // await fetchOrder() // TODO fix parser, we need to use as much information as possible from the returned order instead of the fetched one!!!
+    // await fetchOrder() // TODO improve!!!
     // await fetchOpenOrders()
     // await fetchOrders()
     // await fetchOrderBook()
