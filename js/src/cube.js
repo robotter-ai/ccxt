@@ -245,6 +245,7 @@ export default class cube extends Exchange {
             },
         });
     }
+
     generateSignature() {
         const timestamp = Math.floor(Date.now() / 1000);
         const timestampBuffer = Buffer.alloc(8);
@@ -256,6 +257,7 @@ export default class cube extends Exchange {
         const signatureB64 = Buffer.from(hmac).toString('base64');
         return [signatureB64, timestamp];
     }
+
     generateAuthenticationHeaders() {
         const [signature, timestamp] = this.generateSignature();
         return {
@@ -264,12 +266,14 @@ export default class cube extends Exchange {
             'x-api-timestamp': timestamp.toString(),
         };
     }
+
     authenticateRequest(request) {
         const headers = request.headers ?? {};
         Object.assign(headers, this.generateAuthenticationHeaders());
         request.headers = headers;
         return request;
     }
+
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const environment = this.options['environment'];
         let baseUrl = undefined;
@@ -303,6 +307,15 @@ export default class cube extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
+
+    setSandboxMode(enable) {
+        if (enable === true) {
+            this.options['environment'] = 'staging';
+        } else {
+            this.options['environment'] = 'production';
+        }
+    }
+
     async fetchCurrencies(params = {}) {
         /**
          * @method
@@ -1290,7 +1303,7 @@ export default class cube extends Exchange {
         //         low: 2.6272,
         //         open: 2.8051,
         //       }
-        //    
+        //
         const timestamp = Math.floor(Date.now() / 1000);
         return this.safeTicker({
             'symbol': this.safeString(market, 'symbol'),

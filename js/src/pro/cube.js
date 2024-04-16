@@ -74,6 +74,15 @@ export default class cube extends cubeRest {
             },
         });
     }
+
+    setSandboxMode(enable) {
+        if (enable === true) {
+            this.options['environment'] = 'staging';
+        } else {
+            this.options['environment'] = 'production';
+        }
+    }
+
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
          * @method
