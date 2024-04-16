@@ -81,6 +81,8 @@ async function fetchOrderBook() {
 
 // TODO
 async function fetchOHLCV() {
+    response = await communityExchange.fetchOHLCV()
+    log(response)
 }
 
 // BACKLOG?
@@ -306,7 +308,7 @@ async function test() {
     // await fetchTickers()
     // await cancelAllOrders()
     // await fetchOrders()
-    // await fetchOHLCV()
+     await fetchOHLCV()
     // await fetchTrades()
     // await fetchMyTrades()
     // await fetchClosedOrders()

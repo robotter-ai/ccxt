@@ -1294,7 +1294,7 @@ export default class cube extends Exchange {
          * @method
          * @name cube#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://coinmate.docs.apiary.io/#reference/ticker/get-ticker-all/get
+         * @see https://cubexch.gitbook.io/cube-api/rest-mendelev-api#parsed-tickers
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1372,5 +1372,81 @@ export default class cube extends Exchange {
             'quoteVolume': this.safeNumber(ticker, 'quote_volume'),
             'info': ticker,
         }, market);
+    }
+    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cube#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://cubexch.gitbook.io/cube-api/rest-mendelev-api#parsed-tickers
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        const meta = await this.initialize (symbol);
+
+        symbol = this.safeString (meta, 'symbol');
+        const market = this.safeDict (meta, 'market');
+        const request = {
+            'duration': this.timeframes[timeframe],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const response = await this.restMendelevPublicGetParsedTickers(this.extend(request, params));
+        const data = this.safeValue(response, 'result', []);
+        //
+        //  {
+        //     result: [
+        //       {
+        //     ticker_id: "JTOUSDC",
+        //     base_currency: "JTO",
+        //     quote_currency: "USDC",
+        //     timestamp: 1713216571697,
+        //     last_price: 2.6731,
+        //     base_volume: 333.66,
+        //     quote_volume: 953.635304,
+        //     bid: 2.6653,
+        //     ask: 2.6761,
+        //     high: 3.0515,
+        //     low: 2.6272,
+        //     open: 2.8231,
+        //      },
+        //    ],
+        //  }
+        //
+        return this.parseOHLCVs(data, market, timeframe, since, limit);
+    }
+    parseOHLCV(ohlcv, market = undefined) {
+        //
+        //       {
+        //         ticker_id: "JTOUSDC",
+        //         base_currency: "JTO",
+        //         quote_currency: "USDC",
+        //         timestamp: 1713217334960,
+        //         last_price: 2.6624,
+        //         base_volume: 337.12,
+        //         quote_volume: 961.614166,
+        //         bid: 2.6627,
+        //         ask: 2.6715,
+        //         high: 3.0515,
+        //         low: 2.6272,
+        //         open: 2.8051,
+        //       }
+        //
+        return [
+            this.safeTimestamp(ohlcv, 'timestamp'),
+            this.safeNumber(ohlcv, 'open'),
+            this.safeNumber(ohlcv, 'high'),
+            this.safeNumber(ohlcv, 'low'),
+            this.safeNumber(ohlcv, 'last_price'),
+            this.safeNumber(ohlcv, ('base_volume' + 'quote_volume')),  // TODO CHECK (base_volume + quote_volume(?))!!!
+        ];
     }
 }
