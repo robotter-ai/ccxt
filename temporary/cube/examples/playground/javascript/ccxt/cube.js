@@ -5,6 +5,10 @@ const environment = 'staging'
 const exchangeId = 'cube'
 const subAccountId = Number(process.env['SUB_ACCOUNT_ID'])
 const marketSymbols = ['tsoltusdc','tbtctusdc']
+const marketId = "200047"
+const ctOrderId = 1712612349538
+const orderId = "5281285747"
+const exchangeOrderId = ''
 
 let communityExchange = undefined
 let proExchange = undefined
@@ -97,7 +101,7 @@ async function fetchBalance() {
 async function createOrder() {
     // Working, but the parse is not complete.
     response = await communityExchange.createOrder(
-        'tSOLtUSDC', 1, 1, 0.1, 180.0,
+        'tSOLtUSDC', 1, 0, 0.1, 125.0,
         {
             "requestId": 1,
             "subaccountId": subAccountId,
@@ -110,9 +114,10 @@ async function createOrder() {
     log(response)
 }
 
-// DEVELOPMENT (incompleto)
 async function cancelOrder() {
-
+    // ???
+    response = await communityExchange.cancelOrder(exchangeOrderId, marketSymbol, {"requestId": 1})
+    log(response)
 }
 
 // DEVELOPMENT (incompleto)
@@ -122,6 +127,15 @@ async function cancelAllOrders() {
         "subaccountId": subAccountId,
         "requestId": 1,
         "side": 1, // 0: buy, 1: sell
+    })
+    log(response)
+    // TODO response object is correct lasting only parse the answer!!!
+}
+
+async function fetchRawOrder() {
+    // ???
+    response = await communityExchange.fetchRawOrder(exchangeOrderId, marketSymbol, {
+        subAccountId
     })
     log(response)
 }
@@ -166,6 +180,8 @@ async function deposit() {
 
 // BACKLOG
 async function withdraw() {
+    response = await communityExchange.withdraw()
+    log(response)
 }
 
 // DEVELOPMENT (incompleto)
@@ -180,6 +196,92 @@ async function watchOrderBook() {
     log(response)
 }
 
+async function parseOrder() {
+    const fetchedOrder = {
+        "clientOrderId": "1713218283171",
+        "exchangeOrderId": "5286416927",
+        "marketId": "200047",
+        "price": "13000",
+        "orderQuantity": "10",
+        "side": "0",
+        "timeInForce": "1",
+        "orderType": "0",
+        "remainingQuantity": "10",
+        "restTime": "1713218283314283303",
+        "subaccountId": "163",
+        "cumulativeQuantity": "0",
+        "cancelOnDisconnect": false
+    }
+    const creationResultOrderExample = {
+        "msgSeqNum": "3614952",
+        "clientOrderId": "1713218738167",
+        "requestId": "1",
+        "exchangeOrderId": "5286527825",
+        "marketId": "200047",
+        "price": null,
+        "quantity": "10",
+        "side": "0",
+        "timeInForce": "1",
+        "orderType": "1",
+        "transactTime": "1713218807472551691",
+        "subaccountId": "163",
+        "cancelOnDisconnect": false
+    }
+    const marketExample = {
+        "id": "tsoltusdc",
+        "lowercaseId": "tsoltusdc",
+        "symbol": "TSOL/TUSDC",
+        "base": "TSOL",
+        "quote": "TUSDC",
+        "baseId": "TSOL",
+        "quoteId": "TUSDC",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.008,
+        "maker": 0.004,
+        "precision": {
+            "amount": 1,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "marketId": "200047",
+            "symbol": "tSOLtUSDC",
+            "baseAssetId": "80005",
+            "baseLotSize": "100000",
+            "quoteAssetId": "80007",
+            "quoteLotSize": "1",
+            "priceDisplayDecimals": "2",
+            "protectionPriceLevels": "1000",
+            "priceBandBidPct": "25",
+            "priceBandAskPct": "400",
+            "priceTickSize": "0.01",
+            "quantityTickSize": "0.0001",
+            "feeTableId": "2",
+            "status": "1",
+            "displayRank": "3",
+            "listedAt": "2023-10-29T00:00:00Z",
+            "isPrimary": true
+        }
+    }
+    const creationResult = {"order": creationResultOrderExample, "fetchedOrder": fetchedOrder};
+    // const cancellationResult = {"order": cancellationResultOrderExample, "fetchedOrder": fetchedOrder};
+    response = await communityExchange.parseOrder(creationResult, marketExample)
+    log(response)
+}
+
 async function test() {
     // getAllExchanges()
     createCommunityExchange()
@@ -190,6 +292,7 @@ async function test() {
     // await createOrder()
     // await cancelOrder()
     // await fetchBalance()
+    // await fetchRawOrder()
     // await fetchOrder()
     // await fetchOpenOrders()
     // await fetchOrderBook()
@@ -205,6 +308,7 @@ async function test() {
     // await deposit()
     // await withdraw()
     // await watchOrderBook()
+    // await parseOrder()
 }
 
 test()
