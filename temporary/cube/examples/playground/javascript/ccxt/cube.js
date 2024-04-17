@@ -305,7 +305,7 @@ async function parseOrder() {
 async function test() {
     // getAllExchanges()
     createCommunityExchange()
-    createProExchange()
+    // createProExchange()
     await loadMarkets()
     // await fetchCurrencies() // TODO check parser output!!!
     // await fetchMarkets() // TODO check parser output!!!
@@ -323,7 +323,7 @@ async function test() {
     // await fetchTickers()
     // await cancelAllOrders()
     // await fetchOrders()
-    //  await fetchOHLCV()
+    // await fetchOHLCV()
     // await fetchTrades()
     // await fetchMyTrades()
     // await fetchClosedOrders()
