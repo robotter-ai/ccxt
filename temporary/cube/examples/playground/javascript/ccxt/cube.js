@@ -306,7 +306,7 @@ async function test() {
     // getAllExchanges()
     createCommunityExchange()
     // createProExchange()
-    await loadMarkets()
+    // await loadMarkets()
     // await fetchCurrencies() // TODO check parser output!!!
     // await fetchMarkets() // TODO check parser output!!!
     // await fetchTradingFee() // TODO check parser output!!!

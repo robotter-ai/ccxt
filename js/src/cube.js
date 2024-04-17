@@ -880,21 +880,32 @@ export default class cube extends Exchange {
         for (const order of openOrders) {
             const orderMarketId = this.safeString (order, 'marketId');
             const orderMarket = this.safeDict (allMarkets, orderMarketId);
+            const orderMarketAmountPrecision = this.safeNumber (this.safeDict (orderMarket, 'precision'), 'amount')
             const orderSide = this.safeString (order, 'side');
             const orderBaseToken = this.safeString (orderMarket, 'base');
             const orderQuoteToken = this.safeString (orderMarket, 'quote');
-            // const orderAmount =
+            const orderAmount = this.safeInteger (order, 'qty');
 
+            let targetToken = '';
             if (orderSide === 'Ask') {
-                // An ask (or offer) order sells the base asset and gets the quote asset.
-                const targetToken = orderBaseToken; // Locked asset
-                // if (!used.hasOwnProperty(targetToken)) {
-                //     used[targetToken] =
-                // }
+                targetToken = orderBaseToken
             } else if (orderSide === 'Bid') {
+                targetToken = orderQuoteToken;
+            }
 
+            const targetCurrency = this.currencies_by_id[targetToken];
+            const targetCurrencyPrecision = this.safeInteger (targetCurrency, 'precision');
+
+            // TODO - Try to find the conversion pattern for order amount values.!!!
+
+            if (!used.hasOwnProperty(targetToken)) {
+                used[targetToken] = orderAmount * orderMarketAmountPrecision;
+            } else {
+                used[targetToken] = used[targetToken] += orderAmount * orderMarketAmountPrecision;
             }
         }
+
+        free[targetToken] = total[targetToken] - used[targetToken];
 
         return this.safeBalance ({
             'info': response,
