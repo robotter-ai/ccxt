@@ -800,6 +800,7 @@ export default class cube extends Exchange {
             'market_symbol': rawMarketSymbol
         }
         response = await this.restMendelevPublicGetParsedBookMarketSymbolRecentTrades(this.extend(request, params));
+        const trades = this.safeValue(response, 'trades', []);
         //
         // {
         //     "result":{
@@ -823,10 +824,36 @@ export default class cube extends Exchange {
         //     }
         // }
         //
-        return this.parseTrades(response, market, since, limit);
+        return this.parseTrades(trades, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
-        throw Error('Not implemented!'); // TODO fix!!!
+        const datetime = this.safeString(trade, 'ts');
+        const timestamp = this.parse8601(datetime);
+        const cubeSide = this.safeString(trade, 'side');
+        let side;
+        if (cubeSide === 'Bid') {
+            side = 'buy';
+        }
+        else if (cubeSide === 'Ask') {
+            side = 'sell';
+        }
+        const priceString = this.safeString(trade, 'p');
+        const amountString = this.safeString(trade, 'q');
+        return this.safeTrade({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'symbol': symbol,
+            'id': this.safeString(trade, 'id'),
+            'order': undefined,
+            'type': undefined,
+            'takerOrMaker': undefined,
+            'side': side,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
     }
     async fetchBalance (params = {}) {
         /**
@@ -889,21 +916,32 @@ export default class cube extends Exchange {
         for (const order of openOrders) {
             const orderMarketId = this.safeString (order, 'marketId');
             const orderMarket = this.safeDict (allMarkets, orderMarketId);
+            const orderMarketAmountPrecision = this.safeNumber (this.safeDict (orderMarket, 'precision'), 'amount')
             const orderSide = this.safeString (order, 'side');
             const orderBaseToken = this.safeString (orderMarket, 'base');
             const orderQuoteToken = this.safeString (orderMarket, 'quote');
-            // const orderAmount =
+            const orderAmount = this.safeInteger (order, 'qty');
 
+            let targetToken = '';
             if (orderSide === 'Ask') {
-                // An ask (or offer) order sells the base asset and gets the quote asset.
-                const targetToken = orderBaseToken; // Locked asset
-                // if (!used.hasOwnProperty(targetToken)) {
-                //     used[targetToken] =
-                // }
+                targetToken = orderBaseToken
             } else if (orderSide === 'Bid') {
+                targetToken = orderQuoteToken;
+            }
 
+            const targetCurrency = this.currencies_by_id[targetToken];
+            const targetCurrencyPrecision = this.safeInteger (targetCurrency, 'precision');
+
+            // TODO - Try to find the conversion pattern for order amount values.!!!
+
+            if (!used.hasOwnProperty(targetToken)) {
+                used[targetToken] = orderAmount * orderMarketAmountPrecision;
+            } else {
+                used[targetToken] = used[targetToken] += orderAmount * orderMarketAmountPrecision;
             }
         }
+
+        free[targetToken] = total[targetToken] - used[targetToken];
 
         return this.safeBalance ({
             'info': response,
