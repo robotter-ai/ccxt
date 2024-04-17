@@ -323,38 +323,46 @@ export default class cube extends Exchange {
     }
 
     async initialize(symbolOrSymbols) {
+        let symbol = undefined;
+        let marketId = undefined;
+        let market = undefined;
+        let symbols = undefined;
+        let marketIds = undefined;
+        let markets = undefined;
         await this.loadMarkets ();
         if (symbolOrSymbols !== undefined) {
             if (typeof symbolOrSymbols === 'string') {
-                let marketId = symbolOrSymbols.toLowerCase ().replace ('/', '');
-                const market = this.market (marketId);
+                marketId = symbolOrSymbols.toLowerCase ().replace ('/', '');
+                market = this.market (marketId);
                 marketId = market.id;
                 symbolOrSymbols = this.safeSymbol (marketId, market);
+                symbol = symbolOrSymbols;
                 return {
-                    symbol: symbolOrSymbols,
+                    symbol: symbol,
                     marketId: marketId,
                     market: market,
-                    symbols: undefined,
-                    marketIds: undefined,
-                    markets: undefined
+                    symbols: symbols,
+                    marketIds: marketIds,
+                    markets: markets
                 }
             } else if (Array.isArray(symbolOrSymbols)) {
-                const marketsIds = [];
-                const markets = [];
+                marketIds = [];
+                markets = [];
                 for (let i = 0; i < symbolOrSymbols.length; i++) {
-                    let marketId = symbolOrSymbols[i].toLowerCase ().replace ('/', '');
-                    const market = this.market (marketId);
+                    marketId = symbolOrSymbols[i].toLowerCase ().replace ('/', '');
+                    market = this.market (marketId);
                     marketId = market.id;
                     symbolOrSymbols[i] = this.safeSymbol (marketId, market);
                     marketIds.push (marketId);
                     markets.push (market);
                 }
                 symbolOrSymbols = this.marketSymbols(symbolOrSymbols);
+                symbols = symbolOrSymbols;
                 return {
                     symbol: symbol,
                     marketId: marketId,
                     market: market,
-                    symbols: symbolOrSymbols,
+                    symbols: symbols,
                     marketIds: marketIds,
                     markets: markets
                 }
@@ -363,12 +371,12 @@ export default class cube extends Exchange {
             }
         }
         return {
-            symbol: undefined,
-            marketId: undefined,
-            market: undefined,
-            symbols: undefined,
-            marketIds: undefined,
-            markets: undefined
+            symbol: symbol,
+            marketId: marketId,
+            market: market,
+            symbols: symbols,
+            marketIds: marketIds,
+            markets: markets
         }
     }
 
@@ -1454,12 +1462,13 @@ export default class cube extends Exchange {
         //    ],
         //  }
         //
-        const data = this.safeValue(response, 'data', {});
-        const keys = Object.keys(data);
-        const result = {};
-        for (let i = 0; i < keys.length; i++) {
-            const market = this.market(keys[i]);
-            const ticker = this.parseTicker(this.safeValue(data, keys[i]), market);
+        const rawTickers = this.safeList(response, 'result', []);
+        const result = {};{}
+        for (let i = 0; i < rawTickers.length; i++) {
+            const rawTicker = rawTickers[i];
+            const marketId = this.marketId (this.safeString (rawTicker, 'ticker_id').toLowerCase  ());
+            const market = this.market (marketId);
+            const ticker = this.parseTicker(rawTicker, market);
             result[market['symbol']] = ticker;
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);
