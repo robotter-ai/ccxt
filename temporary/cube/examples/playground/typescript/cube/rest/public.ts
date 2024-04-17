@@ -86,4 +86,4 @@ async function mendelevGetMarketSymbolRecentTrades() {
     console.log(data);
 }
 
-await iridiumGetMarkets()
+await mendelevGetMarketSymbolRecentTrades()
