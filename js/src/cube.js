@@ -7,27 +7,12 @@
 // ---------------------------------------------------------------------------
 import Exchange from './abstract/cube.js';
 import {
-// ArgumentsRequired,
-// OperationFailed,
-// OperationRejected,
-InsufficientFunds, OrderNotFound,
-// InvalidOrder,
-// DDoSProtection,
-// InvalidNonce,
-AuthenticationError,
-// RateLimitExceeded,
-// PermissionDenied,
-// NotSupported,
-BadRequest,
-// BadSymbol,
-// AccountSuspended,
-// OrderImmediatelyFillable,
-// OnMaintenance,
-// BadResponse,
-// RequestTimeout,
-// OrderNotFillable,
-// MarginModeAlreadySet
- } from './base/errors.js';
+    InsufficientFunds,
+    OrderNotFound,
+    AuthenticationError,
+    BadRequest,
+    NotSupported,
+} from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import {safeInteger} from "./base/functions/type.js";
@@ -38,7 +23,7 @@ import {safeInteger} from "./base/functions/type.js";
  */
 export default class cube extends Exchange {
     describe() {
-        // TODO Only last ckecking!!!
+        // TODO Check one last time!!!
         return this.deepExtend(super.describe(), {
             'id': 'cube',
             'name': 'cube',
@@ -827,6 +812,23 @@ export default class cube extends Exchange {
         //
         return this.parseTrades(trades, market, since, limit);
     }
+
+    async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchMyTrades() is not supported yet');
+    }
+
+    async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchOrders']) {
+            const orders = await this.fetchOrders(symbol, since, limit, params);
+            return this.filterBy(orders, 'status', 'closed');
+        }
+        throw new NotSupported(this.id + ' fetchClosedOrders() is not supported yet');
+    }
+
+    async fetchStatus(params = {}) {
+        throw new NotSupported(this.id + ' fetchStatus() is not supported yet');
+    }
+
     parseTrade(trade, market = undefined) {
         const datetime = this.safeString(trade, 'ts');
         const timestamp = this.parse8601(datetime);

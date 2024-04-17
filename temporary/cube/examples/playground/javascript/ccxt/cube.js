@@ -325,9 +325,9 @@ async function test() {
     // await fetchOrders()
     // await fetchOHLCV()
     // await fetchTrades()
-    // await fetchMyTrades()   MISSING METHOD!!!
-    // await fetchClosedOrders()    MISSING METHOD!!!
-    // await fetchStatus()     MISSING METHOD!!!
+    // await fetchMyTrades()  // TODO Not implemented!!!
+    // await fetchClosedOrders() // TODO Not implemented!!!
+    // await fetchStatus() // TODO Not implemented!!!
     // await deposit()
     // await withdraw()
     // await watchOrderBook()
