@@ -306,7 +306,7 @@ async function test() {
     // getAllExchanges()
     createCommunityExchange()
     // createProExchange()
-    await loadMarkets()
+    // await loadMarkets()
     // await fetchCurrencies() // TODO check parser output!!!
     // await fetchMarkets() // TODO check parser output!!!
     // await fetchTradingFee() // TODO check parser output!!!
@@ -325,9 +325,9 @@ async function test() {
     // await fetchOrders()
     // await fetchOHLCV()
     // await fetchTrades()
-    // await fetchMyTrades()
-    // await fetchClosedOrders()
-    // await fetchStatus()
+    // await fetchMyTrades()   MISSING METHOD!!!
+    // await fetchClosedOrders()    MISSING METHOD!!!
+    // await fetchStatus()     MISSING METHOD!!!
     // await deposit()
     // await withdraw()
     // await watchOrderBook()
