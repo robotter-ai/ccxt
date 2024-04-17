@@ -1059,10 +1059,11 @@ export default class cube extends Exchange {
         const rawMarkeId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
         const request = {
             marketId: rawMarkeId,
-            requestId: this.safeInteger (params, 'requestId'),
-            side: this.safeInteger (params, 'side'),
+            requestId: this.safeInteger (params, 'requestId', 1),
+            side: this.safeInteger (params, 'side', undefined),
         };
         this.injectSubAccountId (request, params);
+        // TODO wrong response, it is needed to return the cancelled orders!!!
         return await this.restOsmiumPrivateDeleteOrders (this.extend (request, params));
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {

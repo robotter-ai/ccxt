@@ -7,7 +7,7 @@ const subAccountId = Number(process.env['SUB_ACCOUNT_ID'])
 const marketSymbols = ['tsoltusdc','tbtctusdc']
 const marketIds = ['200047', '200005']
 const clientOrderId = 1712612349538
-const exchangeOrderId = '5307762315'
+const exchangeOrderId = '5328155590'
 
 let communityExchange = undefined
 let proExchange = undefined
@@ -136,7 +136,7 @@ async function cancelAllOrders() {
     response = await communityExchange.cancelAllOrders(marketSymbols[0], {
         'subaccountId': subAccountId,
         'requestId': 1,
-        'side': 1, // 0: buy, 1: sell
+        // 'side': 1, // 0: buy, 1: sell
     })
     log(response)
     // TODO response object is correct lasting only parse the answer!!!
@@ -316,12 +316,12 @@ async function test() {
     // await fetchRawOrder()
     // await fetchOrder() // TODO improve!!!
     // await fetchOpenOrders()
-    // await fetchOrders()
+    // await fetchOrders() // Broken
     // await fetchOrdersAllMarkets()
     // await fetchOrderBook()
     // await fetchTicker()
     // await fetchTickers()
-    // await cancelAllOrders()
+    // await cancelAllOrders() // TODO Wrong output (need to return the parsed orders but our response doesn't have it)!!!
     // await fetchOrders()
     // await fetchOHLCV()
     // await fetchTrades()
