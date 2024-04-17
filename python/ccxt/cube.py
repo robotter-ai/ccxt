@@ -9,7 +9,6 @@ import hashlib
 import math
 from ccxt.base.types import Any, Balances, Currencies, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade
 from typing import List
-from typing import Any
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -169,8 +168,9 @@ class cube(Exchange, ImplicitAPI):
                                 '/users/transfers': 1,
                                 '/users/deposits': 1,
                                 '/users/withdrawals': 1,
-                                '/users/orders': 1,
-                                '/users/fills': 1,
+                                '/users/subaccount/{subaccountId}/orders': 1,
+                                '/users/subaccount/{subaccountId}/fills': 1,
+                                '/users/fee-estimate/{market_id}': 1,
                             },
                             'post': {
                                 '/users/subaccounts': 1,
@@ -555,18 +555,12 @@ class cube(Exchange, ImplicitAPI):
             id = self.safe_string_lower(rawMarket, 'symbol')
             rawBaseAsset = None
             for j in range(0, len(rawAssets)):
-                if (
-                    self.safe_string(self.safe_dict(rawAssets, j), 'assetId')
-                    == self.safe_string(rawMarket, 'baseAssetId')
-                ) {
+                if self.safe_string(self.safe_dict(rawAssets, j), 'assetId') == self.safe_string(rawMarket, 'baseAssetId'):
                     rawBaseAsset = self.safe_dict(rawAssets, j)
                     break
             rawQuoteAsset = None
             for j in range(0, len(rawAssets)):
-                if (
-                    self.safe_string(self.safe_dict(rawAssets, j), 'assetId')
-                    == self.safe_string(rawMarket, 'quoteAssetId')
-                ) {
+                if self.safe_string(self.safe_dict(rawAssets, j), 'assetId') == self.safe_string(rawMarket, 'quoteAssetId'):
                     rawQuoteAsset = self.safe_dict(rawAssets, j)
                     break
             baseId = self.safe_string_upper(rawBaseAsset, 'symbol')

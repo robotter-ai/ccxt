@@ -607,20 +607,14 @@ export default class cube extends Exchange {
             const id = this.safeStringLower (rawMarket, 'symbol');
             let rawBaseAsset = undefined;
             for (let j = 0; j < rawAssets.length; j++) {
-                if (
-                    this.safeString (this.safeDict (rawAssets, j), 'assetId')
-                    === this.safeString (rawMarket, 'baseAssetId')
-                ) {
+                if (this.safeString (this.safeDict (rawAssets, j), 'assetId') === this.safeString (rawMarket, 'baseAssetId')) {
                     rawBaseAsset = this.safeDict (rawAssets, j);
                     break;
                 }
             }
             let rawQuoteAsset = undefined;
             for (let j = 0; j < rawAssets.length; j++) {
-                if (
-                    this.safeString (this.safeDict (rawAssets, j), 'assetId')
-                    === this.safeString (rawMarket, 'quoteAssetId')
-                ) {
+                if (this.safeString (this.safeDict (rawAssets, j), 'assetId') === this.safeString (rawMarket, 'quoteAssetId')) {
                     rawQuoteAsset = this.safeDict (rawAssets, j);
                     break;
                 }

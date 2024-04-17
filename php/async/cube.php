@@ -163,8 +163,9 @@ class cube extends Exchange {
                                 '/users/transfers' => 1,
                                 '/users/deposits' => 1,
                                 '/users/withdrawals' => 1,
-                                '/users/orders' => 1,
-                                '/users/fills' => 1,
+                                '/users/subaccount/{subaccountId}/orders' => 1,
+                                '/users/subaccount/{subaccountId}/fills' => 1,
+                                '/users/fee-estimate/{market_id}' => 1,
                             ),
                             'post' => array(
                                 '/users/subaccounts' => 1,
@@ -574,20 +575,14 @@ class cube extends Exchange {
                 $id = $this->safe_string_lower($rawMarket, 'symbol');
                 $rawBaseAsset = null;
                 for ($j = 0; $j < count($rawAssets); $j++) {
-                    if (
-                        $this->safe_string($this->safe_dict($rawAssets, $j), 'assetId')
-                        === $this->safe_string($rawMarket, 'baseAssetId')
-                    ) {
+                    if ($this->safe_string($this->safe_dict($rawAssets, $j), 'assetId') === $this->safe_string($rawMarket, 'baseAssetId')) {
                         $rawBaseAsset = $this->safe_dict($rawAssets, $j);
                         break;
                     }
                 }
                 $rawQuoteAsset = null;
                 for ($j = 0; $j < count($rawAssets); $j++) {
-                    if (
-                        $this->safe_string($this->safe_dict($rawAssets, $j), 'assetId')
-                        === $this->safe_string($rawMarket, 'quoteAssetId')
-                    ) {
+                    if ($this->safe_string($this->safe_dict($rawAssets, $j), 'assetId') === $this->safe_string($rawMarket, 'quoteAssetId')) {
                         $rawQuoteAsset = $this->safe_dict($rawAssets, $j);
                         break;
                     }
