@@ -491,7 +491,7 @@ export default class cube extends Exchange {
             const code =  this.safeInteger(rawCurrency, 'assetId');
             const name = this.safeString (this.safeDict (rawCurrency,'metadata'), 'currencyName')
             const fees = this.safeString (this.safeDict(rawCurrency,''))
-            const status = this.safeInteger(rawMarket, 'status') == 1 ? true : false;
+            const status = this.safeInteger(rawCurrency, 'status') == 1 ? true : false;
             // TODO Only last ckecking!!!
             const currency = this.safeCurrencyStructure({
                 'info': rawCurrency,
