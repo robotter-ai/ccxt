@@ -66,13 +66,13 @@ async function fetchCurrencies() {
     log(response)
 }
 
-// TODO
+// DONE
 async function fetchTicker() {
     response = await communityExchange.fetchTicker(marketSymbols[0])
     log(response)
 }
 
-// BACKLOG
+// DONE
 async function fetchTickers() {
     response = await communityExchange.fetchTickers(marketSymbols)
     log(response)
