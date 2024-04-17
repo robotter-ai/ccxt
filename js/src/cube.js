@@ -876,7 +876,6 @@ export default class cube extends Exchange {
         const openOrders = [];
         const filledUnsettledOrders = [];
         const allMarkets = {};
-
         for (const marketSymbol in this.markets_by_id) {
             const marketArrayItem = this.markets_by_id[marketSymbol];
             const market = marketArrayItem[0];
@@ -884,11 +883,9 @@ export default class cube extends Exchange {
             const marketNumericId = this.safeString (marketInfo, 'marketId');
             allMarkets[marketNumericId] = market;
         }
-
         let free = {};
         let used = {};
         let total = {};
-
         for (const asset of response) {
             const assetAmount = parseInt (this.safeString (asset, 'amount'));
             if (assetAmount > 0) {
@@ -899,7 +896,6 @@ export default class cube extends Exchange {
                 total[assetSymbol] = assetAmount / 10 ** currencyPrecision;
             }
         }
-
         for (const order of allOrders) {
             const orderStatus = this.safeString (order, 'status');
             if (orderStatus === 'open') {
@@ -912,7 +908,6 @@ export default class cube extends Exchange {
                 }
             }
         }
-
         for (const order of openOrders) {
             const orderMarketId = this.safeString (order, 'marketId');
             const orderMarket = this.safeDict (allMarkets, orderMarketId);
@@ -921,35 +916,29 @@ export default class cube extends Exchange {
             const orderBaseToken = this.safeString (orderMarket, 'base');
             const orderQuoteToken = this.safeString (orderMarket, 'quote');
             const orderAmount = this.safeInteger (order, 'qty');
-
             let targetToken = '';
             if (orderSide === 'Ask') {
                 targetToken = orderBaseToken
             } else if (orderSide === 'Bid') {
                 targetToken = orderQuoteToken;
             }
-
             const targetCurrency = this.currencies_by_id[targetToken];
             const targetCurrencyPrecision = this.safeInteger (targetCurrency, 'precision');
-
             // TODO - Try to find the conversion pattern for order amount values.!!!
-
             if (!used.hasOwnProperty(targetToken)) {
                 used[targetToken] = orderAmount * orderMarketAmountPrecision;
             } else {
                 used[targetToken] = used[targetToken] += orderAmount * orderMarketAmountPrecision;
             }
         }
-
-        free[targetToken] = total[targetToken] - used[targetToken];
-
+        const timestamp = Date.now();
         return this.safeBalance ({
             'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'free': free,
-            'used': {},
-            'total': {},
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'free': {},
+            'used': used,
+            'total': total,
         });
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
