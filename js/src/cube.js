@@ -791,6 +791,7 @@ export default class cube extends Exchange {
             'market_symbol': rawMarketSymbol
         }
         response = await this.restMendelevPublicGetParsedBookMarketSymbolRecentTrades(this.extend(request, params));
+        const trades = this.safeValue(response, 'trades', []);
         //
         // {
         //     "result":{
@@ -814,10 +815,36 @@ export default class cube extends Exchange {
         //     }
         // }
         //
-        return this.parseTrades(response, market, since, limit);
+        return this.parseTrades(trades, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
-        throw Error('Not implemented!'); // TODO fix!!!
+        const datetime = this.safeString(trade, 'ts');
+        const timestamp = this.parse8601(datetime);
+        const cubeSide = this.safeString(trade, 'side');
+        let side;
+        if (cubeSide === 'Bid') {
+            side = 'buy';
+        }
+        else if (cubeSide === 'Ask') {
+            side = 'sell';
+        }
+        const priceString = this.safeString(trade, 'p');
+        const amountString = this.safeString(trade, 'q');
+        return this.safeTrade({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'symbol': symbol,
+            'id': this.safeString(trade, 'id'),
+            'order': undefined,
+            'type': undefined,
+            'takerOrMaker': undefined,
+            'side': side,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
     }
     async fetchBalance (params = {}) {
         /**
