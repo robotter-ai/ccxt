@@ -93,8 +93,8 @@ export default class cube extends Exchange {
                                     '/users/transfers': 1,
                                     '/users/deposits': 1,
                                     '/users/withdrawals': 1,
-                                    '/users/orders': 1,
-                                    '/users/fills': 1,
+                                    '/users/subaccount/{subaccountId}/orders': 1,
+                                    '/users/subaccount/{subaccountId}/fills': 1,
                                     '/users/fee-estimate/{market_id}': 1,
                                 },
                                 'post': {
@@ -246,7 +246,6 @@ export default class cube extends Exchange {
                 'environment': 'production',
                 'subaccountId': undefined,
             },
-            // ... other properties here ...
             'pro': false,
             'fees': {
                 'trading': {
@@ -254,8 +253,7 @@ export default class cube extends Exchange {
                     'taker': this.parseNumber('0.008'),
                 },
             },
-
-            'commonCurrencies': {},
+            'commonCurrencies': undefined,
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
