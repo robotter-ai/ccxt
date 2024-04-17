@@ -181,7 +181,7 @@ export default class cube extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': 'emulated',
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
@@ -1255,6 +1255,7 @@ export default class cube extends Exchange {
          * @method
          * @name cube#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://cubexch.gitbook.io/cube-api/rest-mendelev-api#parsed-tickers 
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1446,7 +1447,7 @@ export default class cube extends Exchange {
             this.safeNumber(ohlcv, 'high'),
             this.safeNumber(ohlcv, 'low'),
             this.safeNumber(ohlcv, 'last_price'),
-            this.safeNumber(ohlcv, ('base_volume' + 'quote_volume')),  // TODO CHECK (base_volume + quote_volume(?))!!!
+            this.safeNumber(ohlcv, ('base_volume')) + this.safeNumber(ohlcv, ('quote_volume')),  // TODO CHECK (base_volume + quote_volume(?))!!!
         ];
     }
 }
