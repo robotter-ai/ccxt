@@ -301,7 +301,7 @@ async function test() {
     await loadMarkets()
     // await fetchCurrencies() // TODO check parser output!!!
     // await fetchMarkets() // TODO check parser output!!!
-    // await fetchTradingFee() // TODO check parser output!!!
+    await fetchTradingFee() // TODO check parser output!!!
     // await createOrder() // TODO check parser output!!!
     // await cancelOrder() // TODO check parser output!!!
     // await fetchBalance() // TODO fix!!!

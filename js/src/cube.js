@@ -38,7 +38,7 @@ import {safeInteger} from "./base/functions/type.js";
  */
 export default class cube extends Exchange {
     describe() {
-        // TODO verify all!!!
+        // TODO Only last ckecking!!!
         return this.deepExtend(super.describe(), {
             'id': 'cube',
             'name': 'cube',
@@ -231,7 +231,7 @@ export default class cube extends Exchange {
             },
             'timeout': 10000,
             'rateLimit': 100,
-            'userAgent': 'ccxt;1.1.1',
+            'userAgent': false,
             'verbose': false,
             'markets': {},
             'symbols': [],
@@ -401,6 +401,7 @@ export default class cube extends Exchange {
     }
 
     async fetchCurrencies(params = {}) {
+        // TODO Only last ckecking!!!
         /**
          * @method
          * @name cube#fetchCurrencies
@@ -485,19 +486,24 @@ export default class cube extends Exchange {
     parseCurrencies(response) {
         const result = {};
         const rawCurrencies = this.safeDict(this.safeDict(response, 'result'), 'assets');
+        const rawSources = this.safeDict(this.safeDict(response,'result'), 'sources');
         for (let i = 0; i < rawCurrencies.length; i++) {
             const rawCurrency = rawCurrencies[i];
             const id = this.safeStringUpper(rawCurrency, 'symbol');
             const code = this.safeCurrencyCode(id);
-            // TODO verify!!!
+            const name = this.safeString (this.safeDict (rawCurrency,'metadata'), 'currencyName')
+            const fees = this.safeString (this.safeDict(rawCurrency,''))
+            const status = this.safeInteger(rawMarket, 'status') == 1 ? true : false;
+            // TODO Only last ckecking!!!
             const currency = this.safeCurrencyStructure({
+                'info': rawCurrency,
                 'id': id,
                 'numericId': this.safeInteger(rawCurrency, 'assetId'),
                 'code': this.safeStringUpper(rawCurrency, 'symbol'),
                 'precision': this.safeInteger(rawCurrency, 'decimals'),
                 'type': this.safeStringLower(rawCurrency, 'assetType'),
-                'name': this.safeString(rawCurrency, 'symbol'),
-                'active': this.safeInteger(rawCurrency, 'status') === 1,
+                'name': name,
+                'active': status,
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
@@ -513,7 +519,6 @@ export default class cube extends Exchange {
                         'max': undefined,
                     },
                 },
-                'info': rawCurrency,
             });
             result[code] = currency;
         }
@@ -603,6 +608,8 @@ export default class cube extends Exchange {
     }
 
     parseMarkets(response) {
+        // TODO Only last ckecking!!!
+
         const result = [];
         const rawMarkets = this.safeDict(this.safeDict(response, 'result'), 'markets');
         const rawAssets = this.safeDict(this.safeDict(response, 'result'), 'assets');
@@ -629,42 +636,42 @@ export default class cube extends Exchange {
             const quoteId = this.safeStringUpper(rawQuoteAsset, 'symbol');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            const status = this.safeInteger(rawMarket, 'status') == 1 ? true : false;
             const market = this.safeMarketStructure({
                 'id': id,
-                'lowercaseId': id,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
-                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': undefined,
+                'active': status,
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
-                'swap': false,
                 'future': false,
+                'swap': false,
                 'option': false,
-                'active': this.safeInteger(rawMarket, 'status') === 1,
                 'contract': false,
+                'settle': undefined,
+                'settleId': undefined,
+                'contractSize': undefined,
                 'linear': undefined,
                 'inverse': undefined,
-                'contractSize': undefined,
-                'taker': this.safeNumber(this.safeDict(this.fees, 'trading'), 'taker'),
-                'maker': this.safeNumber(this.safeDict(this.fees, 'trading'), 'maker'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
+                'taker': this.safeNumber(this.safeDict(this.fees, 'trading'), 'taker'),
+                'maker': this.safeNumber(this.safeDict(this.fees, 'trading'), 'maker'),
+                'percentage': undefined,
+                'tierBased': false,
+                'feeSide': undefined,
                 'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(rawMarket, 'quantityTickSize'))),
                     'price': this.parseNumber(this.parsePrecision(this.safeString(rawMarket, 'priceTickSize'))),
+                    'amount': this.parseNumber(this.parsePrecision(this.safeString(rawMarket, 'quantityTickSize'))),
+                    'cost': undefined,
                 },
                 'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'amount': {
                         'min': undefined,
                         'max': undefined,
@@ -677,8 +684,11 @@ export default class cube extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                 },
-                'created': undefined,
                 'info': rawMarket,
             });
             result.push(market);
