@@ -972,23 +972,39 @@ export default class cube extends Exchange {
         const rawMarketId = this.safeInteger(this.safeDict(market, 'info'), 'marketId');
         const exchangePrice = price * 100;
         const exchangeAmount = amount * 100;
-        const exchangeSide = side;
-        const exchangeOrderType = type;
+        let exchangeOrderType = undefined;
+        if (type == 'limit') {
+            exchangeOrderType = 0;
+        } else if (type == 'market') {
+            exchangeOrderType = 1;
+        } else if (type == 'MARKET_WITH_PROTECTION') {
+            exchangeOrderType = 2;
+        } else {
+            throw Error('OrderType was not recognized.');
+        }
+        let exchangeOrderSide = undefined;
+        if (side == 'buy') {
+            exchangeOrderSide = 0;
+        } else if (side == 'sell') {
+            exchangeOrderSide = 1;
+        } else {
+            throw Error('OrderSide was not recognized.');
+        }
         const timestamp = Date.now();
         const clientOrderIdFromParams = this.safeInteger(params, 'clientOrderId')
         const clientOrderId = (clientOrderIdFromParams === null || clientOrderIdFromParams === undefined) ? timestamp : clientOrderIdFromParams;
         const request = {
             'clientOrderId': clientOrderId,
-            'requestId': this.safeInteger(params, 'requestId'),
+            'requestId': this.safeInteger(params, 'requestId', 1),
             'marketId': rawMarketId,
             'price': exchangePrice,
             'quantity': exchangeAmount,
-            'side': exchangeSide,
-            'timeInForce': this.safeInteger(params, 'timeInForce'),
+            'side': exchangeOrderSide,
+            'timeInForce': this.safeInteger(params, 'timeInForce', 1),
             'orderType': exchangeOrderType,
-            'selfTradePrevention': this.safeInteger(params, 'selfTradePrevention'),
-            'postOnly': this.safeInteger(params, 'postOnly'),
-            'cancelOnDisconnect': this.safeBool(params, 'cancelOnDisconnect'),
+            'selfTradePrevention': this.safeInteger(params, 'selfTradePrevention', 0),
+            'postOnly': this.safeInteger(params, 'postOnly', 0),
+            'cancelOnDisconnect': this.safeBool(params, 'cancelOnDisconnect', false),
         };
         this.injectSubAccountId (request, params);
         const response = await this.restOsmiumPrivatePostOrder(this.extend(request, params));
@@ -1239,7 +1255,6 @@ export default class cube extends Exchange {
                 orderType = 'MARKET_WITH_PROTECTION';
             } else {
                 throw Error('OrderType was not recognized.');
-
             }
 
             let timeInForce = '';
