@@ -216,14 +216,13 @@ class cube extends Exchange {
     }
 
     public function generate_signature(): mixed {
-        $timestamp = (int) floor(Date.now () / 1000);
-        $timestampBuffer = Buffer.alloc (8);
-        $timestampBuffer->writeUInt32LE ($timestamp, 0);
+        $timestamp = (int) floor($this->now() / 1000);
+        $timestampBuffer = $this->number_to_le($timestamp, 4);
         $fixedString = 'cube.xyz';
-        $payload = Buffer.concat (array( Buffer.from ($fixedString, 'utf-8'), $timestampBuffer ));
-        $secretKeyBytes = Buffer.from ($this->secret, 'hex');
+        $payload = $this->binary_concat_array(array( $fixedString, $timestampBuffer ));
+        $secretKeyBytes = base64_decode(base64_encode($this->secret));
         $hmac = $this->hmac($payload, $secretKeyBytes, 'sha256', 'binary');
-        $signatureB64 = Buffer.from ($hmac).toString ('base64');
+        $signatureB64 = $this->binary_to_base64($hmac);
         return array( $signatureB64, $timestamp );
     }
 
@@ -237,9 +236,8 @@ class cube extends Exchange {
     }
 
     public function authenticate_request(mixed $request): mixed {
-        $headers => Record<string, string> = $request->headers ?? array();
-        Object.assign ($headers, $this->generate_authentication_headers());
-        $request->headers = $headers;
+        $headers = $this->safe_dict($request, 'headers', array());
+        $request->headers = array_merge($headers, $this->generate_authentication_headers());
         return $request;
     }
 
@@ -453,7 +451,7 @@ class cube extends Exchange {
         $low = $this->safe_number($ticker, 'low');
         $bid = $this->safe_number($ticker, 'bid');
         $ask = $this->safe_number($ticker, 'ask');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -474,7 +472,7 @@ class cube extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ));
     }
 
     public function fetch_markets($params = array ()): array {

@@ -225,14 +225,13 @@ class cube(Exchange, ImplicitAPI):
         })
 
     def generate_signature(self) -> Any:
-        timestamp = int(math.floor(Date.now()) / 1000)
-        timestampBuffer = Buffer.alloc(8)
-        timestampBuffer.writeUInt32LE(timestamp, 0)
+        timestamp = int(math.floor(self.now()) / 1000)
+        timestampBuffer = self.number_to_le(timestamp, 4)
         fixedString = 'cube.xyz'
-        payload = Buffer.concat([Buffer.from(fixedString, 'utf-8'), timestampBuffer])
-        secretKeyBytes = Buffer.from(self.secret, 'hex')
+        payload = self.binary_concat_array([fixedString, timestampBuffer])
+        secretKeyBytes = self.base64_to_binary(self.string_to_base64(self.secret))
         hmac = self.hmac(payload, secretKeyBytes, hashlib.sha256, 'binary')
-        signatureB64 = Buffer.from(hmac).toString('base64')
+        signatureB64 = self.binary_to_base64(hmac)
         return [signatureB64, timestamp]
 
     def generate_authentication_headers(self) -> Any:
@@ -244,9 +243,8 @@ class cube(Exchange, ImplicitAPI):
         }
 
     def authenticate_request(self, request: Any) -> Any:
-        headers: Record<string, string> = request.headers ?? {}
-        Object.assign(headers, self.generate_authentication_headers())
-        request.headers = headers
+        headers = self.safe_dict(request, 'headers', {})
+        request.headers = self.extend(headers, self.generate_authentication_headers())
         return request
 
     def sign(self, path: str, api='public', method='GET', params={}, headers=None, body=None):
@@ -446,7 +444,7 @@ class cube(Exchange, ImplicitAPI):
         low = self.safe_number(ticker, 'low')
         bid = self.safe_number(ticker, 'bid')
         ask = self.safe_number(ticker, 'ask')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -467,7 +465,7 @@ class cube(Exchange, ImplicitAPI):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """

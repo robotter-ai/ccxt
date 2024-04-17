@@ -254,14 +254,13 @@ export default class cube extends Exchange {
     }
 
     private generateSignature (): any {
-        const timestamp = Math.floor (Date.now () / 1000);
-        const timestampBuffer = Buffer.alloc (8);
-        timestampBuffer.writeUInt32LE (timestamp, 0);
+        const timestamp = Math.floor (this.now () / 1000);
+        const timestampBuffer = this.numberToLE (timestamp, 4);
         const fixedString = 'cube.xyz';
-        const payload = Buffer.concat ([ Buffer.from (fixedString, 'utf-8'), timestampBuffer ]);
-        const secretKeyBytes = Buffer.from (this.secret, 'hex');
+        const payload = this.binaryConcatArray ([ fixedString, timestampBuffer ]);
+        const secretKeyBytes = this.base64ToBinary (this.stringToBase64 (this.secret));
         const hmac = this.hmac (payload, secretKeyBytes, sha256, 'binary');
-        const signatureB64 = Buffer.from (hmac).toString ('base64');
+        const signatureB64 = this.binaryToBase64 (hmac);
         return [ signatureB64, timestamp ];
     }
 
@@ -275,9 +274,8 @@ export default class cube extends Exchange {
     }
 
     private authenticateRequest (request: any): any {
-        const headers: Record<string, string> = request.headers ?? {};
-        Object.assign (headers, this.generateAuthenticationHeaders ());
-        request.headers = headers;
+        const headers = this.safeDict (request, 'headers', {});
+        request.headers = this.extend (headers, this.generateAuthenticationHeaders ());
         return request;
     }
 
@@ -495,7 +493,7 @@ export default class cube extends Exchange {
         const low = this.safeNumber (ticker, 'low');
         const bid = this.safeNumber (ticker, 'bid');
         const ask = this.safeNumber (ticker, 'ask');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -516,7 +514,7 @@ export default class cube extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        });
     }
 
     async fetchMarkets (params = {}): Promise<Market[]> {
