@@ -49,6 +49,11 @@ async function createProExchange() {
     // log(proExchange)
 }
 
+async function loadMarkets() {
+    response = await communityExchange.loadMarkets()
+    log(response)
+}
+
 // DEVELOPMENT (conferir o objeto)
 async function fetchMarkets() {
     response = await communityExchange.fetchMarkets()
@@ -293,6 +298,7 @@ async function test() {
     // getAllExchanges()
     createCommunityExchange()
     createProExchange()
+    await loadMarkets()
     // await fetchCurrencies() // TODO check parser output!!!
     // await fetchMarkets() // TODO check parser output!!!
     // await fetchTradingFee() // TODO check parser output!!!
@@ -308,7 +314,7 @@ async function test() {
     // await fetchTickers()
     // await cancelAllOrders()
     // await fetchOrders()
-     await fetchOHLCV()
+    //  await fetchOHLCV()
     // await fetchTrades()
     // await fetchMyTrades()
     // await fetchClosedOrders()
