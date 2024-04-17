@@ -66,13 +66,13 @@ async function fetchCurrencies() {
     log(response)
 }
 
-// TODO
+// DONE
 async function fetchTicker() {
     response = await communityExchange.fetchTicker(marketSymbols[0])
     log(response)
 }
 
-// BACKLOG
+// DONE
 async function fetchTickers() {
     response = await communityExchange.fetchTickers(marketSymbols)
     log(response)
@@ -162,6 +162,14 @@ async function fetchOrder() {
 async function fetchOrders() {
     // ???
     response = await communityExchange.fetchOrders(marketSymbols[0], undefined, undefined, {
+        subAccountId
+    })
+    log(response)
+}
+
+async function fetchOrdersAllMarkets() {
+    // ???
+    response = await communityExchange.fetchOrdersAllMarkets(undefined, undefined, {
         subAccountId
     })
     log(response)
@@ -297,7 +305,7 @@ async function parseOrder() {
 async function test() {
     // getAllExchanges()
     createCommunityExchange()
-    createProExchange()
+    // createProExchange()
     await loadMarkets()
     // await fetchCurrencies() // TODO check parser output!!!
     // await fetchMarkets() // TODO check parser output!!!
@@ -309,12 +317,13 @@ async function test() {
     // await fetchOrder() // TODO improve!!!
     // await fetchOpenOrders()
     // await fetchOrders()
+    // await fetchOrdersAllMarkets()
     // await fetchOrderBook()
     // await fetchTicker()
     // await fetchTickers()
     // await cancelAllOrders()
     // await fetchOrders()
-    //  await fetchOHLCV()
+    // await fetchOHLCV()
     // await fetchTrades()
     // await fetchMyTrades()
     // await fetchClosedOrders()

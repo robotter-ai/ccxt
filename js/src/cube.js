@@ -93,8 +93,8 @@ export default class cube extends Exchange {
                                     '/users/transfers': 1,
                                     '/users/deposits': 1,
                                     '/users/withdrawals': 1,
-                                    '/users/orders': 1,
-                                    '/users/fills': 1,
+                                    '/users/subaccount/{subaccountId}/orders': 1,
+                                    '/users/subaccount/{subaccountId}/fills': 1,
                                     '/users/fee-estimate/{market_id}': 1,
                                 },
                                 'post': {
@@ -233,11 +233,11 @@ export default class cube extends Exchange {
             'rateLimit': 100,
             'userAgent': false,
             'verbose': false,
-            'markets': {},
-            'symbols': [],
-            'currencies': {},
-            'markets_by_id': {},
-            'currencies_by_id': {},
+            'markets': undefined,
+            'symbols': undefined,
+            'currencies': undefined,
+            'markets_by_id': undefined,
+            'currencies_by_id': undefined,
             'apiKey': '',
             'secret': '',
             'password': '',
@@ -246,7 +246,6 @@ export default class cube extends Exchange {
                 'environment': 'production',
                 'subaccountId': undefined,
             },
-            // ... other properties here ...
             'pro': false,
             'fees': {
                 'trading': {
@@ -254,8 +253,7 @@ export default class cube extends Exchange {
                     'taker': this.parseNumber('0.008'),
                 },
             },
-
-            'commonCurrencies': {},
+            'commonCurrencies': undefined,
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
@@ -342,12 +340,12 @@ export default class cube extends Exchange {
         await this.loadMarkets ();
         if (symbolOrSymbols !== undefined) {
             if (typeof symbolOrSymbols === 'string') {
-                let marketId = symbol.toLowerCase ().replace ('/', '');
+                let marketId = symbolOrSymbols.toLowerCase ().replace ('/', '');
                 const market = this.market (marketId);
                 marketId = market.id;
                 symbolOrSymbols = this.safeSymbol (marketId, market);
                 return {
-                    symbol: symbol,
+                    symbol: symbolOrSymbols,
                     marketId: marketId,
                     market: market,
                     symbols: undefined,
@@ -486,11 +484,11 @@ export default class cube extends Exchange {
     parseCurrencies(response) {
         const result = {};
         const rawCurrencies = this.safeDict(this.safeDict(response, 'result'), 'assets');
-        const rawSources = this.safeDict(this.safeDict(response,'result'), 'sources');
         for (let i = 0; i < rawCurrencies.length; i++) {
             const rawCurrency = rawCurrencies[i];
             const id = this.safeStringUpper(rawCurrency, 'symbol');
-            const code = this.safeCurrencyCode(id);
+            // const code = this.safeCurrencyCode(id);
+            const code =  this.safeInteger(rawCurrency, 'assetId');
             const name = this.safeString (this.safeDict (rawCurrency,'metadata'), 'currencyName')
             const fees = this.safeString (this.safeDict(rawCurrency,''))
             const status = this.safeInteger(rawMarket, 'status') == 1 ? true : false;
@@ -841,17 +839,77 @@ export default class cube extends Exchange {
          */
         const meta = await this.initialize ();
         const response = await this.restIridiumPrivateGetUsersPositions (params);
-        const result = this.safeDict (response, 'balances', {});
-        return this.parseBalances (result);
+        const subaccountId = this.safeInteger(this.options, 'subaccountId');
+        const result = this.safeList (this.safeDict (this.safeDict (response, 'result'), subaccountId), 'inner');
+        return this.parseBalance (result);
     }
 
-    parseBalances (response) {
-        // TODO fill and fix!!!
+    async parseBalance (response) {
+        const allOrders = await this.fetchOrdersAllMarkets();
+        const openOrders = [];
+        const filledUnsettledOrders = [];
+        const allMarkets = {};
+
+        for (const marketSymbol in this.markets_by_id) {
+            const marketArrayItem = this.markets_by_id[marketSymbol];
+            const market = marketArrayItem[0];
+            const marketInfo = this.safeDict (market, 'info');
+            const marketNumericId = this.safeString (marketInfo, 'marketId');
+            allMarkets[marketNumericId] = market;
+        }
+
+        let free = {};
+        let used = {};
+        let total = {};
+
+        for (const asset of response) {
+            const assetAmount = parseInt (this.safeString (asset, 'amount'));
+            if (assetAmount > 0) {
+                const assetNumericId = this.safeString (asset, 'assetId');
+                const currency = this.currency (assetNumericId);
+                const currencyPrecision = this.safeInteger (currency, 'precision');
+                const assetSymbol = this.safeString (currency, 'id');
+                total[assetSymbol] = assetAmount / 10 ** currencyPrecision;
+            }
+        }
+
+        for (const order of allOrders) {
+            const orderStatus = this.safeString (order, 'status');
+            if (orderStatus === 'open') {
+                openOrders.push(order)
+            }
+            if (orderStatus === 'filled') {
+                const isSettled = this.safeString (order, 'settled');
+                if (!isSettled) {
+                    filledUnsettledOrders.push(order)
+                }
+            }
+        }
+
+        for (const order of openOrders) {
+            const orderMarketId = this.safeString (order, 'marketId');
+            const orderMarket = this.safeDict (allMarkets, orderMarketId);
+            const orderSide = this.safeString (order, 'side');
+            const orderBaseToken = this.safeString (orderMarket, 'base');
+            const orderQuoteToken = this.safeString (orderMarket, 'quote');
+            // const orderAmount =
+
+            if (orderSide === 'Ask') {
+                // An ask (or offer) order sells the base asset and gets the quote asset.
+                const targetToken = orderBaseToken; // Locked asset
+                // if (!used.hasOwnProperty(targetToken)) {
+                //     used[targetToken] =
+                // }
+            } else if (orderSide === 'Bid') {
+
+            }
+        }
+
         return this.safeBalance ({
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
-            'free': {},
+            'free': free,
             'used': {},
             'total': {},
         });
@@ -1002,6 +1060,23 @@ export default class cube extends Exchange {
         const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdOrders (this.extend (request, params));
         const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
         return await this.parseOrders (rawOrders, market, since, limit);
+    }
+    async fetchOrdersAllMarkets(since = undefined, limit = undefined) {
+        /**
+         * @method
+         * @name cube#fetchOrdersAllMarkets
+         * @description fetch all orders from all markets
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const request = {};
+        this.injectSubAccountId (request);
+        const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdOrders (this.extend (request));
+        const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
+        return rawOrders;
     }
     async parseOrders(orders, market = undefined, since = undefined, limit = undefined, params = {}) {
         //
@@ -1265,7 +1340,7 @@ export default class cube extends Exchange {
          * @method
          * @name cube#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://cubexch.gitbook.io/cube-api/rest-mendelev-api#parsed-tickers 
+         * @see https://cubexch.gitbook.io/cube-api/rest-mendelev-api#parsed-tickers
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}

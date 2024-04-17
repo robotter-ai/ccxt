@@ -15,7 +15,7 @@ import {
     // PermissionDenied,
     // NotSupported,
     BadRequest,
-    // BadSymbol,
+    BadSymbol,
     // AccountSuspended,
     // OrderImmediatelyFillable,
     // OnMaintenance,
@@ -26,7 +26,7 @@ import {
 } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import {
-    Balances, Currencies,
+    Balances, Currencies, Dictionary,
     IndexType,
     Int,
     Market,
@@ -35,7 +35,7 @@ import {
     OrderBook,
     OrderSide,
     OrderType,
-    Str,
+    Str, Ticker, Tickers,
     Trade,
 } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -122,7 +122,7 @@ export default class cube extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingLimits': false,
                 'fetchTransactionFee': false,
@@ -196,8 +196,9 @@ export default class cube extends Exchange {
                                 '/users/transfers': 1,
                                 '/users/deposits': 1,
                                 '/users/withdrawals': 1,
-                                '/users/orders': 1,
-                                '/users/fills': 1,
+                                '/users/subaccount/{subaccountId}/orders': 1,
+                                '/users/subaccount/{subaccountId}/fills': 1,
+                                '/users/fee-estimate/{market_id}': 1,
                             },
                             'post': {
                                 '/users/subaccounts': 1,
@@ -253,14 +254,13 @@ export default class cube extends Exchange {
     }
 
     private generateSignature (): any {
-        const timestamp = Math.floor (Date.now () / 1000);
-        const timestampBuffer = Buffer.alloc (8);
-        timestampBuffer.writeUInt32LE (timestamp, 0);
+        const timestamp = Math.floor (this.now () / 1000);
+        const timestampBuffer = this.numberToLE (timestamp, 4);
         const fixedString = 'cube.xyz';
-        const payload = Buffer.concat ([ Buffer.from (fixedString, 'utf-8'), timestampBuffer ]);
-        const secretKeyBytes = Buffer.from (this.secret, 'hex');
+        const payload = this.binaryConcatArray ([ fixedString, timestampBuffer ]);
+        const secretKeyBytes = this.base64ToBinary (this.stringToBase64 (this.secret));
         const hmac = this.hmac (payload, secretKeyBytes, sha256, 'binary');
-        const signatureB64 = Buffer.from (hmac).toString ('base64');
+        const signatureB64 = this.binaryToBase64 (hmac);
         return [ signatureB64, timestamp ];
     }
 
@@ -274,9 +274,8 @@ export default class cube extends Exchange {
     }
 
     private authenticateRequest (request: any): any {
-        const headers: Record<string, string> = request.headers ?? {};
-        Object.assign (headers, this.generateAuthenticationHeaders ());
-        request.headers = headers;
+        const headers = this.safeDict (request, 'headers', {});
+        request.headers = this.extend (headers, this.generateAuthenticationHeaders ());
         return request;
     }
 
@@ -433,6 +432,91 @@ export default class cube extends Exchange {
         return result;
     }
 
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        const tickers = await this.fetchTickers ([ symbol ], params);
+        const ticker = this.safeValue (tickers, symbol, undefined);
+        if (ticker === undefined) {
+            throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' not found');
+        }
+        return ticker;
+    }
+
+    async fetchTickers (symbols = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name cube#fetchTickers
+         * @description fetches the ticker for all markets
+         * @see https://cubexch.gitbook.io/cube-api/rest-mendelev-api#tickers-snapshot
+         * @param {string[]} [symbols] an array of symbols to fetch the tickers for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of tickers indexed by symbol
+         */
+        const response = await this.restMendelevPublicGetParsedTickers (params);
+        // {
+        //   "result": [
+        //     {
+        //       "ask": 101.17,
+        //       "base_currency": "SOL",
+        //       "base_volume": 29332.58,
+        //       "bid": 101.16,
+        //       "high": 109.69,
+        //       "last_price": 101.17,
+        //       "low": 100.23,
+        //       "open": 107.72,
+        //       "quote_currency": "USDC",
+        //       "quote_volume": 3062431.887,
+        //       "ticker_id": "SOLUSDC",
+        //       "timestamp": 1708521090000
+        //     },
+        //     ...
+        //   ]
+        // }
+        const result = {};
+        const rawTickers = this.safeList (response, 'result', []);
+        for (let i = 0; i < rawTickers.length; i++) {
+            if (symbols !== undefined && !this.inArray (this.safeString (rawTickers[i], 'ticker_id'), symbols)) {
+                const rawTicker = this.safeDict (rawTickers, i);
+                const ticker = this.parseTicker (rawTicker);
+                result[ticker.symbol] = ticker;
+            }
+        }
+        return result;
+    }
+
+    parseTicker (ticker: Dictionary<any>): Ticker {
+        const timestamp = this.safeInteger (ticker, 'timestamp');
+        const symbol = this.safeString (ticker, 'ticker_id');
+        const baseVolume = this.safeNumber (ticker, 'base_volume');
+        const quoteVolume = this.safeNumber (ticker, 'quote_volume');
+        const last = this.safeNumber (ticker, 'last_price');
+        const high = this.safeNumber (ticker, 'high');
+        const low = this.safeNumber (ticker, 'low');
+        const bid = this.safeNumber (ticker, 'bid');
+        const ask = this.safeNumber (ticker, 'ask');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': high,
+            'low': low,
+            'bid': bid,
+            'bidVolume': undefined,
+            'ask': ask,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeNumber (ticker, 'open'),
+            'close': undefined,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        });
+    }
+
     async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
@@ -523,20 +607,14 @@ export default class cube extends Exchange {
             const id = this.safeStringLower (rawMarket, 'symbol');
             let rawBaseAsset = undefined;
             for (let j = 0; j < rawAssets.length; j++) {
-                if (
-                    this.safeString (this.safeDict (rawAssets, j), 'assetId')
-                    === this.safeString (rawMarket, 'baseAssetId')
-                ) {
+                if (this.safeString (this.safeDict (rawAssets, j), 'assetId') === this.safeString (rawMarket, 'baseAssetId')) {
                     rawBaseAsset = this.safeDict (rawAssets, j);
                     break;
                 }
             }
             let rawQuoteAsset = undefined;
             for (let j = 0; j < rawAssets.length; j++) {
-                if (
-                    this.safeString (this.safeDict (rawAssets, j), 'assetId')
-                    === this.safeString (rawMarket, 'quoteAssetId')
-                ) {
+                if (this.safeString (this.safeDict (rawAssets, j), 'assetId') === this.safeString (rawMarket, 'quoteAssetId')) {
                     rawQuoteAsset = this.safeDict (rawAssets, j);
                     break;
                 }
@@ -887,8 +965,6 @@ export default class cube extends Exchange {
     }
 
     parseOrder (order, market: Market = undefined): Order {
-        return this.safeOrder ({
-
-        });
+        return this.safeOrder ({});
     }
 }
