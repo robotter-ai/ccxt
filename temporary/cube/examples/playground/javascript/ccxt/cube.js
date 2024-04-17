@@ -167,6 +167,14 @@ async function fetchOrders() {
     log(response)
 }
 
+async function fetchOrdersAllMarkets() {
+    // ???
+    response = await communityExchange.fetchOrdersAllMarkets(undefined, undefined, {
+        subAccountId
+    })
+    log(response)
+}
+
 // TODO
 async function fetchOpenOrders() {
     // ???
@@ -309,6 +317,7 @@ async function test() {
     // await fetchOrder() // TODO improve!!!
     // await fetchOpenOrders()
     // await fetchOrders()
+    // await fetchOrdersAllMarkets()
     // await fetchOrderBook()
     // await fetchTicker()
     // await fetchTickers()

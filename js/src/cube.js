@@ -342,12 +342,12 @@ export default class cube extends Exchange {
         await this.loadMarkets ();
         if (symbolOrSymbols !== undefined) {
             if (typeof symbolOrSymbols === 'string') {
-                let marketId = symbol.toLowerCase ().replace ('/', '');
+                let marketId = symbolOrSymbols.toLowerCase ().replace ('/', '');
                 const market = this.market (marketId);
                 marketId = market.id;
                 symbolOrSymbols = this.safeSymbol (marketId, market);
                 return {
-                    symbol: symbol,
+                    symbol: symbolOrSymbols,
                     marketId: marketId,
                     market: market,
                     symbols: undefined,
@@ -488,7 +488,8 @@ export default class cube extends Exchange {
         for (let i = 0; i < rawCurrencies.length; i++) {
             const rawCurrency = rawCurrencies[i];
             const id = this.safeStringUpper(rawCurrency, 'symbol');
-            const code = this.safeCurrencyCode(id);
+            // const code = this.safeCurrencyCode(id);
+            const code =  this.safeInteger(rawCurrency, 'assetId');
             // TODO verify!!!
             const currency = this.safeCurrencyStructure({
                 'id': id,
@@ -831,17 +832,77 @@ export default class cube extends Exchange {
          */
         const meta = await this.initialize ();
         const response = await this.restIridiumPrivateGetUsersPositions (params);
-        const result = this.safeDict (response, 'balances', {});
-        return this.parseBalances (result);
+        const subaccountId = this.safeInteger(this.options, 'subaccountId');
+        const result = this.safeList (this.safeDict (this.safeDict (response, 'result'), subaccountId), 'inner');
+        return this.parseBalance (result);
     }
 
-    parseBalances (response) {
-        // TODO fill and fix!!!
+    async parseBalance (response) {
+        const allOrders = await this.fetchOrdersAllMarkets();
+        const openOrders = [];
+        const filledUnsettledOrders = [];
+        const allMarkets = {};
+
+        for (const marketSymbol in this.markets_by_id) {
+            const marketArrayItem = this.markets_by_id[marketSymbol];
+            const market = marketArrayItem[0];
+            const marketInfo = this.safeDict (market, 'info');
+            const marketNumericId = this.safeString (marketInfo, 'marketId');
+            allMarkets[marketNumericId] = market;
+        }
+
+        let free = {};
+        let used = {};
+        let total = {};
+
+        for (const asset of response) {
+            const assetAmount = parseInt (this.safeString (asset, 'amount'));
+            if (assetAmount > 0) {
+                const assetNumericId = this.safeString (asset, 'assetId');
+                const currency = this.currency (assetNumericId);
+                const currencyPrecision = this.safeInteger (currency, 'precision');
+                const assetSymbol = this.safeString (currency, 'id');
+                total[assetSymbol] = assetAmount / 10 ** currencyPrecision;
+            }
+        }
+
+        for (const order of allOrders) {
+            const orderStatus = this.safeString (order, 'status');
+            if (orderStatus === 'open') {
+                openOrders.push(order)
+            }
+            if (orderStatus === 'filled') {
+                const isSettled = this.safeString (order, 'settled');
+                if (!isSettled) {
+                    filledUnsettledOrders.push(order)
+                }
+            }
+        }
+
+        for (const order of openOrders) {
+            const orderMarketId = this.safeString (order, 'marketId');
+            const orderMarket = this.safeDict (allMarkets, orderMarketId);
+            const orderSide = this.safeString (order, 'side');
+            const orderBaseToken = this.safeString (orderMarket, 'base');
+            const orderQuoteToken = this.safeString (orderMarket, 'quote');
+            // const orderAmount =
+
+            if (orderSide === 'Ask') {
+                // An ask (or offer) order sells the base asset and gets the quote asset.
+                const targetToken = orderBaseToken; // Locked asset
+                // if (!used.hasOwnProperty(targetToken)) {
+                //     used[targetToken] =
+                // }
+            } else if (orderSide === 'Bid') {
+
+            }
+        }
+
         return this.safeBalance ({
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
-            'free': {},
+            'free': free,
             'used': {},
             'total': {},
         });
@@ -992,6 +1053,23 @@ export default class cube extends Exchange {
         const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdOrders (this.extend (request, params));
         const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
         return await this.parseOrders (rawOrders, market, since, limit);
+    }
+    async fetchOrdersAllMarkets(since = undefined, limit = undefined) {
+        /**
+         * @method
+         * @name cube#fetchOrdersAllMarkets
+         * @description fetch all orders from all markets
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const request = {};
+        this.injectSubAccountId (request);
+        const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdOrders (this.extend (request));
+        const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
+        return rawOrders;
     }
     async parseOrders(orders, market = undefined, since = undefined, limit = undefined, params = {}) {
         //
