@@ -1150,7 +1150,7 @@ export default class cube extends Exchange {
         let results = [];
         if (Array.isArray(orders)) {
             for (let i = 0; i < orders.length; i++) {
-                const order = this.extend(this.parseOrder(orders[i], market), params);
+                const order = this.extend(await this.parseOrder(orders[i], market), params);
                 results.push(order);
             }
         }
@@ -1158,7 +1158,7 @@ export default class cube extends Exchange {
             const ids = Object.keys(orders);
             for (let i = 0; i < ids.length; i++) {
                 const id = ids[i];
-                const order = this.extend(this.parseOrder(this.extend({ 'id': id }, orders[id]), market), params);
+                const order = this.extend(await this.parseOrder(this.extend({ 'id': id }, orders[id]), market), params);
                 results.push(order);
             }
         }
@@ -1215,7 +1215,7 @@ export default class cube extends Exchange {
         let result = {};
 
         // TODO Improve this part to reuse the original response from create, cancel as much as possible, instead of relying in the fetched order!!!
-        if (!(Object.keys(fetchedOrder).length === 0)) {
+        if (fetchedOrder && !(Object.keys(fetchedOrder).length === 0)) {
             const exchangeOrderId = this.safeInteger(fetchedOrder, 'exchangeOrderId');
             const clientOrderId = this.safeInteger(fetchedOrder, 'clientOrderId');
             const subaccountId = this.safeInteger(this.options, 'subaccountId');
