@@ -111,7 +111,7 @@ async function fetchBalance() {
 async function createOrder() {
     // Working, but the parse is not complete.
     response = await communityExchange.createOrder(
-        'tSOLtUSDC', 1, 0, 0.1, 125.0,
+        'tSOLtUSDC', 'limit', 'buy', 0.1, 125.0,
         {
             'requestId': 1,
             'subaccountId': subAccountId,
