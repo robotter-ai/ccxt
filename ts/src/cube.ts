@@ -392,15 +392,11 @@ export default class cube extends Exchange {
         //     }
         // }
         const result: Currencies = {};
-        const rawCurrencies = this.safeDict (
-            this.safeDict (response, 'result'),
-            'assets'
-        );
+        const rawCurrencies = this.safeDict (this.safeDict (response, 'result'), 'assets');
         for (let i = 0; i < rawCurrencies.length; i++) {
             const rawCurrency = rawCurrencies[i];
             const id = this.safeStringUpper (rawCurrency, 'symbol');
             const code = this.safeCurrencyCode (id);
-            // TODO verify!!!
             const currency = this.safeCurrencyStructure ({
                 'id': id,
                 'numericId': this.safeInteger (rawCurrency, 'assetId'),
