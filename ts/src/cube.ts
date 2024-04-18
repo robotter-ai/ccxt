@@ -924,6 +924,45 @@ export default class cube extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cube#fetchOrders
+         * @description fetch all unfilled currently open orders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const meta = await this.initialaize (symbol);
+        symbol = this.safeString (meta, 'symbol');
+        const market = this.safeDict (meta, 'market');
+        const request = {};
+        this.injectSubAccountId (request, params);
+        const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdOrders (this.extend (request, params));
+        const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
+        return await this.parseOrders (rawOrders, market, since, limit);
+    }
+
+    async fetchOrdersAllMarkets (since = undefined, limit = undefined) {
+        /**
+         * @method
+         * @name cube#fetchOrdersAllMarkets
+         * @description fetch all orders from all markets
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const request = {};
+        this.injectSubAccountId (request);
+        const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdOrders (this.extend (request));
+        const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
+        return rawOrders;
+    }
+
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
