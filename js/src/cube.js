@@ -1059,7 +1059,7 @@ export default class cube extends Exchange {
         const marketId = this.safeString (meta, 'marketId');
         const market = this.safeDict (meta, 'market');
         const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
-        const fetchedOrder = await this.fetchRawOrder (id, marketId);
+        let fetchedOrder = await this.fetchRawOrder (id, marketId);
         if (fetchedOrder === undefined) {
             fetchedOrder = {};
         }

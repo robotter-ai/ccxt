@@ -867,23 +867,38 @@ export default class cube extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol = undefined, params = {}) {
         /**
          * @method
          * @name cube#cancelOrder
          * @description cancels an open order
+         * @see https://cubexch.gitbook.io/cube-api/rest-osmium-api#order-1
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        // IMPLEMENTAR A LÓGICA!!!
-        await this.loadMarkets ();
+        const meta = await this.initialize (symbol);
+        symbol = this.safeString (meta, 'symbol');
+        const marketId = this.safeString (meta, 'marketId');
+        const market = this.safeDict (meta, 'market');
+        const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
+        let fetchedOrder = await this.fetchRawOrder (id, marketId);
+        if (fetchedOrder === undefined) {
+            fetchedOrder = {};
+        }
+        const clientOrderId = parseInt (this.safeString (fetchedOrder, 'clientOrderId'));
         const request = {
-            'uuid': id,
+            'clientOrderId': clientOrderId,
+            'requestId': this.safeInteger (params, 'requestId'),
+            'marketId': rawMarketId,
         };
+        this.injectSubAccountId (request, params);
         const response = await this.restOsmiumPrivateDeleteOrder (this.extend (request, params));
-        return this.parseOrder (response);
+        return this.parseOrder ({
+            'fetchedOrder': fetchedOrder,
+            'cancellationResponse': response,
+        }, market);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
