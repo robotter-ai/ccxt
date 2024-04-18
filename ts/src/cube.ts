@@ -313,7 +313,7 @@ export default class cube extends Exchange {
 
     sign (path: string, api: string = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         // TODO This is a workaround to fix transpilation issues for Python!!!
-        const apiString = api.join (',');
+        const apiString = (api as any).join (',');
         const environment = this.options['environment'];
         let baseUrl: string = undefined;
         if (apiString.indexOf ('iridium')) {
@@ -354,7 +354,7 @@ export default class cube extends Exchange {
         }
     }
 
-    async fetchMarketMeta (symbolOrSymbols: string | string[] = undefined) {
+    async fetchMarketMeta (symbolOrSymbols: any = undefined) {
         let symbol = undefined;
         let marketId = undefined;
         let market = undefined;
