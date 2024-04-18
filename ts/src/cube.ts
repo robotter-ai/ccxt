@@ -359,7 +359,7 @@ export default class cube extends Exchange {
         await this.loadMarkets ();
         if (symbolOrSymbols !== undefined) {
             if (typeof symbolOrSymbols === 'string') {
-                marketId = symbolOrSymbols.toLowerCase ().replace ('/', '');
+                marketId = symbolOrSymbols.toUpperCase ().replace ('/', '');
                 market = this.market (marketId);
                 marketId = market.id;
                 symbolOrSymbols = this.safeSymbol (marketId, market);
@@ -376,7 +376,7 @@ export default class cube extends Exchange {
                 marketIds = [];
                 markets = [];
                 for (let i = 0; i < symbolOrSymbols.length; i++) {
-                    marketId = symbolOrSymbols[i].toLowerCase ().replace ('/', '');
+                    marketId = symbolOrSymbols[i].toUpperCase ().replace ('/', '');
                     market = this.market (marketId);
                     marketId = market.id;
                     symbolOrSymbols[i] = this.safeSymbol (marketId, market);
@@ -586,6 +586,7 @@ export default class cube extends Exchange {
 
     parseMarket (market: Dictionary<any>): Market {
         const id = this.safeStringLower (market, 'symbol');
+        const symbol = id.toUpperCase ();
         const rawBaseAsset = this.currencies[this.safeInteger (market, 'baseAssetId')];
         const rawQuoteAsset = this.currencies[this.safeInteger (market, 'quoteAssetId')];
         const baseId = this.safeStringUpper (rawBaseAsset, 'symbol');
@@ -594,8 +595,8 @@ export default class cube extends Exchange {
         const quote = this.safeCurrencyCode (quoteId);
         return this.safeMarketStructure ({
             'id': id,
-            'lowercaseId': id,
-            'symbol': base + '/' + quote,
+            'lowercaseId': id.toLowerCase (),
+            'symbol': symbol,
             'base': base,
             'quote': quote,
             'settle': undefined,
@@ -797,7 +798,7 @@ export default class cube extends Exchange {
         const result = {};
         for (let i = 0; i < rawTickers.length; i++) {
             const rawTicker = rawTickers[i];
-            const marketId = this.marketId (this.safeString (rawTicker, 'ticker_id').toLowerCase ());
+            const marketId = this.marketId (this.safeString (rawTicker, 'ticker_id').toUpperCase ().replace ('/', ''));
             const market = this.market (marketId);
             const symbol = this.safeString (market, 'symbol');
             const ticker = this.parseTicker (rawTicker, market);
