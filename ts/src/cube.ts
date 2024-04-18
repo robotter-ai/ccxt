@@ -25,6 +25,7 @@ import {
     Ticker,
     Tickers,
     Trade,
+    TradingFeeInterface,
     Transaction,
 } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -772,7 +773,7 @@ export default class cube extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const meta = await this.fetchMarketMeta (symbols);
-        symbols = this.safeString (meta, 'symbols');
+        symbols = this.safeList (meta, 'symbols');
         const response = await this.restMendelevPublicGetParsedTickers (params);
         //
         //  {
@@ -807,7 +808,7 @@ export default class cube extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name cube#fetchOHLCV
@@ -1106,7 +1107,7 @@ export default class cube extends Exchange {
         return await this.restOsmiumPrivateDeleteOrders (this.extend (request, params));
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name cube#fetchOrder
@@ -1399,7 +1400,7 @@ export default class cube extends Exchange {
         return rawOrders;
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name cube#fetchTrades
@@ -1537,7 +1538,7 @@ export default class cube extends Exchange {
         }, market);
     }
 
-    async fetchTradingFee (symbol, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         /**
          * @method
          * @name cube#fetchTradingFee
@@ -1576,7 +1577,7 @@ export default class cube extends Exchange {
         throw new NotSupported (this.id + ' fetchMyTrades() is not supported yet');
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.has['fetchOrders']) {
             const orders = await this.fetchOrders (symbol, since, limit, params);
             return this.filterBy (orders, 'status', 'closed');
