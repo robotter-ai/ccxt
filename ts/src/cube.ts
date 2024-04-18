@@ -354,7 +354,7 @@ export default class cube extends Exchange {
         }
     }
 
-    async fetchMarketMeta (symbolOrSymbols) {
+    async fetchMarketMeta (symbolOrSymbols: string | string[] = undefined) {
         let symbol = undefined;
         let marketId = undefined;
         let market = undefined;
@@ -896,30 +896,28 @@ export default class cube extends Exchange {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://cubexch.gitbook.io/cube-api/rest-iridium-api#users-positions
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
+        await this.fetchMarketMeta ();
         const response = await this.restIridiumPrivateGetUsersPositions (params);
         const subaccountId = this.safeInteger (this.options, 'subaccountId');
-        let result = this.safeList (this.safeDict (this.safeDict (response, 'result'), subaccountId), 'inner');
-        const allOrders = this.fetchOrdersAllMarkets ();
-        result = this.extend (result, { 'orders': allOrders });
-        return this.parseBalance (result);
+        const allOrders = await this.fetchOrdersAllMarkets ();
+        const result = this.safeList (this.safeDict (this.safeDict (response, 'result'), subaccountId), 'inner');
+        return this.parseBalance (result, allOrders);
     }
 
-    parseBalance (response) {
-        const allOrders = this.safeList (response, 'orders');
+    parseBalance (response: any, allOrders: any = undefined): Balances {
         const openOrders = [];
         const filledUnsettledOrders = [];
-        const allMarkets = {};
+        const allMarketsByNumericId = {};
         for (let i = 0; i < Object.keys (this.markets_by_id).length; i++) {
-            const marketSymbol = this.markets_by_id[i];
-            const marketArrayItem = this.markets_by_id[marketSymbol];
+            const marketArrayItem = Object.values (this.markets_by_id)[i];
             const market = marketArrayItem[0];
             const marketInfo = this.safeDict (market, 'info');
             const marketNumericId = this.safeString (marketInfo, 'marketId');
-            allMarkets[marketNumericId] = market;
+            allMarketsByNumericId[marketNumericId] = market;
         }
-        // const free = {};
+        const free = {};
         const used = {};
         const total = {};
         for (let i = 0; i < response.length; i++) {
@@ -949,36 +947,55 @@ export default class cube extends Exchange {
         for (let i = 0; i < openOrders.length; i++) {
             const order = openOrders[i];
             const orderMarketId = this.safeString (order, 'marketId');
-            const orderMarket = this.safeDict (allMarkets, orderMarketId);
-            const orderMarketAmountPrecision = this.safeNumber (this.safeDict (orderMarket, 'precision'), 'amount');
+            const orderMarket = this.safeDict (allMarketsByNumericId, orderMarketId);
             const orderSide = this.safeString (order, 'side');
             const orderBaseToken = this.safeString (orderMarket, 'base');
             const orderQuoteToken = this.safeString (orderMarket, 'quote');
             const orderAmount = this.safeInteger (order, 'qty');
+            const orderPrice = this.safeInteger (order, 'price');
             let targetToken = '';
+            let lotSize = 0;
             if (orderSide === 'Ask') {
                 targetToken = orderBaseToken;
+                lotSize = this.safeInteger (this.safeDict (orderMarket, 'info'), 'baseLotSize');
             } else if (orderSide === 'Bid') {
                 targetToken = orderQuoteToken;
+                lotSize = this.safeInteger (this.safeDict (orderMarket, 'info'), 'quoteLotSize');
             }
-            // const targetCurrency = this.currencies_by_id[targetToken];
-            // const targetCurrencyPrecision = this.safeInteger (targetCurrency, 'precision');
-            // TODO - Try to find the conversion pattern for order amount values.!!!
+            const targetCurrency = this.currencies_by_id[targetToken];
+            const targetCurrencyPrecision = this.safeInteger (targetCurrency, 'precision');
+            let orderLockedAmount = 0;
+            if (orderSide === 'Ask') {
+                orderLockedAmount = orderAmount * lotSize / 10 ** targetCurrencyPrecision;
+            } else if (orderSide === 'Bid') {
+                orderLockedAmount = orderAmount * orderPrice * lotSize / 10 ** targetCurrencyPrecision;
+            }
             if (used[targetToken] === undefined) {
-                used[targetToken] = orderAmount * orderMarketAmountPrecision;
+                used[targetToken] = orderLockedAmount;
             } else {
-                used[targetToken] += orderAmount * orderMarketAmountPrecision;
+                used[targetToken] += orderLockedAmount;
             }
+            free[targetToken] = total[targetToken] - used[targetToken];
         }
-        const timestamp = this.now ();
-        return this.safeBalance ({
+        const timestamp = Date.now ();
+        const result = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'free': {},
+            'free': free,
             'used': used,
             'total': total,
-        });
+        };
+        for (let i = 0; i < Object.keys (total).length; i++) {
+            const assetSymbol = Object.keys (total)[i];
+            const assetBalances = {
+                'free': free[assetSymbol],
+                'used': used[assetSymbol],
+                'total': total[assetSymbol],
+            };
+            result[assetSymbol] = assetBalances;
+        }
+        return this.safeBalance (result);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
