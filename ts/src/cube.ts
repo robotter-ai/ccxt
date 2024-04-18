@@ -1222,7 +1222,7 @@ export default class cube extends Exchange {
          */
         const meta = await this.initialize (symbol);
         symbol = this.safeString (meta, 'symbol');
-        const market = this.safeDict (meta, 'market');
+        const market = this.safeDict (meta, 'market') as Market;
         const request = {};
         this.injectSubAccountId (request, params);
         const rawResponse = await this.restOsmiumPrivateGetOrders (this.extend (request, params));
@@ -1301,8 +1301,7 @@ export default class cube extends Exchange {
         return result[0];
     }
 
-    // TODO: Types!
-    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name cube#fetchOrders
@@ -1315,12 +1314,12 @@ export default class cube extends Exchange {
          */
         const meta = await this.initialize (symbol);
         symbol = this.safeString (meta, 'symbol');
-        const market = this.safeMarket (this.safeString (meta, 'marketId'), this.safeDict (meta, 'market'));
+        const market = this.safeMarket (this.safeString (meta, 'marketId'), this.safeDict (meta, 'market') as Market);
         const request = {};
         this.injectSubAccountId (request, params);
         const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdOrders (this.extend (request, params));
         const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
-        return await this.parseOrders (rawOrders, market, since, limit);
+        return this.parseOrders (rawOrders, market, since, limit);
     }
 
     parseOrders (orders: object, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Order[] {
@@ -1345,7 +1344,7 @@ export default class cube extends Exchange {
         //         ...
         //     ]
         //
-        for (let i = 0; i < orders.length; i++) {
+        for (let i = 0; i < Object.keys (orders).length; i++) {
             const order = this.safeDict (orders, i);
             order['id'] = this.safeString (order, 'exchangeOrderId');
         }
