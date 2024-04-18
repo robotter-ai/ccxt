@@ -465,6 +465,8 @@ export default class cube extends Exchange {
             const code = this.safeInteger (rawCurrency, 'assetId');
             const name = this.safeString (this.safeDict (rawCurrency, 'metadata'), 'currencyName');
             const networkId = this.safeString (rawCurrency, 'sourceId');
+            const networks = {};
+            networks[networkId] = networkId;
             const currency = this.safeCurrencyStructure ({
                 'info': rawCurrency,
                 'id': symbol,
@@ -481,9 +483,7 @@ export default class cube extends Exchange {
                 // TODO: What kind of fee is this?
                 'fee': undefined,
                 'fees': {},
-                'networks': {
-                    [networkId]: this.networkIdToCode (networkId),
-                },
+                'networks': networks,
                 'limits': {
                     'deposit': {
                         'min': undefined,
@@ -623,8 +623,8 @@ export default class cube extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityTickSize'))),
-                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'priceTickSize'))),
+                'amount': this.parseNumber (this.safeString (market, 'quantityTickSize')),
+                'price': this.parseNumber (this.safeString (market, 'priceTickSize')),
             },
             'limits': {
                 'leverage': {
