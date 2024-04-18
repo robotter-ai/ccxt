@@ -48,7 +48,6 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
  */
 export default class cube extends Exchange {
     describe () {
-        // TODO verify all!!!
         return this.deepExtend (super.describe (), {
             'id': 'cube',
             'name': 'cube',
