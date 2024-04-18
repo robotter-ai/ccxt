@@ -903,26 +903,26 @@ export default class cube extends Exchange {
         const meta = await this.initialize ();
         const response = await this.restIridiumPrivateGetUsersPositions (params);
         const subaccountId = this.safeInteger (this.options, 'subaccountId');
+        const allOrders = await this.fetchOrdersAllMarkets();
         const result = this.safeList (this.safeDict (this.safeDict (response, 'result'), subaccountId), 'inner');
-        return this.parseBalance (result);
+        return this.parseBalance (result, allOrders);
     }
-
-    async parseBalance (response) {
-        const allOrders = await this.fetchOrdersAllMarkets ();
+    parseBalance (balances, allOrders) {
         const openOrders = [];
         const filledUnsettledOrders = [];
-        const allMarkets = {};
-        for (const marketSymbol in this.markets_by_id) {
-            const marketArrayItem = this.markets_by_id[marketSymbol];
+        const allMarketsByNumericId = {};
+        for (let i = 0; i < Object.keys (this.markets_by_id).length; i++) {
+            const marketArrayItem = Object.values(this.markets_by_id)[i];
             const market = marketArrayItem[0];
             const marketInfo = this.safeDict (market, 'info');
             const marketNumericId = this.safeString (marketInfo, 'marketId');
-            allMarkets[marketNumericId] = market;
+            allMarketsByNumericId[marketNumericId] = market;
         }
-        let free = {};
-        let used = {};
-        let total = {};
-        for (const asset of response) {
+        const free = {};
+        const used = {};
+        const total = {};
+        for (let i = 0; i < balances.length; i++) {
+            const asset = balances[i];
             const assetAmount = parseInt (this.safeString (asset, 'amount'));
             if (assetAmount > 0) {
                 const assetNumericId = this.safeString (asset, 'assetId');
@@ -932,50 +932,71 @@ export default class cube extends Exchange {
                 total[assetSymbol] = assetAmount / 10 ** currencyPrecision;
             }
         }
-        for (const order of allOrders) {
+        for (let i = 0; i < allOrders.length; i++) {
+            const order = allOrders[i];
             const orderStatus = this.safeString (order, 'status');
             if (orderStatus === 'open') {
-                openOrders.push (order)
+                openOrders.push (order);
             }
             if (orderStatus === 'filled') {
                 const isSettled = this.safeString (order, 'settled');
                 if (!isSettled) {
-                    filledUnsettledOrders.push (order)
+                    filledUnsettledOrders.push (order);
                 }
             }
         }
-        for (const order of openOrders) {
+        for (let i = 0; i < openOrders.length; i++) {
+            const order = openOrders[i];
             const orderMarketId = this.safeString (order, 'marketId');
-            const orderMarket = this.safeDict (allMarkets, orderMarketId);
-            const orderMarketAmountPrecision = this.safeNumber (this.safeDict (orderMarket, 'precision'), 'amount')
+            const orderMarket = this.safeDict (allMarketsByNumericId, orderMarketId);
             const orderSide = this.safeString (order, 'side');
             const orderBaseToken = this.safeString (orderMarket, 'base');
             const orderQuoteToken = this.safeString (orderMarket, 'quote');
             const orderAmount = this.safeInteger (order, 'qty');
+            const orderPrice = this.safeInteger (order, 'price');
             let targetToken = '';
+            let lotSize = 0;
             if (orderSide === 'Ask') {
-                targetToken = orderBaseToken
+                targetToken = orderBaseToken;
+                lotSize = this.safeInteger (this.safeDict (orderMarket, 'info'), 'baseLotSize');
             } else if (orderSide === 'Bid') {
                 targetToken = orderQuoteToken;
+                lotSize = this.safeInteger (this.safeDict (orderMarket, 'info'), 'quoteLotSize');
             }
             const targetCurrency = this.currencies_by_id[targetToken];
             const targetCurrencyPrecision = this.safeInteger (targetCurrency, 'precision');
-            // TODO - Try to find the conversion pattern for order amount values.!!!
-            if (!used.hasOwnProperty (targetToken)) {
-                used[targetToken] = orderAmount * orderMarketAmountPrecision;
-            } else {
-                used[targetToken] = used[targetToken] += orderAmount * orderMarketAmountPrecision;
+            let orderLockedAmount = 0;
+            if (orderSide === 'Ask') {
+                orderLockedAmount = orderAmount  * lotSize / 10 ** targetCurrencyPrecision;
+            } else if (orderSide === 'Bid') {
+                orderLockedAmount = orderAmount * orderPrice * lotSize / 10 ** targetCurrencyPrecision;
             }
+            if (used[targetToken] === undefined) {
+                used[targetToken] = orderLockedAmount;
+            } else {
+                used[targetToken] += orderLockedAmount;
+            }
+            free[targetToken] = total[targetToken] - used[targetToken];
         }
         const timestamp = Date.now ();
-        return this.safeBalance ({
-            'info': response,
+        const result = {
+            'info': balances,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'free': {},
+            'free': free,
             'used': used,
             'total': total,
-        });
+        }
+        for (let i = 0; i < Object.keys(total).length; i++) {
+            const assetSymbol = Object.keys(total)[i];
+            const assetBalances = {
+                'free': free[assetSymbol],
+                'used': used[assetSymbol],
+                'total': total[assetSymbol]
+            };
+            result[assetSymbol] = assetBalances;
+        }
+        return this.safeBalance (result);
     }
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         /**
