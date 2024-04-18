@@ -762,8 +762,7 @@ export default class cube extends Exchange {
         request = {
             'market_id': rawMarketId
         }
-        let response = undefined;
-        response = await this.restMendelevPublicGetBookMarketIdRecentTrades(this.extend(request, params));
+        const recentTradesResponse = await this.restMendelevPublicGetBookMarketIdRecentTrades(this.extend(request, params));
         //
         // {
         //     "result":{
@@ -793,8 +792,7 @@ export default class cube extends Exchange {
         request = {
             'market_symbol': rawMarketSymbol
         }
-        response = await this.restMendelevPublicGetParsedBookMarketSymbolRecentTrades(this.extend(request, params));
-        const trades = this.safeValue(response, 'trades', []);
+        const parsedRecentTradesResponse = await this.restMendelevPublicGetParsedBookMarketSymbolRecentTrades(this.extend(request, params));
         //
         // {
         //     "result":{
@@ -818,7 +816,20 @@ export default class cube extends Exchange {
         //     }
         // }
         //
-        return this.parseTrades(trades, market, since, limit);
+        const rawTrades = {
+            trades: this.safeList (this.safeDict (recentTradesResponse, 'result'), 'trades'),
+            parsedTrades: this.safeList (this.safeDict (parsedRecentTradesResponse, 'result'), 'trades'),
+        }
+        return this.parseTrades(rawTrades, market);
+    }
+    parseTrades(rawTrades, market = undefined) {
+        const nonParsedTrades = this.safeList (rawTrades, 'trades');
+        const parsedTrades = this.safeDict (rawTrades, 'parsedTrades');
+        const finalTrades = [];
+        for (const trade of parsedTrades) {
+            finalTrades.push(this.parseTrade(trade, market));
+        }
+        return finalTrades;
     }
 
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -838,32 +849,46 @@ export default class cube extends Exchange {
     }
 
     parseTrade(trade, market = undefined) {
-        const datetime = this.safeString(trade, 'ts');
-        const timestamp = this.parse8601(datetime);
-        const cubeSide = this.safeString(trade, 'side');
+        let timestampSeconds = 0;
+        if (trade.hasOwnProperty('ts')) {
+            timestampSeconds = this.safeInteger(trade, 'ts');
+        } else if (trade.hasOwnProperty('transactTime')) {
+            const timestampNanoseconds = trade.hasOwnProperty('transactTime');
+            const timestampSeconds = timestampNanoseconds / 1000000;
+        }
+        const datetime = this.iso8601(timestampSeconds);
+        const tradeSide = this.safeString(trade, 'side');
         let side;
-        if (cubeSide === 'Bid') {
+        if (tradeSide === 'Bid') {
             side = 'buy';
         }
-        else if (cubeSide === 'Ask') {
+        else if (tradeSide === 'Ask') {
             side = 'sell';
         }
-        const priceString = this.safeString(trade, 'p');
-        const amountString = this.safeString(trade, 'q');
+        const marketSymbol = this.safeString (market, 'symbol');
+        const price = parseFloat(this.safeString (trade, 'p'));
+        const amount = parseFloat(this.safeString (trade, 'q'));
         return this.safeTrade({
             'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'symbol': symbol,
+            'timestamp': timestampSeconds,
+            'datetime': datetime,
+            'symbol': marketSymbol,
             'id': this.safeString(trade, 'id'),
             'order': undefined,
             'type': undefined,
             'takerOrMaker': undefined,
             'side': side,
-            'price': priceString,
-            'amount': amountString,
+            'price': price,
+            'amount': amount,
             'cost': undefined,
             'fee': undefined,
+            'fees': [
+                {
+                    'cost':  undefined,
+                    'currency': undefined,
+                    'rate': undefined,
+                },
+            ],
         }, market);
     }
     async fetchBalance (params = {}) {

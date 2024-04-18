@@ -80,7 +80,7 @@ async function fetchTickers() {
 
 // DEVELOPMENT (conferir o objeto, em especial o datetime)
 async function fetchOrderBook() {
-    response = await communityExchange.fetchOrderBook('tSOLtUSDC')
+    response = await communityExchange.fetchOrderBook(marketSymbols[0])
     log(response)
 }
 
@@ -97,7 +97,9 @@ async function fetchStatus() {
 
 // BACKLOG?
 async function fetchTrades() {
-
+    // ???
+    response = await communityExchange.fetchTrades(marketSymbols[0])
+    log(response)
 }
 
 // DEVELOPMENT (incompleto)
