@@ -15,12 +15,16 @@ import {
     Int,
     Market,
     Num,
+    OHLCV,
+    Order,
     OrderBook,
     OrderSide,
     OrderType,
     Str,
     Ticker,
     Tickers,
+    Trade,
+    Transaction,
 } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { NotSupported } from '../../js/src/base/errors.js';
@@ -956,7 +960,7 @@ export default class cube extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market: Market = undefined) : OHLCV {
         //
         //       {
         //         ticker_id: "JTOUSDC",
@@ -995,12 +999,14 @@ export default class cube extends Exchange {
          */
         const response = await this.restIridiumPrivateGetUsersPositions (params);
         const subaccountId = this.safeInteger (this.options, 'subaccountId');
-        const result = this.safeList (this.safeDict (this.safeDict (response, 'result'), subaccountId), 'inner');
+        let result = this.safeList (this.safeDict (this.safeDict (response, 'result'), subaccountId), 'inner');
+        const allOrders = this.fetchOrdersAllMarkets ();
+        result = this.extend (result, { 'orders': allOrders });
         return this.parseBalance (result);
     }
 
-    async parseBalance (response) {
-        const allOrders = await this.fetchOrdersAllMarkets ();
+    parseBalance (response) {
+        const allOrders = this.safeDict (response, 'orders');
         const openOrders = [];
         const filledUnsettledOrders = [];
         const allMarkets = {};
@@ -1134,12 +1140,12 @@ export default class cube extends Exchange {
         const order = this.safeDict (this.safeDict (response, 'result'), 'Ack');
         const exchangeOrderId = this.safeString (order, 'exchangeOrderId');
         const fetchedOrder = (await this.fetchRawOrder (exchangeOrderId, marketId)) || {};
-        return await this.parseOrder (
+        return this.parseOrder (
             {
                 'order': order,
                 'fetchedOrder': fetchedOrder,
             },
-            market
+            market as Market
         );
     }
 
@@ -1171,12 +1177,12 @@ export default class cube extends Exchange {
         };
         this.injectSubAccountId (request, params);
         const response = await this.restOsmiumPrivateDeleteOrder (this.extend (request, params));
-        return await this.parseOrder (
+        return this.parseOrder (
             {
                 'fetchedOrder': fetchedOrder,
                 'cancellationResponse': response,
             },
-            market
+            market as Market
         );
     }
 
@@ -1295,107 +1301,6 @@ export default class cube extends Exchange {
         return result[0];
     }
 
-    async parseOrder (order, market = undefined) {
-        // let transactionType = '';
-        const fetchedOrder = this.safeDict (order, 'fetchedOrder');
-        let mainOrderObject = {};
-        if (order['cancellationResponse'] !== undefined) {
-            // transactionType = 'cancellation';
-            mainOrderObject = this.safeDict (order, 'cancellationResponse');
-        } else {
-            // transactionType = 'creation';
-            mainOrderObject = this.safeDict (order, 'order');
-        }
-        const timestampInNanoseconds = this.safeString (mainOrderObject, 'transactTime');
-        const timestampInMilliseconds = timestampInNanoseconds / 1000000;
-        const datetime = new Date (timestampInMilliseconds);
-        // let orderStatus = ''; // TODO fix !!!
-        // if (Object.keys (fetchedOrder).'length === 0) {
-        //     orderStatus = 'canceled'
-        // } else {
-        //     orderStatus = 'open'
-        // }
-        let result = {};
-        // TODO Improve this part to reuse the original response from create, cancel as much as possible, instead of relying in the fetched order!!!
-        if (fetchedOrder && !(Object.keys (fetchedOrder).length === 0)) {
-            const exchangeOrderId = this.safeInteger (fetchedOrder, 'exchangeOrderId');
-            const clientOrderId = this.safeInteger (fetchedOrder, 'clientOrderId');
-            // const subaccountId = this.safeInteger (this.options, 'subaccountId');
-            // const marketSymbol = this.safeString (this.safeDict (market, 'info'), 'symbol');
-            const marketId = this.safeString (market, 'id');
-            const orderSide = this.safeInteger (fetchedOrder, 'side') === 0 ? 'buy' : 'sell';
-            const price = this.safeString (fetchedOrder, 'price') / 100;
-            const symbol = this.safeString (market, 'base') + '/' + this.safeString (market, 'quote');
-            const amount = this.safeInteger (fetchedOrder, 'orderQuantity');
-            const remainingAmount = this.safeInteger (fetchedOrder, 'remainingQuantity');
-            const filledAmount = amount - remainingAmount;
-            let currency = '';
-            if (orderSide === 'buy') {
-                currency = this.safeString (market, 'base');
-            } else {
-                currency = this.safeString (market, 'quote');
-            }
-            let orderType = '';
-            if (this.safeInteger (fetchedOrder, 'orderType') === 0) {
-                orderType = 'limit';
-            } else if (this.safeInteger (fetchedOrder, 'orderType') === 1) {
-                orderType = 'market';
-            } else if (this.safeInteger (fetchedOrder, 'orderType') === 2) {
-                orderType = 'MARKET_WITH_PROTECTION';
-            } else {
-                throw Error ('OrderType was not recognized.');
-            }
-            let timeInForce = '';
-            if (this.safeInteger (fetchedOrder, 'timeInForce') === 0) {
-                timeInForce = 'IOC';
-            } else if (this.safeInteger (fetchedOrder, 'timeInForce') === 1) {
-                timeInForce = 'GTC';
-            } else if (this.safeInteger (fetchedOrder, 'timeInForce') === 2) {
-                timeInForce = 'FOK';
-            } else {
-                throw Error ('Time-in-force (TIF) was not recognized.');
-            }
-            // if (transactionType === 'creation') {
-            // }
-            const tradeFeeRatios = await this.fetchTradingFee (marketId);
-            const rate = orderSide === 'buy' ? this.safeString (tradeFeeRatios, 'maker') : this.safeString (tradeFeeRatios, 'taker');
-            const decimalAmount = amount / 100;
-            const decimalFilledAmount = filledAmount / 100;
-            const decimalRemainingAmount = remainingAmount / 100;
-            const cost = filledAmount * price;
-            const feeCost = decimalAmount * parseFloat (rate);
-            result = {
-                'id': exchangeOrderId,
-                'clientOrderId': clientOrderId,
-                'datetime': datetime,
-                'timestamp': timestampInMilliseconds,
-                'lastTradeTimestamp': timestampInMilliseconds,
-                'status': 'open',
-                'symbol': symbol,
-                'type': orderType,
-                'timeInForce': timeInForce,
-                'side': orderSide,
-                'price': price,
-                'average': 0.06917684,
-                'amount': decimalAmount,
-                'filled': decimalFilledAmount,
-                'remaining': decimalRemainingAmount,
-                'cost': cost,
-                'trades': [],
-                'fee': {
-                    'currency': currency, // a deduction from the asset received in this trade
-                    'cost': feeCost,
-                    'rate': rate,
-                },
-                'info': {
-                    'mainOrderObjetc': mainOrderObject,
-                    'fetchedOrder': fetchedOrder,
-                },
-            };
-        }
-        return this.safeOrder (result);
-    }
-
     // TODO: Types!
     async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1410,7 +1315,7 @@ export default class cube extends Exchange {
          */
         const meta = await this.initialize (symbol);
         symbol = this.safeString (meta, 'symbol');
-        const market = this.safeDict (meta, 'market');
+        const market = this.safeMarket (this.safeString (meta, 'marketId'), this.safeDict (meta, 'market'));
         const request = {};
         this.injectSubAccountId (request, params);
         const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdOrders (this.extend (request, params));
@@ -1418,7 +1323,7 @@ export default class cube extends Exchange {
         return await this.parseOrders (rawOrders, market, since, limit);
     }
 
-    async parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
+    parseOrders (orders: object, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Order[] {
         //
         // the value of orders is either a dict or a list
         //
@@ -1447,20 +1352,118 @@ export default class cube extends Exchange {
         let results = [];
         if (Array.isArray (orders)) {
             for (let i = 0; i < orders.length; i++) {
-                const order = this.extend (await this.parseOrder (orders[i], market), params);
+                const order = this.extend (this.parseOrder (orders[i], market), params);
                 results.push (order);
             }
         } else {
             const ids = Object.keys (orders);
             for (let i = 0; i < ids.length; i++) {
                 const id = ids[i];
-                const order = this.extend (await this.parseOrder (this.extend ({ 'id': id }, orders[id]), market), params);
+                const order = this.extend (this.parseOrder (this.extend ({ 'id': id }, orders[id]), market), params);
                 results.push (order);
             }
         }
         results = this.sortBy (results, 'timestamp');
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
         return this.filterBySymbolSinceLimit (results, symbol, since, limit);
+    }
+
+    parseOrder (order, market: Market = undefined) {
+        // let transactionType = '';
+        const fetchedOrder = this.safeDict (order, 'fetchedOrder');
+        let mainOrderObject = {};
+        if (order['cancellationResponse'] !== undefined) {
+            // transactionType = 'cancellation';
+            mainOrderObject = this.safeDict (order, 'cancellationResponse');
+        } else {
+            // transactionType = 'creation';
+            mainOrderObject = this.safeDict (order, 'order');
+        }
+        const timestampInNanoseconds = this.safeNumber (mainOrderObject, 'transactTime');
+        const timestampInMilliseconds = timestampInNanoseconds / 1000000;
+        const datetime = new Date (timestampInMilliseconds);
+        // let orderStatus = ''; // TODO fix !!!
+        // if (Object.keys (fetchedOrder).'length === 0) {
+        //     orderStatus = 'canceled'
+        // } else {
+        //     orderStatus = 'open'
+        // }
+        let result = {};
+        // TODO Improve this part to reuse the original response from create, cancel as much as possible, instead of relying in the fetched order!!!
+        if (fetchedOrder && !(fetchedOrder.length === 0)) {
+            const exchangeOrderId = this.safeInteger (fetchedOrder, 'exchangeOrderId');
+            const clientOrderId = this.safeInteger (fetchedOrder, 'clientOrderId');
+            const orderSide = this.safeInteger (fetchedOrder, 'side') === 0 ? 'buy' : 'sell';
+            const price = this.safeInteger (fetchedOrder, 'price') / 100;
+            const symbol = this.safeString (market, 'base') + '/' + this.safeString (market, 'quote');
+            const amount = this.safeInteger (fetchedOrder, 'orderQuantity');
+            const remainingAmount = this.safeInteger (fetchedOrder, 'remainingQuantity');
+            const filledAmount = amount - remainingAmount;
+            let currency = '';
+            if (orderSide === 'buy') {
+                currency = this.safeString (market, 'base');
+            } else {
+                currency = this.safeString (market, 'quote');
+            }
+            let orderType = '';
+            const orderTypeRaw = this.safeInteger (fetchedOrder, 'orderType');
+            if (orderTypeRaw === 0) {
+                orderType = 'limit';
+            } else if (orderTypeRaw === 1) {
+                orderType = 'market';
+            } else if (orderTypeRaw === 2) {
+                orderType = 'MARKET_WITH_PROTECTION';
+            } else {
+                throw Error ('OrderType was not recognized.');
+            }
+            let timeInForce = '';
+            const timeInForceRaw = this.safeInteger (fetchedOrder, 'timeInForce');
+            if (timeInForceRaw === 0) {
+                timeInForce = 'IOC';
+            } else if (timeInForceRaw === 1) {
+                timeInForce = 'GTC';
+            } else if (timeInForceRaw === 2) {
+                timeInForce = 'FOK';
+            } else {
+                throw Error ('Time-in-force (TIF) was not recognized.');
+            }
+            const tradeFeeRatios = this.safeString (this.fees, 'trading');
+            const rate = orderSide === 'buy' ? this.safeString (tradeFeeRatios, 'maker') : this.safeString (tradeFeeRatios, 'taker');
+            const decimalAmount = amount / 100;
+            const decimalFilledAmount = filledAmount / 100;
+            const decimalRemainingAmount = remainingAmount / 100;
+            const cost = filledAmount * price;
+            const feeCost = decimalAmount * parseFloat (rate);
+            result = {
+                'id': exchangeOrderId,
+                'clientOrderId': clientOrderId,
+                'datetime': datetime,
+                'timestamp': timestampInMilliseconds,
+                'lastTradeTimestamp': timestampInMilliseconds,
+                'status': 'open',
+                'symbol': symbol,
+                'type': orderType,
+                'timeInForce': timeInForce,
+                'side': orderSide,
+                'price': price,
+                'average': 0.06917684,
+                'amount': decimalAmount,
+                'filled': decimalFilledAmount,
+                'remaining': decimalRemainingAmount,
+                'cost': cost,
+                'trades': [],  // TODO: Implement trades
+                'fee': {
+                    'currency': currency, // a deduction from the asset received in this trade
+                    'cost': feeCost,
+                    'rate': rate,
+                },
+                'info': {
+                    'mainOrderObjetc': mainOrderObject,
+                    'fetchedOrder': fetchedOrder,
+                },
+            };
+        }
+        return this.safeOrder (result);
     }
 
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1481,8 +1484,9 @@ export default class cube extends Exchange {
         this.injectSubAccountId (request, params);
         const response = await this.restOsmiumPrivateGetOrders (this.extend (request, params));
         const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
-        return await this.parseOrders (rawOrders, market, since, limit);
+        return this.parseOrders (rawOrders, market as Market, since, limit);
     }
+
     async fetchOrdersAllMarkets (since = undefined, limit = undefined) {
         /**
          * @method
@@ -1495,7 +1499,7 @@ export default class cube extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {};
-        this.injectSubAccountId (request);
+        this.injectSubAccountId (request, {});
         const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdOrders (this.extend (request));
         const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
         return rawOrders;
@@ -1595,6 +1599,7 @@ export default class cube extends Exchange {
         }
         return finalTrades;
     }
+
     parseTrade (trade, market = undefined) {
         let timestampSeconds = 0;
         if (trade['ts'] !== undefined) {
@@ -1673,7 +1678,7 @@ export default class cube extends Exchange {
         };
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' fetchMyTrades() is not supported yet');
     }
 
@@ -1689,7 +1694,7 @@ export default class cube extends Exchange {
         throw new NotSupported (this.id + ' fetchStatus() is not supported yet');
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name cube#withdraw
