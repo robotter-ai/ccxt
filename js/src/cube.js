@@ -22,9 +22,9 @@ import {safeInteger} from "./base/functions/type.js";
  * @augments Exchange
  */
 export default class cube extends Exchange {
-    describe() {
+    describe () {
         // TODO Check one last time!!!
-        return this.deepExtend(super.describe(), {
+        return this.deepExtend (super.describe (), {
             'id': 'cube',
             'name': 'cube',
             'countries': [],
@@ -235,8 +235,8 @@ export default class cube extends Exchange {
             'pro': false,
             'fees': {
                 'trading': {
-                    'maker': this.parseNumber('0.004'),
-                    'taker': this.parseNumber('0.008'),
+                    'maker': this.parseNumber ('0.004'),
+                    'taker': this.parseNumber ('0.008'),
                 },
             },
             'commonCurrencies': undefined,
@@ -252,44 +252,44 @@ export default class cube extends Exchange {
         });
     }
 
-    generateSignature() {
-        const timestamp = Math.floor(Date.now() / 1000);
-        const timestampBuffer = Buffer.alloc(8);
-        timestampBuffer.writeUInt32LE(timestamp, 0);
+    generateSignature () {
+        const timestamp = Math.floor (Date.now () / 1000);
+        const timestampBuffer = Buffer.alloc (8);
+        timestampBuffer.writeUInt32LE (timestamp, 0);
         const fixedString = 'cube.xyz';
-        const payload = Buffer.concat([Buffer.from(fixedString, 'utf-8'), timestampBuffer]);
-        const secretKeyBytes = Buffer.from(this.secret, 'hex');
-        const hmac = this.hmac(payload, secretKeyBytes, sha256, 'binary');
-        const signatureB64 = Buffer.from(hmac).toString('base64');
+        const payload = Buffer.concat ([Buffer.from (fixedString, 'utf-8'), timestampBuffer]);
+        const secretKeyBytes = Buffer.from (this.secret, 'hex');
+        const hmac = this.hmac (payload, secretKeyBytes, sha256, 'binary');
+        const signatureB64 = Buffer.from (hmac).toString ('base64');
         return [signatureB64, timestamp];
     }
 
-    generateAuthenticationHeaders() {
-        const [signature, timestamp] = this.generateSignature();
+    generateAuthenticationHeaders () {
+        const [signature, timestamp] = this.generateSignature ();
         return {
             'x-api-key': this.apiKey,
             'x-api-signature': signature,
-            'x-api-timestamp': timestamp.toString(),
+            'x-api-timestamp': timestamp.toString (),
         };
     }
 
-    authenticateRequest(request) {
+    authenticateRequest (request) {
         const headers = request.headers ?? {};
-        Object.assign(headers, this.generateAuthenticationHeaders());
+        Object.assign (headers, this.generateAuthenticationHeaders ());
         request.headers = headers;
         return request;
     }
 
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const environment = this.options['environment'];
         let baseUrl = undefined;
         if (api.indexOf ('iridium') >= 0) {
             baseUrl = this.urls['api']['rest'][environment]['iridium'];
         }
-        else if (api.indexOf('mendelev') >= 0) {
+        else if (api.indexOf ('mendelev') >= 0) {
             baseUrl = this.urls['api']['rest'][environment]['mendelev'];
         }
-        else if (api.indexOf('osmium') >= 0) {
+        else if (api.indexOf ('osmium') >= 0) {
             baseUrl = this.urls['api']['rest'][environment]['osmium'];
         }
         let url = baseUrl + this.implodeParams (path, params);
@@ -314,7 +314,7 @@ export default class cube extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    setSandboxMode(enable) {
+    setSandboxMode (enable) {
         if (enable === true) {
             this.options['environment'] = 'staging';
         } else {
@@ -322,7 +322,7 @@ export default class cube extends Exchange {
         }
     }
 
-    async initialize(symbolOrSymbols) {
+    async initialize (symbolOrSymbols) {
         let symbol = undefined;
         let marketId = undefined;
         let market = undefined;
@@ -345,7 +345,7 @@ export default class cube extends Exchange {
                     marketIds: marketIds,
                     markets: markets
                 }
-            } else if (Array.isArray(symbolOrSymbols)) {
+            } else if (Array.isArray (symbolOrSymbols)) {
                 marketIds = [];
                 markets = [];
                 for (let i = 0; i < symbolOrSymbols.length; i++) {
@@ -356,7 +356,7 @@ export default class cube extends Exchange {
                     marketIds.push (marketId);
                     markets.push (market);
                 }
-                symbolOrSymbols = this.marketSymbols(symbolOrSymbols);
+                symbolOrSymbols = this.marketSymbols (symbolOrSymbols);
                 symbols = symbolOrSymbols;
                 return {
                     symbol: symbol,
@@ -367,7 +367,7 @@ export default class cube extends Exchange {
                     markets: markets
                 }
             } else {
-                throw Error('Invalid symbol or symbols informed.')
+                throw Error ('Invalid symbol or symbols informed.')
             }
         }
         return {
@@ -380,19 +380,19 @@ export default class cube extends Exchange {
         }
     }
 
-    injectSubAccountId(request, params) {
+    injectSubAccountId (request, params) {
         if (this.safeInteger (params, 'subaccountId') !== undefined) {
             request['subaccountId'] = this.safeInteger (params, 'subaccountId');
         } else if (this.safeInteger (params, 'subAccountId') !== undefined) {
             request['subaccountId'] = this.safeInteger (params, 'subAccountId');
         } else if (this.safeInteger (this.options, 'subaccountId') !== undefined) {
-            request['subaccountId'] = this.safeInteger(this.options, 'subaccountId');
+            request['subaccountId'] = this.safeInteger (this.options, 'subaccountId');
         } else if (this.safeInteger (this.options, 'subAccountId') !== undefined) {
             request['subaccountId'] = this.safeInteger (this.options, 'subAccountId');
         }
     }
 
-    async fetchCurrencies(params = {}) {
+    async fetchCurrencies (params = {}) {
         // TODO Only last ckecking!!!
         /**
          * @method
@@ -402,7 +402,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.restIridiumPublicGetMarkets(params);
+        const response = await this.restIridiumPublicGetMarkets (params);
         // {
         //     "result": {
         //         "assets": [
@@ -475,25 +475,25 @@ export default class cube extends Exchange {
         return this.parseCurrencies (response);
     }
 
-    parseCurrencies(response) {
+    parseCurrencies (response) {
         const result = {};
-        const rawCurrencies = this.safeDict(this.safeDict(response, 'result'), 'assets');
+        const rawCurrencies = this.safeDict (this.safeDict (response, 'result'), 'assets');
         for (let i = 0; i < rawCurrencies.length; i++) {
             const rawCurrency = rawCurrencies[i];
-            const id = this.safeStringUpper(rawCurrency, 'symbol');
-            // const code = this.safeCurrencyCode(id);
-            const code =  this.safeInteger(rawCurrency, 'assetId');
+            const id = this.safeStringUpper (rawCurrency, 'symbol');
+            // const code = this.safeCurrencyCode (id);
+            const code =  this.safeInteger (rawCurrency, 'assetId');
             const name = this.safeString (this.safeDict (rawCurrency,'metadata'), 'currencyName')
-            const fees = this.safeString (this.safeDict(rawCurrency,''))
-            const status = this.safeInteger(rawCurrency, 'status') == 1 ? true : false;
+            const fees = this.safeString (this.safeDict (rawCurrency,''))
+            const status = this.safeInteger (rawCurrency, 'status') == 1 ? true : false;
             // TODO Only last ckecking!!!
-            const currency = this.safeCurrencyStructure({
+            const currency = this.safeCurrencyStructure ({
                 'info': rawCurrency,
                 'id': id,
-                'numericId': this.safeInteger(rawCurrency, 'assetId'),
-                'code': this.safeStringUpper(rawCurrency, 'symbol'),
-                'precision': this.safeInteger(rawCurrency, 'decimals'),
-                'type': this.safeStringLower(rawCurrency, 'assetType'),
+                'numericId': this.safeInteger (rawCurrency, 'assetId'),
+                'code': this.safeStringUpper (rawCurrency, 'symbol'),
+                'precision': this.safeInteger (rawCurrency, 'decimals'),
+                'type': this.safeStringLower (rawCurrency, 'assetType'),
                 'name': name,
                 'active': status,
                 'deposit': undefined,
@@ -517,7 +517,7 @@ export default class cube extends Exchange {
         return result;
     }
 
-    async fetchMarkets(params = {}) {
+    async fetchMarkets (params = {}) {
         /**
          * @method
          * @name cube#fetchMarkets
@@ -526,7 +526,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.restIridiumPublicGetMarkets(params);
+        const response = await this.restIridiumPublicGetMarkets (params);
         // {
         //     "result": {
         //         "assets": [
@@ -596,40 +596,40 @@ export default class cube extends Exchange {
         //         ]
         //     }
         // }
-        return this.parseMarkets(response)
+        return this.parseMarkets (response)
     }
 
-    parseMarkets(response) {
+    parseMarkets (response) {
         // TODO Only last ckecking!!!
 
         const result = [];
-        const rawMarkets = this.safeDict(this.safeDict(response, 'result'), 'markets');
-        const rawAssets = this.safeDict(this.safeDict(response, 'result'), 'assets');
+        const rawMarkets = this.safeDict (this.safeDict (response, 'result'), 'markets');
+        const rawAssets = this.safeDict (this.safeDict (response, 'result'), 'assets');
         for (let i = 0; i < rawMarkets.length; i++) {
-            const rawMarket = this.safeDict(rawMarkets, i);
-            const id = this.safeStringLower(rawMarket, 'symbol');
+            const rawMarket = this.safeDict (rawMarkets, i);
+            const id = this.safeStringLower (rawMarket, 'symbol');
             let rawBaseAsset = undefined;
             for (let j = 0; j < rawAssets.length; j++) {
-                if (this.safeString(this.safeDict(rawAssets, j), 'assetId')
-                    === this.safeString(rawMarket, 'baseAssetId')) {
-                    rawBaseAsset = this.safeDict(rawAssets, j);
+                if (this.safeString (this.safeDict (rawAssets, j), 'assetId')
+                    === this.safeString (rawMarket, 'baseAssetId')) {
+                    rawBaseAsset = this.safeDict (rawAssets, j);
                     break;
                 }
             }
             let rawQuoteAsset = undefined;
             for (let j = 0; j < rawAssets.length; j++) {
-                if (this.safeString(this.safeDict(rawAssets, j), 'assetId')
-                    === this.safeString(rawMarket, 'quoteAssetId')) {
-                    rawQuoteAsset = this.safeDict(rawAssets, j);
+                if (this.safeString (this.safeDict (rawAssets, j), 'assetId')
+                    === this.safeString (rawMarket, 'quoteAssetId')) {
+                    rawQuoteAsset = this.safeDict (rawAssets, j);
                     break;
                 }
             }
-            const baseId = this.safeStringUpper(rawBaseAsset, 'symbol');
-            const quoteId = this.safeStringUpper(rawQuoteAsset, 'symbol');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const status = this.safeInteger(rawMarket, 'status') == 1 ? true : false;
-            const market = this.safeMarketStructure({
+            const baseId = this.safeStringUpper (rawBaseAsset, 'symbol');
+            const quoteId = this.safeStringUpper (rawQuoteAsset, 'symbol');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const status = this.safeInteger (rawMarket, 'status') == 1 ? true : false;
+            const market = this.safeMarketStructure ({
                 'id': id,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -653,14 +653,14 @@ export default class cube extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'taker': this.safeNumber(this.safeDict(this.fees, 'trading'), 'taker'),
-                'maker': this.safeNumber(this.safeDict(this.fees, 'trading'), 'maker'),
+                'taker': this.safeNumber (this.safeDict (this.fees, 'trading'), 'taker'),
+                'maker': this.safeNumber (this.safeDict (this.fees, 'trading'), 'maker'),
                 'percentage': undefined,
                 'tierBased': false,
                 'feeSide': undefined,
                 'precision': {
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(rawMarket, 'priceTickSize'))),
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(rawMarket, 'quantityTickSize'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (rawMarket, 'priceTickSize'))),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (rawMarket, 'quantityTickSize'))),
                     'cost': undefined,
                 },
                 'limits': {
@@ -683,12 +683,12 @@ export default class cube extends Exchange {
                 },
                 'info': rawMarket,
             });
-            result.push(market);
+            result.push (market);
         }
         return result;
     }
 
-    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         /**
          * @method
          * @name cube#fetchOrderBook
@@ -703,10 +703,10 @@ export default class cube extends Exchange {
         const meta = await this.initialize (symbol);
         symbol = this.safeString (meta, 'symbol');
         const market = this.safeDict (meta, 'market');
-        const marketInfo = this.safeDict(market, 'info');
-        const symbolFromInfo = this.safeString(marketInfo, 'symbol');
+        const marketInfo = this.safeDict (market, 'info');
+        const symbolFromInfo = this.safeString (marketInfo, 'symbol');
         const request = { 'market_symbol': symbolFromInfo };
-        const response = await this.restMendelevPublicGetParsedBookMarketSymbolSnapshot(this.extend(request, params));
+        const response = await this.restMendelevPublicGetParsedBookMarketSymbolSnapshot (this.extend (request, params));
         //
         // {
         //   "result":{
@@ -727,19 +727,19 @@ export default class cube extends Exchange {
         //   }
         // }
         //
-        const rawBids = this.safeList(this.safeDict(response, 'result'), 'bids', []);
-        const rawAsks = this.safeList(this.safeDict(response, 'result'), 'asks', []);
+        const rawBids = this.safeList (this.safeDict (response, 'result'), 'bids', []);
+        const rawAsks = this.safeList (this.safeDict (response, 'result'), 'asks', []);
         const rawOrderbook = {
             'bids': rawBids,
             'asks': rawAsks,
         };
-        const timestamp = this.safeTimestamp(this.safeDict(response, 'result'), 'timestamp');
-        return this.parseOrderBook(rawOrderbook, symbol, timestamp, 'bids', 'asks');
+        const timestamp = this.safeTimestamp (this.safeDict (response, 'result'), 'timestamp');
+        return this.parseOrderBook (rawOrderbook, symbol, timestamp, 'bids', 'asks');
     }
-    parseBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+    parseBidsAsks (bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         return bidasks;
     }
-    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cube#fetchTrades
@@ -762,7 +762,7 @@ export default class cube extends Exchange {
         request = {
             'market_id': rawMarketId
         }
-        const recentTradesResponse = await this.restMendelevPublicGetBookMarketIdRecentTrades(this.extend(request, params));
+        const recentTradesResponse = await this.restMendelevPublicGetBookMarketIdRecentTrades (this.extend (request, params));
         //
         // {
         //     "result":{
@@ -792,7 +792,7 @@ export default class cube extends Exchange {
         request = {
             'market_symbol': rawMarketSymbol
         }
-        const parsedRecentTradesResponse = await this.restMendelevPublicGetParsedBookMarketSymbolRecentTrades(this.extend(request, params));
+        const parsedRecentTradesResponse = await this.restMendelevPublicGetParsedBookMarketSymbolRecentTrades (this.extend (request, params));
         //
         // {
         //     "result":{
@@ -820,44 +820,44 @@ export default class cube extends Exchange {
             trades: this.safeList (this.safeDict (recentTradesResponse, 'result'), 'trades'),
             parsedTrades: this.safeList (this.safeDict (parsedRecentTradesResponse, 'result'), 'trades'),
         }
-        return this.parseTrades(rawTrades, market);
+        return this.parseTrades (rawTrades, market);
     }
-    parseTrades(rawTrades, market = undefined) {
+    parseTrades (rawTrades, market = undefined) {
         const nonParsedTrades = this.safeList (rawTrades, 'trades');
         const parsedTrades = this.safeDict (rawTrades, 'parsedTrades');
         const finalTrades = [];
         for (const trade of parsedTrades) {
-            finalTrades.push(this.parseTrade(trade, market));
+            finalTrades.push (this.parseTrade (trade, market));
         }
         return finalTrades;
     }
 
-    async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported(this.id + ' fetchMyTrades() is not supported yet');
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchMyTrades() is not supported yet');
     }
 
-    async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (this.has['fetchOrders']) {
-            const orders = await this.fetchOrders(symbol, since, limit, params);
-            return this.filterBy(orders, 'status', 'closed');
+            const orders = await this.fetchOrders (symbol, since, limit, params);
+            return this.filterBy (orders, 'status', 'closed');
         }
-        throw new NotSupported(this.id + ' fetchClosedOrders() is not supported yet');
+        throw new NotSupported (this.id + ' fetchClosedOrders() is not supported yet');
     }
 
-    async fetchStatus(params = {}) {
-        throw new NotSupported(this.id + ' fetchStatus() is not supported yet');
+    async fetchStatus (params = {}) {
+        throw new NotSupported (this.id + ' fetchStatus() is not supported yet');
     }
 
-    parseTrade(trade, market = undefined) {
+    parseTrade (trade, market = undefined) {
         let timestampSeconds = 0;
-        if (trade.hasOwnProperty('ts')) {
-            timestampSeconds = this.safeInteger(trade, 'ts');
-        } else if (trade.hasOwnProperty('transactTime')) {
-            const timestampNanoseconds = trade.hasOwnProperty('transactTime');
+        if (trade.hasOwnProperty ('ts')) {
+            timestampSeconds = this.safeInteger (trade, 'ts');
+        } else if (trade.hasOwnProperty ('transactTime')) {
+            const timestampNanoseconds = trade.hasOwnProperty ('transactTime');
             const timestampSeconds = timestampNanoseconds / 1000000;
         }
-        const datetime = this.iso8601(timestampSeconds);
-        const tradeSide = this.safeString(trade, 'side');
+        const datetime = this.iso8601 (timestampSeconds);
+        const tradeSide = this.safeString (trade, 'side');
         let side;
         if (tradeSide === 'Bid') {
             side = 'buy';
@@ -866,14 +866,14 @@ export default class cube extends Exchange {
             side = 'sell';
         }
         const marketSymbol = this.safeString (market, 'symbol');
-        const price = parseFloat(this.safeString (trade, 'p'));
-        const amount = parseFloat(this.safeString (trade, 'q'));
-        return this.safeTrade({
+        const price = parseFloat (this.safeString (trade, 'p'));
+        const amount = parseFloat (this.safeString (trade, 'q'));
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestampSeconds,
             'datetime': datetime,
             'symbol': marketSymbol,
-            'id': this.safeString(trade, 'id'),
+            'id': this.safeString (trade, 'id'),
             'order': undefined,
             'type': undefined,
             'takerOrMaker': undefined,
@@ -902,13 +902,13 @@ export default class cube extends Exchange {
          */
         const meta = await this.initialize ();
         const response = await this.restIridiumPrivateGetUsersPositions (params);
-        const subaccountId = this.safeInteger(this.options, 'subaccountId');
+        const subaccountId = this.safeInteger (this.options, 'subaccountId');
         const result = this.safeList (this.safeDict (this.safeDict (response, 'result'), subaccountId), 'inner');
         return this.parseBalance (result);
     }
 
     async parseBalance (response) {
-        const allOrders = await this.fetchOrdersAllMarkets();
+        const allOrders = await this.fetchOrdersAllMarkets ();
         const openOrders = [];
         const filledUnsettledOrders = [];
         const allMarkets = {};
@@ -935,12 +935,12 @@ export default class cube extends Exchange {
         for (const order of allOrders) {
             const orderStatus = this.safeString (order, 'status');
             if (orderStatus === 'open') {
-                openOrders.push(order)
+                openOrders.push (order)
             }
             if (orderStatus === 'filled') {
                 const isSettled = this.safeString (order, 'settled');
                 if (!isSettled) {
-                    filledUnsettledOrders.push(order)
+                    filledUnsettledOrders.push (order)
                 }
             }
         }
@@ -961,23 +961,23 @@ export default class cube extends Exchange {
             const targetCurrency = this.currencies_by_id[targetToken];
             const targetCurrencyPrecision = this.safeInteger (targetCurrency, 'precision');
             // TODO - Try to find the conversion pattern for order amount values.!!!
-            if (!used.hasOwnProperty(targetToken)) {
+            if (!used.hasOwnProperty (targetToken)) {
                 used[targetToken] = orderAmount * orderMarketAmountPrecision;
             } else {
                 used[targetToken] = used[targetToken] += orderAmount * orderMarketAmountPrecision;
             }
         }
-        const timestamp = Date.now();
+        const timestamp = Date.now ();
         return this.safeBalance ({
             'info': response,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'datetime': this.iso8601 (timestamp),
             'free': {},
             'used': used,
             'total': total,
         });
     }
-    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name cube#createOrder
@@ -994,7 +994,7 @@ export default class cube extends Exchange {
         symbol = this.safeString (meta, 'symbol');
         const marketId = this.safeString (meta, 'marketId');
         const market = this.safeDict (meta, 'market');
-        const rawMarketId = this.safeInteger(this.safeDict(market, 'info'), 'marketId');
+        const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
         const exchangePrice = price * 100;
         const exchangeAmount = amount * 100;
         let exchangeOrderType = undefined;
@@ -1005,7 +1005,7 @@ export default class cube extends Exchange {
         } else if (type == 'MARKET_WITH_PROTECTION') {
             exchangeOrderType = 2;
         } else {
-            throw Error('OrderType was not recognized.');
+            throw Error ('OrderType was not recognized.');
         }
         let exchangeOrderSide = undefined;
         if (side == 'buy') {
@@ -1013,37 +1013,37 @@ export default class cube extends Exchange {
         } else if (side == 'sell') {
             exchangeOrderSide = 1;
         } else {
-            throw Error('OrderSide was not recognized.');
+            throw Error ('OrderSide was not recognized.');
         }
-        const timestamp = Date.now();
-        const clientOrderIdFromParams = this.safeInteger(params, 'clientOrderId')
+        const timestamp = Date.now ();
+        const clientOrderIdFromParams = this.safeInteger (params, 'clientOrderId')
         const clientOrderId = (clientOrderIdFromParams === null || clientOrderIdFromParams === undefined) ? timestamp : clientOrderIdFromParams;
         const request = {
             'clientOrderId': clientOrderId,
-            'requestId': this.safeInteger(params, 'requestId', 1),
+            'requestId': this.safeInteger (params, 'requestId', 1),
             'marketId': rawMarketId,
             'price': exchangePrice,
             'quantity': exchangeAmount,
             'side': exchangeOrderSide,
-            'timeInForce': this.safeInteger(params, 'timeInForce', 1),
+            'timeInForce': this.safeInteger (params, 'timeInForce', 1),
             'orderType': exchangeOrderType,
-            'selfTradePrevention': this.safeInteger(params, 'selfTradePrevention', 0),
-            'postOnly': this.safeInteger(params, 'postOnly', 0),
-            'cancelOnDisconnect': this.safeBool(params, 'cancelOnDisconnect', false),
+            'selfTradePrevention': this.safeInteger (params, 'selfTradePrevention', 0),
+            'postOnly': this.safeInteger (params, 'postOnly', 0),
+            'cancelOnDisconnect': this.safeBool (params, 'cancelOnDisconnect', false),
         };
         this.injectSubAccountId (request, params);
-        const response = await this.restOsmiumPrivatePostOrder(this.extend(request, params));
+        const response = await this.restOsmiumPrivatePostOrder (this.extend (request, params));
         const order = this.safeDict (this.safeDict (response, 'result'), 'Ack');
         const exchangeOrderId = this.safeString (order, 'exchangeOrderId');
-        const fetchedOrder = (await this.fetchRawOrder(exchangeOrderId, marketId)) || {};
-        return await this.parseOrder(
+        const fetchedOrder = (await this.fetchRawOrder (exchangeOrderId, marketId)) || {};
+        return await this.parseOrder (
             {
                 "order": order,
                 "fetchedOrder": fetchedOrder
             }, market
         );
     }
-    async cancelOrder(id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name cube#cancelOrder
@@ -1058,27 +1058,27 @@ export default class cube extends Exchange {
         symbol = this.safeString (meta, 'symbol');
         const marketId = this.safeString (meta, 'marketId');
         const market = this.safeDict (meta, 'market');
-        const rawMarketId = this.safeInteger(this.safeDict(market, 'info'), 'marketId');
-        const fetchedOrder = await this.fetchRawOrder(id, marketId);
+        const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
+        const fetchedOrder = await this.fetchRawOrder (id, marketId);
         if (fetchedOrder === undefined) {
             fetchedOrder = {};
         }
-        const clientOrderId = parseInt(this.safeString (fetchedOrder, 'clientOrderId'));
+        const clientOrderId = parseInt (this.safeString (fetchedOrder, 'clientOrderId'));
         const request = {
             'clientOrderId': clientOrderId,
-            'requestId': this.safeInteger(params, 'requestId'),
+            'requestId': this.safeInteger (params, 'requestId'),
             'marketId': rawMarketId,
         };
         this.injectSubAccountId (request, params);
-        const response = await this.restOsmiumPrivateDeleteOrder(this.extend(request, params));
-        return await this.parseOrder(
+        const response = await this.restOsmiumPrivateDeleteOrder (this.extend (request, params));
+        return await this.parseOrder (
             {
                 "fetchedOrder": fetchedOrder,
                 "cancellationResponse": response
             }, market
         );
     }
-    async cancelAllOrders(symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         /**
          * @method
          * @name cube#cancelAllOrders
@@ -1101,7 +1101,7 @@ export default class cube extends Exchange {
         // TODO wrong response, it is needed to return the cancelled orders!!!
         return await this.restOsmiumPrivateDeleteOrders (this.extend (request, params));
     }
-    async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cube#fetchOpenOrders
@@ -1121,7 +1121,7 @@ export default class cube extends Exchange {
         const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
         return await this.parseOrders (rawOrders, market, since, limit);
     }
-    async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cube#fetchOrders
@@ -1141,7 +1141,7 @@ export default class cube extends Exchange {
         const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
         return await this.parseOrders (rawOrders, market, since, limit);
     }
-    async fetchOrdersAllMarkets(since = undefined, limit = undefined) {
+    async fetchOrdersAllMarkets (since = undefined, limit = undefined) {
         /**
          * @method
          * @name cube#fetchOrdersAllMarkets
@@ -1158,7 +1158,7 @@ export default class cube extends Exchange {
         const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
         return rawOrders;
     }
-    async parseOrders(orders, market = undefined, since = undefined, limit = undefined, params = {}) {
+    async parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
         //
         // the value of orders is either a dict or a list
         //
@@ -1185,26 +1185,26 @@ export default class cube extends Exchange {
             order['id'] = this.safeString (order, 'exchangeOrderId');
         }
         let results = [];
-        if (Array.isArray(orders)) {
+        if (Array.isArray (orders)) {
             for (let i = 0; i < orders.length; i++) {
-                const order = this.extend(await this.parseOrder(orders[i], market), params);
-                results.push(order);
+                const order = this.extend (await this.parseOrder (orders[i], market), params);
+                results.push (order);
             }
         }
         else {
-            const ids = Object.keys(orders);
+            const ids = Object.keys (orders);
             for (let i = 0; i < ids.length; i++) {
                 const id = ids[i];
-                const order = this.extend(await this.parseOrder(this.extend({ 'id': id }, orders[id]), market), params);
-                results.push(order);
+                const order = this.extend (await this.parseOrder (this.extend ({ 'id': id }, orders[id]), market), params);
+                results.push (order);
             }
         }
-        results = this.sortBy(results, 'timestamp');
+        results = this.sortBy (results, 'timestamp');
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
-        return this.filterBySymbolSinceLimit(results, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (results, symbol, since, limit);
     }
 
-    async fetchOrder(id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name cube#fetchOrder
@@ -1222,28 +1222,28 @@ export default class cube extends Exchange {
         if (order !== undefined) {
             return order;
         }
-        throw new OrderNotFound('Order "' + id + '" not found.');
+        throw new OrderNotFound ('Order "' + id + '" not found.');
     }
 
-    async parseOrder(order, market = undefined) {
+    async parseOrder (order, market = undefined) {
         let transactionType = '';
-        let fetchedOrder = this.safeDict(order, 'fetchedOrder');
+        let fetchedOrder = this.safeDict (order, 'fetchedOrder');
         let mainOrderObject = {};
 
-        if (order.hasOwnProperty("cancellationResponse")) {
+        if (order.hasOwnProperty ("cancellationResponse")) {
             transactionType = 'cancellation';
-            mainOrderObject = this.safeDict(order, 'cancellationResponse');
+            mainOrderObject = this.safeDict (order, 'cancellationResponse');
         } else {
             transactionType = 'creation';
-            mainOrderObject = this.safeDict(order, 'order');
+            mainOrderObject = this.safeDict (order, 'order');
         }
 
         const timestampInNanoseconds = this.safeString (mainOrderObject, 'transactTime');
         const timestampInMilliseconds = timestampInNanoseconds / 1000000;
-        const datetime = new Date(timestampInMilliseconds);
+        const datetime = new Date (timestampInMilliseconds);
 
         // let orderStatus = ''; // TODO - !!!
-        // if (Object.keys(fetchedOrder).'length === 0) {
+        // if (Object.keys (fetchedOrder).'length === 0) {
         //     orderStatus = 'canceled'
         // } else {
         //     orderStatus = 'open'
@@ -1252,17 +1252,17 @@ export default class cube extends Exchange {
         let result = {};
 
         // TODO Improve this part to reuse the original response from create, cancel as much as possible, instead of relying in the fetched order!!!
-        if (fetchedOrder && !(Object.keys(fetchedOrder).length === 0)) {
-            const exchangeOrderId = this.safeInteger(fetchedOrder, 'exchangeOrderId');
-            const clientOrderId = this.safeInteger(fetchedOrder, 'clientOrderId');
-            const subaccountId = this.safeInteger(this.options, 'subaccountId');
-            const marketSymbol = this.safeString(this.safeDict(market, 'info'), 'symbol');
+        if (fetchedOrder && !(Object.keys (fetchedOrder).length === 0)) {
+            const exchangeOrderId = this.safeInteger (fetchedOrder, 'exchangeOrderId');
+            const clientOrderId = this.safeInteger (fetchedOrder, 'clientOrderId');
+            const subaccountId = this.safeInteger (this.options, 'subaccountId');
+            const marketSymbol = this.safeString (this.safeDict (market, 'info'), 'symbol');
             const marketId = this.safeString (market, 'id');
             const orderSide = this.safeString (fetchedOrder, 'side')  == 0 ? 'buy' : 'sell';
             const price = this.safeString (fetchedOrder, 'price') / 100;
             const symbol = this.safeString (market, 'base') +  '/' + this.safeString (market, 'quote');
-            const amount = this.safeInteger(fetchedOrder, 'orderQuantity');
-            const remainingAmount = this.safeInteger(fetchedOrder, 'remainingQuantity');
+            const amount = this.safeInteger (fetchedOrder, 'orderQuantity');
+            const remainingAmount = this.safeInteger (fetchedOrder, 'remainingQuantity');
             const filledAmount = amount - remainingAmount;
 
             let currency = '';
@@ -1280,7 +1280,7 @@ export default class cube extends Exchange {
             } else if (this.safeString (fetchedOrder, 'orderType') == 2) {
                 orderType = 'MARKET_WITH_PROTECTION';
             } else {
-                throw Error('OrderType was not recognized.');
+                throw Error ('OrderType was not recognized.');
             }
 
             let timeInForce = '';
@@ -1291,19 +1291,19 @@ export default class cube extends Exchange {
             } else if (this.safeString (fetchedOrder, 'timeInForce') == 2) {
                 timeInForce = 'FOK';
             } else {
-                throw Error('Time-in-force (TIF) was not recognized.');
+                throw Error ('Time-in-force (TIF) was not recognized.');
             }
 
             if (transactionType === 'creation') {
             }
 
-            const tradeFeeRatios = await this.fetchTradingFee(marketId);;
+            const tradeFeeRatios = await this.fetchTradingFee (marketId);;
             const rate = orderSide === 'buy' ? this.safeString (tradeFeeRatios, 'maker') : this.safeString (tradeFeeRatios, 'taker');
             const decimalAmount = amount / 100;
             const decimalFilledAmount = filledAmount / 100;
             const decimalRemainingAmount = remainingAmount / 100;
             const cost = filledAmount * price;
-            const feeCost = decimalAmount * parseFloat(rate);
+            const feeCost = decimalAmount * parseFloat (rate);
 
             result = {
                 "id": exchangeOrderId,
@@ -1337,7 +1337,7 @@ export default class cube extends Exchange {
         return this.safeOrder (result);
     }
 
-    async fetchTradingFee(symbol, params = {}) {
+    async fetchTradingFee (symbol, params = {}) {
         /**
          * @method
          * @name cube#fetchTradingFee
@@ -1354,7 +1354,7 @@ export default class cube extends Exchange {
         const request = {
             'market_id': rawMarketId
         }
-        const response = await this.restIridiumPrivateGetUsersFeeEstimateMarketId(this.extend(request, params));
+        const response = await this.restIridiumPrivateGetUsersFeeEstimateMarketId (this.extend (request, params));
         // {
         //     "result": {
         //         "userKey": "123e4567-e89b-12d3-a456-426614174000",
@@ -1366,14 +1366,14 @@ export default class cube extends Exchange {
         return {
             'info': response,
             'symbol': symbol,
-            'maker': this.safeNumber(this.safeDict (response, 'result'), 'makerFeeRatio'),
-            'taker': this.safeNumber(this.safeDict (response, 'result'), 'takerFeeRatio'),
+            'maker': this.safeNumber (this.safeDict (response, 'result'), 'makerFeeRatio'),
+            'taker': this.safeNumber (this.safeDict (response, 'result'), 'takerFeeRatio'),
             'percentage': undefined,
             'tierBased': undefined,
         };
     }
 
-    async fetchRawOrder(id, symbol = undefined, params = {}) {
+    async fetchRawOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name cube#fetchRawOrder
@@ -1389,10 +1389,10 @@ export default class cube extends Exchange {
         const request = {};
         this.injectSubAccountId (request, params);
         const rawResponse = await this.restOsmiumPrivateGetOrders (this.extend (request, params));
-        const result = this.safeList(this.safeDict (rawResponse, 'result'), 'orders');
+        const result = this.safeList (this.safeDict (rawResponse, 'result'), 'orders');
         return result[0]
     }
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name cube#withdraw
@@ -1409,12 +1409,12 @@ export default class cube extends Exchange {
         symbol = this.safeString (meta, 'symbol');
         const marketId = this.safeString (meta, 'marketId');
         const market = this.safeDict (meta, 'market');
-        const rawMarketId = this.safeInteger(this.safeDict(market, 'info'), 'marketId');
+        const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
         const request = {
             'market_id': marketId
         }
     }
-    async fetchTicker(symbol, params = {}) {
+    async fetchTicker (symbol, params = {}) {
         /**
          * @method
          * @name cube#fetchTicker
@@ -1431,7 +1431,7 @@ export default class cube extends Exchange {
         const request = {
             'market': marketId,
         };
-        const response = await this.restMendelevPublicGetParsedTickers(this.extend(request, params));
+        const response = await this.restMendelevPublicGetParsedTickers (this.extend (request, params));
         //
         //    {
         //     result: [
@@ -1452,9 +1452,9 @@ export default class cube extends Exchange {
         //     ],
         //   }
         //
-        return this.parseTicker(response, market);
+        return this.parseTicker (response, market);
     }
-    async fetchTickers(symbols = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name cube#fetchTickers
@@ -1466,7 +1466,7 @@ export default class cube extends Exchange {
          */
         const meta = await this.initialize (symbols);
         symbols = this.safeString (meta, 'symbols');
-        const response = await this.restMendelevPublicGetParsedTickers(params);
+        const response = await this.restMendelevPublicGetParsedTickers (params);
         //
         //  {
         //     result: [
@@ -1487,18 +1487,18 @@ export default class cube extends Exchange {
         //    ],
         //  }
         //
-        const rawTickers = this.safeList(response, 'result', []);
+        const rawTickers = this.safeList (response, 'result', []);
         const result = {};{}
         for (let i = 0; i < rawTickers.length; i++) {
             const rawTicker = rawTickers[i];
             const marketId = this.marketId (this.safeString (rawTicker, 'ticker_id').toLowerCase  ());
             const market = this.market (marketId);
-            const ticker = this.parseTicker(rawTicker, market);
+            const ticker = this.parseTicker (rawTicker, market);
             result[market['symbol']] = ticker;
         }
-        return this.filterByArrayTickers(result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
-    parseTicker(ticker, market = undefined) {
+    parseTicker (ticker, market = undefined) {
         //
         //       {
         //         ticker_id: "JTOUSDC",
@@ -1515,31 +1515,31 @@ export default class cube extends Exchange {
         //         open: 2.8051,
         //       }
         //
-        const timestamp = Math.floor(Date.now() / 1000);
-        return this.safeTicker({
-            'symbol': this.safeString(market, 'symbol'),
+        const timestamp = Math.floor (Date.now () / 1000);
+        return this.safeTicker ({
+            'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'high': this.safeNumber(ticker, 'high'),
-            'low': this.safeNumber(ticker, 'low'),
-            'bid': this.safeNumber(ticker, 'bid'),
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber(ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeNumber(ticker, 'open'),
+            'open': this.safeNumber (ticker, 'open'),
             'close': undefined,
-            'last': this.safeNumber(ticker, 'last_price'),
+            'last': this.safeNumber (ticker, 'last_price'),
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber(ticker, 'base_volume'),
-            'quoteVolume': this.safeNumber(ticker, 'quote_volume'),
+            'baseVolume': this.safeNumber (ticker, 'base_volume'),
+            'quoteVolume': this.safeNumber (ticker, 'quote_volume'),
             'info': ticker,
         }, market);
     }
-    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cube#fetchOHLCV
@@ -1565,8 +1565,8 @@ export default class cube extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await this.restMendelevPublicGetParsedTickers(this.extend(request, params));
-        const data = this.safeValue(response, 'result', []);
+        const response = await this.restMendelevPublicGetParsedTickers (this.extend (request, params));
+        const data = this.safeValue (response, 'result', []);
         //
         //  {
         //     result: [
@@ -1587,9 +1587,9 @@ export default class cube extends Exchange {
         //    ],
         //  }
         //
-        return this.parseOHLCVs(data, market, timeframe, since, limit);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
-    parseOHLCV(ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //       {
         //         ticker_id: "JTOUSDC",
@@ -1607,12 +1607,12 @@ export default class cube extends Exchange {
         //       }
         //
         return [
-            this.safeTimestamp(ohlcv, 'timestamp'),
-            this.safeNumber(ohlcv, 'open'),
-            this.safeNumber(ohlcv, 'high'),
-            this.safeNumber(ohlcv, 'low'),
-            this.safeNumber(ohlcv, 'last_price'),
-            this.safeNumber(ohlcv, ('base_volume')) + this.safeNumber(ohlcv, ('quote_volume')),  // TODO CHECK (base_volume + quote_volume(?))!!!
+            this.safeTimestamp (ohlcv, 'timestamp'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'last_price'),
+            this.safeNumber (ohlcv, ('base_volume')) + this.safeNumber (ohlcv, ('quote_volume')),  // TODO CHECK (base_volume + quote_volume(?))!!!
         ];
     }
 }
