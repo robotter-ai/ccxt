@@ -2,28 +2,11 @@
 
 import Exchange from './abstract/cube.js';
 import {
-    // ArgumentsRequired,
-    // OperationFailed,
-    // OperationRejected,
     InsufficientFunds,
     OrderNotFound,
-    // InvalidOrder,
-    // DDoSProtection,
-    // InvalidNonce,
     AuthenticationError,
-    // RateLimitExceeded,
-    // PermissionDenied,
-    // NotSupported,
     BadRequest,
     BadSymbol,
-    ExchangeError,
-    // AccountSuspended,
-    // OrderImmediatelyFillable,
-    // OnMaintenance,
-    // BadResponse,
-    // RequestTimeout,
-    // OrderNotFillable,
-    // MarginModeAlreadySet
 } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import {
@@ -32,12 +15,12 @@ import {
     Int,
     Market,
     Num,
-    Order,
     OrderBook,
     OrderSide,
     OrderType,
-    Str, Ticker, Tickers,
-    Trade,
+    Str,
+    Ticker,
+    Tickers,
 } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { NotSupported } from '../../js/src/base/errors.js';
@@ -257,26 +240,6 @@ export default class cube extends Exchange {
             'options': {
                 'environment': 'production',
                 'subaccountId': undefined,
-            },
-            'pro': false,
-            'fees': {
-                'trading': {
-                    'maker': this.parseNumber ('0.0004'),
-                    'taker': this.parseNumber ('0.0008'),
-                },
-            },
-            'commonCurrencies': undefined,
-            'precisionMode': DECIMAL_PLACES,
-            'exceptions': {
-                'exact': {
-                    'Must be authorized': AuthenticationError,
-                    'Market not found': BadRequest,
-                    'Insufficient funds': InsufficientFunds,
-                    'Order not found': BadRequest,
-                },
-            },
-            'options': {
-                'environment': 'production',
                 'networks': {
                     'BTC': '1',
                     'ERC20': '2',
@@ -293,6 +256,23 @@ export default class cube extends Exchange {
                 },
                 'legalMoney': {
                     'USD': true,
+                },
+            },
+            'pro': false,
+            'fees': {
+                'trading': {
+                    'maker': this.parseNumber ('0.0004'),
+                    'taker': this.parseNumber ('0.0008'),
+                },
+            },
+            'commonCurrencies': undefined,
+            'precisionMode': DECIMAL_PLACES,
+            'exceptions': {
+                'exact': {
+                    'Must be authorized': AuthenticationError,
+                    'Market not found': BadRequest,
+                    'Insufficient funds': InsufficientFunds,
+                    'Order not found': BadRequest,
                 },
             },
         });
@@ -812,6 +792,7 @@ export default class cube extends Exchange {
          * @param {int} params.lastId order id
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
+        const meta = await this.initialize (symbol);
         symbol = this.safeString (meta, 'symbol');
         const market = this.safeDict (meta, 'market');
         const rawMarketId = this.safeString (this.safeDict (market, 'info'), 'marketId');
@@ -1055,9 +1036,10 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
-        // const marketId = symbol.toLowerCase ();
-        const market = this.market (symbol);
+        const meta = await this.initialize (symbol);
+        symbol = this.safeString (meta, 'symbol');
+        const marketId = this.safeString (meta, 'marketId');
+        const market = this.safeDict (meta, 'market');
         const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
         const exchangePrice = price * 100;
         const exchangeAmount = amount * 100;
@@ -1120,6 +1102,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        const meta = await this.initialize (symbol);
         symbol = this.safeString (meta, 'symbol');
         const marketId = this.safeString (meta, 'marketId');
         const market = this.safeDict (meta, 'market');
@@ -1155,6 +1138,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        const meta = await this.initialize (symbol);
         symbol = this.safeString (meta, 'symbol');
         const market = this.safeDict (meta, 'market');
         const rawMarkeId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
@@ -1179,6 +1163,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        const meta = await this.initialize (symbol);
         symbol = this.safeString (meta, 'symbol');
         const market = this.safeDict (meta, 'market');
         const request = {};
@@ -1283,6 +1268,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        const meta = await this.initialize (symbol);
         symbol = this.safeString (meta, 'symbol');
         const market = this.safeDict (meta, 'market');
         const request = {};
@@ -1466,6 +1452,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        const meta = await this.initialize (symbol);
         symbol = this.safeString (meta, 'symbol');
         const request = {};
         this.injectSubAccountId (request, params);
