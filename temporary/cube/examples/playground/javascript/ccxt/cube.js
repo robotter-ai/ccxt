@@ -309,14 +309,14 @@ async function test() {
     createCommunityExchange()
     // createProExchange()
     // await loadMarkets()
-    // await fetchCurrencies() // TODO check parser output!!!
-    // await fetchMarkets() // TODO check parser output!!!
-    // await fetchTradingFee() // TODO check parser output!!!
-    // await createOrder() // TODO check parser output!!!
-    // await cancelOrder() // TODO check parser output!!!
+    // await fetchCurrencies() 
+    // await fetchMarkets() 
+    // await fetchTradingFee()
+    // await createOrder() 
+    // await cancelOrder()
     // await fetchBalance() // TODO fix!!!
     // await fetchRawOrder()
-    // await fetchOrder() // TODO improve!!!
+     await fetchOrder() // TODO improve!!!
     // await fetchOpenOrders()
     // await fetchOrders() // Broken
     // await fetchOrdersAllMarkets()

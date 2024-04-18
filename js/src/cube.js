@@ -824,10 +824,14 @@ export default class cube extends Exchange {
     }
     parseTrades (rawTrades, market = undefined) {
         const nonParsedTrades = this.safeList (rawTrades, 'trades');
-        const parsedTrades = this.safeDict (rawTrades, 'parsedTrades');
+        const parsedTradesObject = this.safeDict (rawTrades, 'parsedTrades');
         const finalTrades = [];
-        for (const trade of parsedTrades) {
-            finalTrades.push (this.parseTrade (trade, market));
+        if (parsedTradesObject && typeof parsedTradesObject === 'object') {
+            const parsedTrades = Object.values(parsedTradesObject);
+            
+            for (const trade of parsedTrades) {
+                finalTrades.push(this.parseTrade(trade, market));
+            }
         }
         return finalTrades;
     }
@@ -1248,7 +1252,7 @@ export default class cube extends Exchange {
 
     async parseOrder (order, market = undefined) {
         let transactionType = '';
-        let fetchedOrder = this.safeDict (order, 'fetchedOrder');
+        const fetchedOrder = this.safeDict (order, 'fetchedOrder');
         let mainOrderObject = {};
 
         if (order.hasOwnProperty ("cancellationResponse")) {
