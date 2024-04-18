@@ -431,7 +431,7 @@ export default class cube extends Exchange {
         const tickers = await this.fetchTickers ([ symbol ], params);
         const ticker = this.safeValue (tickers, symbol, undefined);
         if (ticker === undefined) {
-            throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' not found');
+            throw new BadSymbol (this.id + ' fetchTicker () symbol ' + symbol + ' not found');
         }
         return ticker;
     }
@@ -593,10 +593,7 @@ export default class cube extends Exchange {
         // }
         const result = [];
         const rawMarkets = this.safeDict (this.safeDict (response, 'result'), 'markets');
-        const rawAssets = this.safeDict (
-            this.safeDict (response, 'result'),
-            'assets'
-        );
+        const rawAssets = this.safeDict (this.safeDict (response, 'result'), 'assets');
         for (let i = 0; i < rawMarkets.length; i++) {
             const rawMarket = this.safeDict (rawMarkets, i);
             const id = this.safeStringLower (rawMarket, 'symbol');
@@ -646,12 +643,8 @@ export default class cube extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (
-                        this.parsePrecision (this.safeString (rawMarket, 'quantityTickSize'))
-                    ),
-                    'price': this.parseNumber (
-                        this.parsePrecision (this.safeString (rawMarket, 'priceTickSize'))
-                    ),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (rawMarket, 'quantityTickSize'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (rawMarket, 'priceTickSize'))),
                 },
                 'limits': {
                     'leverage': {
