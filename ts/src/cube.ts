@@ -285,13 +285,14 @@ export default class cube extends Exchange {
     }
 
     generateSignature (): any {
-        const timestamp = Math.floor (this.now () / 1000);
-        const timestampBuffer = this.numberToLE (timestamp, 4);
+        const timestamp = Math.floor (Date.now () / 1000);
+        const timestampBuffer = Buffer.alloc (8);
+        timestampBuffer.writeUInt32LE (timestamp, 0);
         const fixedString = 'cube.xyz';
-        const payload = this.binaryConcatArray ([ fixedString, timestampBuffer ]);
-        const secretKeyBytes = this.base64ToBinary (this.stringToBase64 (this.secret));
+        const payload = Buffer.concat ([ Buffer.from (fixedString, 'utf-8'), timestampBuffer ]);
+        const secretKeyBytes = Buffer.from (this.secret, 'hex');
         const hmac = this.hmac (payload, secretKeyBytes, sha256, 'binary');
-        const signatureB64 = this.binaryToBase64 (hmac);
+        const signatureB64 = Buffer.from (hmac).toString ('base64');
         return [ signatureB64, timestamp ];
     }
 
@@ -306,31 +307,33 @@ export default class cube extends Exchange {
 
     authenticateRequest (request: any): any {
         const headers = this.safeDict (request, 'headers', {});
-        request.headers = this.extend (headers, this.generateAuthenticationHeaders ());
+        request['headers'] = this.extend (headers, this.generateAuthenticationHeaders ());
         return request;
     }
 
     sign (path: string, api: string = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiList = api as any;
+        // TODO This is a workaround to fix transpilation issues for Python!!!
+        const apiString = api.join (',');
         const environment = this.options['environment'];
         let baseUrl: string = undefined;
-        if ('iridium' in apiList) {
+        if (apiString.indexOf ('iridium')) {
             baseUrl = this.urls['api']['rest'][environment]['iridium'];
-        } else if ('mendelev' in apiList) {
+        } else if (apiString.indexOf ('mendelev') > -1) {
             baseUrl = this.urls['api']['rest'][environment]['mendelev'];
-        } else if ('osmium' in apiList) {
+        } else if (apiString.indexOf ('osmium') > -1) {
             baseUrl = this.urls['api']['rest'][environment]['osmium'];
         }
         let url = baseUrl + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
-        if (method in [ 'GET', 'HEAD' ]) {
+        // TODO This is a workaround to fix transpilation issues for Python!!!
+        if ([ 'GET', 'HEAD' ].join (',').indexOf (method) > -1) {
             if (Object.keys (params).length) {  // TODO: Replace Object
                 url += '?' + this.urlencode (params);
             }
         } else {
             body = JSON.stringify (params);
         }
-        if ('private' in apiList) {
+        if (apiString.indexOf ('private')) {
             let request = {
                 'headers': {
                     'Content-Type': 'application/json',
@@ -338,7 +341,7 @@ export default class cube extends Exchange {
                 },
             };
             request = this.authenticateRequest (request);
-            headers = request.headers;
+            headers = request['headers'];
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -363,7 +366,7 @@ export default class cube extends Exchange {
             if (typeof symbolOrSymbols === 'string') {
                 marketId = symbolOrSymbols.toUpperCase ().replace ('/', '');
                 market = this.market (marketId);
-                marketId = market.id;
+                marketId = market['id'];
                 symbolOrSymbols = this.safeSymbol (marketId, market);
                 symbol = symbolOrSymbols;
                 return {
@@ -380,7 +383,7 @@ export default class cube extends Exchange {
                 for (let i = 0; i < symbolOrSymbols.length; i++) {
                     marketId = symbolOrSymbols[i].toUpperCase ().replace ('/', '');
                     market = this.market (marketId);
-                    marketId = market.id;
+                    marketId = market['id'];
                     symbolOrSymbols[i] = this.safeSymbol (marketId, market);
                     marketIds.push (marketId);
                     markets.push (market);
