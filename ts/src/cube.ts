@@ -310,26 +310,27 @@ export default class cube extends Exchange {
         return request;
     }
 
-    sign (path: string, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path: string, api: string = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const apiList = api as any;
         const environment = this.options['environment'];
         let baseUrl: string = undefined;
-        if (api.indexOf ('iridium') >= 0) {
+        if ('iridium' in apiList) {
             baseUrl = this.urls['api']['rest'][environment]['iridium'];
-        } else if (api.indexOf ('mendelev') >= 0) {
+        } else if ('mendelev' in apiList) {
             baseUrl = this.urls['api']['rest'][environment]['mendelev'];
-        } else if (api.indexOf ('osmium') >= 0) {
+        } else if ('osmium' in apiList) {
             baseUrl = this.urls['api']['rest'][environment]['osmium'];
         }
         let url = baseUrl + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
-        if ([ 'GET', 'HEAD' ].indexOf (method) >= 0) {
+        if (method in [ 'GET', 'HEAD' ]) {
             if (Object.keys (params).length) {  // TODO: Replace Object
                 url += '?' + this.urlencode (params);
             }
         } else {
             body = JSON.stringify (params);
         }
-        if (api.indexOf ('private') >= 0) {
+        if ('private' in apiList) {
             let request = {
                 'headers': {
                     'Content-Type': 'application/json',
@@ -451,7 +452,7 @@ export default class cube extends Exchange {
         //         ...
         //     }
         // }
-        const assets = this.safeDict (this.safeDict (response, 'result'), 'assets');
+        const assets = this.safeList (this.safeDict (response, 'result'), 'assets');
         return this.parseCurrencies (assets);
     }
 
@@ -570,8 +571,8 @@ export default class cube extends Exchange {
         //         ]
         //     }
         // }
-        const rawMarkets = this.safeDict (this.safeDict (response, 'result'), 'markets');
-        const rawAssets = this.safeDict (this.safeDict (response, 'result'), 'assets');
+        const rawMarkets = this.safeList (this.safeDict (response, 'result'), 'markets');
+        const rawAssets = this.safeList (this.safeDict (response, 'result'), 'assets');
         this.currencies = this.parseCurrencies (rawAssets);
         return this.parseMarkets (rawMarkets);
     }
@@ -903,7 +904,7 @@ export default class cube extends Exchange {
     }
 
     parseBalance (response) {
-        const allOrders = this.safeDict (response, 'orders');
+        const allOrders = this.safeList (response, 'orders');
         const openOrders = [];
         const filledUnsettledOrders = [];
         const allMarkets = {};
