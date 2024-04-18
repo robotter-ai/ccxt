@@ -699,91 +699,6 @@ export default class cube extends Exchange {
     }
 
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        const tickers = await this.fetchTickers ([ symbol ], params);
-        const ticker = this.safeValue (tickers, symbol, undefined);
-        if (ticker === undefined) {
-            throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' not found');
-        }
-        return ticker;
-    }
-
-    parseTicker (ticker: Dictionary<any>): Ticker {
-        const timestamp = this.safeInteger (ticker, 'timestamp');
-        const symbol = this.safeString (ticker, 'ticker_id');
-        const baseVolume = this.safeNumber (ticker, 'base_volume');
-        const quoteVolume = this.safeNumber (ticker, 'quote_volume');
-        const last = this.safeNumber (ticker, 'last_price');
-        const high = this.safeNumber (ticker, 'high');
-        const low = this.safeNumber (ticker, 'low');
-        const bid = this.safeNumber (ticker, 'bid');
-        const ask = this.safeNumber (ticker, 'ask');
-        return this.safeTicker ({
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': high,
-            'low': low,
-            'bid': bid,
-            'bidVolume': undefined,
-            'ask': ask,
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': this.safeNumber (ticker, 'open'),
-            'close': undefined,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
-            'info': ticker,
-        });
-    }
-
-    async fetchTickers (symbols = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name cube#fetchTickers
-         * @description fetches the ticker for all markets
-         * @see https://cubexch.gitbook.io/cube-api/rest-mendelev-api#tickers-snapshot
-         * @param {string[]} [symbols] an array of symbols to fetch the tickers for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of tickers indexed by symbol
-         */
-        const response = await this.restMendelevPublicGetParsedTickers (params);
-        // {
-        //   "result": [
-        //     {
-        //       "ask": 101.17,
-        //       "base_currency": "SOL",
-        //       "base_volume": 29332.58,
-        //       "bid": 101.16,
-        //       "high": 109.69,
-        //       "last_price": 101.17,
-        //       "low": 100.23,
-        //       "open": 107.72,
-        //       "quote_currency": "USDC",
-        //       "quote_volume": 3062431.887,
-        //       "ticker_id": "SOLUSDC",
-        //       "timestamp": 1708521090000
-        //     },
-        //     ...
-        //   ]
-        // }
-        const result = {};
-        const rawTickers = this.safeList (response, 'result', []);
-        for (let i = 0; i < rawTickers.length; i++) {
-            if (symbols !== undefined && !this.inArray (this.safeString (rawTickers[i], 'ticker_id'), symbols)) {
-                const rawTicker = this.safeDict (rawTickers, i);
-                const ticker = this.parseTicker (rawTicker);
-                result[ticker.symbol] = ticker;
-            }
-        }
-        return result;
-    }
-
-    async fetchTicker (symbol, params = {}) {
         /**
          * @method
          * @name cube#fetchTicker
@@ -795,36 +710,15 @@ export default class cube extends Exchange {
          */
         const meta = await this.fetchMarketMeta (symbol);
         symbol = this.safeString (meta, 'symbol');
-        const marketId = this.safeString (meta, 'marketId');
-        const market = this.safeDict (meta, 'market');
-        const request = {
-            'market': marketId,
-        };
-        const response = await this.restMendelevPublicGetParsedTickers (this.extend (request, params));
-        //
-        //    {
-        //     result: [
-        //       {
-        //         ticker_id: "JTOUSDC",
-        //         base_currency: "JTO",
-        //         quote_currency: "USDC",
-        //         timestamp: 1713217334960,
-        //         last_price: 2.6624,
-        //         base_volume: 337.12,
-        //         quote_volume: 961.614166,
-        //         bid: 2.6627,
-        //         ask: 2.6715,
-        //         high: 3.0515,
-        //         low: 2.6272,
-        //         open: 2.8051,
-        //       },
-        //     ],
-        //   }
-        //
-        return this.parseTicker (response, market);
+        const tickers = await this.fetchTickers ([ symbol ], params);
+        const ticker = this.safeValue (tickers, symbol, undefined);
+        if (ticker === undefined) {
+            throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' not found');
+        }
+        return ticker;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker: Dictionary<any>, market: Market = undefined): Ticker {
         //
         //       {
         //         ticker_id: "JTOUSDC",
@@ -841,7 +735,7 @@ export default class cube extends Exchange {
         //         open: 2.8051,
         //       }
         //
-        const timestamp = Math.floor (this.now () / 1000);
+        const timestamp = this.safeInteger (ticker, 'timestamp');
         return this.safeTicker ({
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
@@ -849,9 +743,9 @@ export default class cube extends Exchange {
             'high': this.safeNumber (ticker, 'high'),
             'low': this.safeNumber (ticker, 'low'),
             'bid': this.safeNumber (ticker, 'bid'),
-            'bidVolume': undefined,
+            'bidVolume': this.safeNumber (ticker, 'base_volume'),
             'ask': this.safeNumber (ticker, 'ask'),
-            'askVolume': undefined,
+            'askVolume': this.safeNumber (ticker, 'quote_volume'),
             'vwap': undefined,
             'open': this.safeNumber (ticker, 'open'),
             'close': undefined,
@@ -866,7 +760,7 @@ export default class cube extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name cube#fetchTickers
@@ -905,8 +799,9 @@ export default class cube extends Exchange {
             const rawTicker = rawTickers[i];
             const marketId = this.marketId (this.safeString (rawTicker, 'ticker_id').toLowerCase ());
             const market = this.market (marketId);
+            const symbol = this.safeString (market, 'symbol');
             const ticker = this.parseTicker (rawTicker, market);
-            result[market['symbol']] = ticker;
+            result[symbol] = ticker;
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
