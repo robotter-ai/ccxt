@@ -7,113 +7,27 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cube import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Any, Balances, Currencies, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade
+import json
+from ccxt.base.types import Balances, Currencies, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction
 from typing import List
 from typing import Any
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
 class cube(Exchange, ImplicitAPI):
 
     def describe(self):
-        # TODO verify allnot !!
         return self.deep_extend(super(cube, self).describe(), {
             'id': 'cube',
             'name': 'cube',
             'countries': [],
-            'rateLimit': 100,
-            'version': 'v0',
-            'pro': False,
-            'has': {
-                'CORS': None,
-                'spot': True,
-                'margin': False,
-                'swap': True,
-                'future': False,
-                'option': False,
-                'addMargin': False,
-                'cancelAllOrders': True,
-                'cancelOrder': True,
-                'cancelOrders': False,
-                'closeAllPositions': False,
-                'closePosition': False,
-                'createDepositAddress': False,
-                'createMarketOrder': False,
-                'createOrder': True,
-                'createOrders': False,
-                'createPostOnlyOrder': False,
-                'createReduceOnlyOrder': False,
-                'createStopLimitOrder': False,
-                'createStopMarketOrder': False,
-                'createStopOrder': False,
-                'fetchAccounts': True,
-                'fetchBalance': True,
-                'fetchBorrowInterest': False,
-                'fetchBorrowRateHistory': False,
-                'fetchClosedOrders': False,
-                'fetchCrossBorrowRate': False,
-                'fetchCrossBorrowRates': False,
-                'fetchCurrencies': True,
-                'fetchDeposit': False,
-                'fetchDepositAddress': False,
-                'fetchDepositAddresses': False,
-                'fetchDepositAddressesByNetwork': False,
-                'fetchDeposits': False,
-                'fetchDepositsWithdrawals': False,
-                'fetchFundingHistory': False,
-                'fetchFundingRate': False,
-                'fetchFundingRateHistory': False,
-                'fetchFundingRates': False,
-                'fetchIndexOHLCV': False,
-                'fetchIsolatedBorrowRate': False,
-                'fetchIsolatedBorrowRates': False,
-                'fetchLedger': False,
-                'fetchLedgerEntry': False,
-                'fetchLeverageTiers': False,
-                'fetchMarketLeverageTiers': False,
-                'fetchMarkets': True,
-                'fetchMarkOHLCV': False,
-                'fetchMyTrades': False,
-                'fetchOHLCV': False,
-                'fetchOpenInterest': False,
-                'fetchOpenInterestHistory': False,
-                'fetchOpenOrders': True,
-                'fetchOrder': True,
-                'fetchOrderBook': True,
-                'fetchOrderBooks': False,
-                'fetchOrders': False,
-                'fetchOrderTrades': False,
-                'fetchPermissions': False,
-                'fetchPosition': False,
-                'fetchPositions': False,
-                'fetchPositionsForSymbol': False,
-                'fetchPositionsRisk': False,
-                'fetchPremiumIndexOHLCV': False,
-                'fetchTicker': True,
-                'fetchTickers': True,
-                'fetchTrades': True,
-                'fetchTradingLimits': False,
-                'fetchTransactionFee': False,
-                'fetchTransactionFees': False,
-                'fetchTransactions': False,
-                'fetchTransfers': False,
-                'fetchWithdrawAddresses': False,
-                'fetchWithdrawal': False,
-                'fetchWithdrawals': False,
-                'reduceMargin': False,
-                'setLeverage': False,
-                'setMargin': False,
-                'setMarginMode': False,
-                'setPositionMode': False,
-                'signIn': False,
-                'transfer': False,
-                'withdraw': False,
-            },
             'urls': {
                 'referral': '',
                 'logo': 'https://github.com/ccxt/ccxt/assets/43336371/3aa748b7-ea44-45e9-a9e7-b1d207a2578a',
@@ -145,14 +59,9 @@ class cube(Exchange, ImplicitAPI):
                 },
                 'www': 'https://www.cube.exchange/',
                 'doc': 'https://cubexch.gitbook.io/cube-api',
-                'fees': 'hhttps://www.cube.exchange/fees',
+                'fees': 'https://www.cube.exchange/fees',
             },
-            'fees': {
-                'trading': {
-                    'maker': self.parse_number('0.004'),
-                    'taker': self.parse_number('0.008'),
-                },
-            },
+            'version': 'v0',
             'api': {
                 'rest': {
                     'iridium': {
@@ -176,6 +85,7 @@ class cube(Exchange, ImplicitAPI):
                             'post': {
                                 '/users/subaccounts': 1,
                                 '/users/subaccounts/{subaccount_id}': 1,
+                                '/users/subaccounts/{subaccount_id}/withdrawals': 1,
                             },
                         },
                     },
@@ -210,8 +120,144 @@ class cube(Exchange, ImplicitAPI):
                     },
                 },
             },
-            'commonCurrencies': {},
-            'precisionMode': TICK_SIZE,
+            'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': True,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelAllOrders': True,
+                'cancelOrder': True,
+                'cancelOrders': False,
+                'closeAllPositions': False,
+                'closePosition': False,
+                'createDepositAddress': False,
+                'createMarketOrder': False,
+                'createOrder': True,
+                'createOrders': False,
+                'createPostOnlyOrder': False,
+                'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
+                'fetchAccounts': True,
+                'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRateHistory': False,
+                'fetchCanceledOrders': False,
+                'fetchClosedOrders': False,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
+                'fetchCurrencies': True,
+                'fetchDeposit': False,
+                'fetchDepositAddress': False,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
+                'fetchDeposits': False,
+                'fetchDepositsWithdrawals': False,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
+                'fetchLedger': False,
+                'fetchLedgerEntry': False,
+                'fetchLeverageTiers': False,
+                'fetchMarketLeverageTiers': False,
+                'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
+                'fetchMyTrades': False,
+                'fetchOHLCV': 'emulated',
+                'fetchOpenInterest': False,
+                'fetchOpenInterestHistory': False,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderBooks': False,
+                'fetchOrders': False,
+                'fetchOrderTrades': False,
+                'fetchPermissions': False,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
+                'fetchStatus': False,
+                'fetchTicker': True,
+                'fetchTickers': False,
+                'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingLimits': False,
+                'fetchTransactionFee': False,
+                'fetchTransactionFees': False,
+                'fetchTransactions': False,
+                'fetchTransfers': False,
+                'fetchWithdrawAddresses': False,
+                'fetchWithdrawal': False,
+                'fetchWithdrawals': False,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMargin': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
+                'signIn': False,
+                'transfer': False,
+                'withdraw': False,
+            },
+            'timeframes': {
+                '1m': '1minute',
+                '1h': '1hour',
+                '1d': '1day',
+                '1M': '1month',
+                '1y': '1year',
+            },
+            'timeout': 10000,
+            'rateLimit': 100,
+            'userAgent': False,
+            'verbose': False,
+            'markets': None,
+            'symbols': None,
+            'currencies': None,
+            'markets_by_id': None,
+            'currencies_by_id': None,
+            'apiKey': '',
+            'secret': '',
+            'password': '',
+            'uid': '',
+            'options': {
+                'environment': 'production',
+                'subaccountId': None,
+                'networks': {
+                    'BTC': '1',
+                    'ERC20': '2',
+                    'SPL': '3',
+                    'DOGE': '4',
+                    'TAO': '5',
+                    'LTC': '6',
+                    'tBTC': '7',
+                    'tETH': '8',
+                },
+                'impliedNetworks': {
+                    'ETH': {'ERC20': '2'},
+                    'SOL': {'SPL': '3'},
+                },
+                'legalMoney': {
+                    'USD': True,
+                },
+            },
+            'pro': False,
+            'fees': {
+                'trading': {
+                    'maker': self.parse_number('0.0004'),
+                    'taker': self.parse_number('0.0008'),
+                },
+            },
+            'commonCurrencies': None,
+            'precisionMode': DECIMAL_PLACES,
             'exceptions': {
                 'exact': {
                     'Must be authorized': AuthenticationError,
@@ -219,9 +265,6 @@ class cube(Exchange, ImplicitAPI):
                     'Insufficient funds': InsufficientFunds,
                     'Order not found': BadRequest,
                 },
-            },
-            'options': {
-                'environment': 'production',
             },
         })
 
@@ -235,7 +278,7 @@ class cube(Exchange, ImplicitAPI):
         signatureB64 = self.binary_to_base64(hmac)
         return [signatureB64, timestamp]
 
-    def generate_authentication_headers(self) -> Any:
+    def generate_authentication_headers(self):
         signature, timestamp = self.generate_signature()
         return {
             'x-api-key': self.apiKey,
@@ -259,12 +302,13 @@ class cube(Exchange, ImplicitAPI):
             baseUrl = self.urls['api']['rest'][environment]['osmium']
         url = baseUrl + self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
-        if method == 'GET':
-            if params:
+        if ['GET', 'HEAD'].find(method) >= 0:
+            if params:  # TODO: Replace Object
                 url += '?' + self.urlencode(params)
+        else:
+            body = json.dumps(params)
         if api.find('private') >= 0:
-            request: Any = {
-                'body': body,
+            request = {
                 'headers': {
                     'Content-Type': 'application/json',
                     'Referer': 'CCXT',
@@ -272,11 +316,79 @@ class cube(Exchange, ImplicitAPI):
             }
             request = self.authenticate_request(request)
             headers = request.headers
-            if method != 'GET':
-                body = self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    def set_sandbox_mode(self, enable):
+        if enable is True:
+            self.options['environment'] = 'staging'
+        else:
+            self.options['environment'] = 'production'
+
+    async def fetch_market_meta(self, symbolOrSymbols):
+        symbol = None
+        marketId = None
+        market = None
+        symbols = None
+        marketIds = None
+        markets = None
+        await self.load_markets()
+        if symbolOrSymbols is not None:
+            if isinstance(symbolOrSymbols, str):
+                marketId = symbolOrSymbols.lower().replace('/', '')
+                market = self.market(marketId)
+                marketId = market.id
+                symbolOrSymbols = self.safe_symbol(marketId, market)
+                symbol = symbolOrSymbols
+                return {
+                    'symbol': symbol,
+                    'marketId': marketId,
+                    'market': market,
+                    'symbols': symbols,
+                    'marketIds': marketIds,
+                    'markets': markets,
+                }
+            elif isinstance(symbolOrSymbols, list):
+                marketIds = []
+                markets = []
+                for i in range(0, len(symbolOrSymbols)):
+                    marketId = symbolOrSymbols[i].lower().replace('/', '')
+                    market = self.market(marketId)
+                    marketId = market.id
+                    symbolOrSymbols[i] = self.safe_symbol(marketId, market)
+                    marketIds.append(marketId)
+                    markets.append(market)
+                symbolOrSymbols = self.market_symbols(symbolOrSymbols)
+                symbols = symbolOrSymbols
+                return {
+                    'symbol': symbol,
+                    'marketId': marketId,
+                    'market': market,
+                    'symbols': symbols,
+                    'marketIds': marketIds,
+                    'markets': markets,
+                }
+            else:
+                raise BadSymbol(self.id + ' symbolOrSymbols must be a string or an array of strings')
+        return {
+            'symbol': symbol,
+            'marketId': marketId,
+            'market': market,
+            'symbols': symbols,
+            'marketIds': marketIds,
+            'markets': markets,
+        }
+
+    def inject_sub_account_id(self, request, params):
+        if self.safe_integer(params, 'subaccountId') is not None:
+            request['subaccountId'] = self.safe_integer(params, 'subaccountId')
+        elif self.safe_integer(params, 'subAccountId') is not None:
+            request['subaccountId'] = self.safe_integer(params, 'subAccountId')
+        elif self.safe_integer(self.options, 'subaccountId') is not None:
+            request['subaccountId'] = self.safe_integer(self.options, 'subaccountId')
+        elif self.safe_integer(self.options, 'subAccountId') is not None:
+            request['subaccountId'] = self.safe_integer(self.options, 'subAccountId')
+
+    async def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
         :see: https://cubexch.gitbook.io/cube-api/rest-iridium-api#markets
@@ -302,11 +414,77 @@ class cube(Exchange, ImplicitAPI):
         #             },
         #             ...
         #         ],
-        #         "sources": [
+        #         ...
+        #     }
+        # }
+        assets = self.safe_dict(self.safe_dict(response, 'result'), 'assets')
+        return self.parse_currencies(assets)
+
+    def parse_currencies(self, assets: dict) -> Currencies:
+        result = {}
+        for i in range(0, len(assets)):
+            rawCurrency = assets[i]
+            symbol = self.safe_string_upper(rawCurrency, 'symbol')
+            # code = self.safe_currency_code(id)
+            code = self.safe_integer(rawCurrency, 'assetId')
+            name = self.safe_string(self.safe_dict(rawCurrency, 'metadata'), 'currencyName')
+            networkId = self.safe_string(rawCurrency, 'sourceId')
+            currency = self.safe_currency_structure({
+                'info': rawCurrency,
+                'id': symbol,
+                'numericId': self.safe_integer(rawCurrency, 'assetId'),
+                'code': symbol,
+                'precision': self.safe_integer(rawCurrency, 'decimals'),
+                'type': self.safe_string_lower(rawCurrency, 'assetType'),
+                'name': name,
+                'active': self.safe_integer(rawCurrency, 'status') == 1,
+                # TODO: Find out what status numbers there are
+                'deposit': None,
+                # These flags determine if the currency can be deposited or withdrawn
+                'withdraw': None,
+                # TODO: What kind of fee is self?
+                'fee': None,
+                'fees': {},
+                'networks': {
+                    [networkId]: self.network_id_to_code(networkId),
+                },
+                'limits': {
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            })
+            result[code] = currency
+        return result
+
+    async def fetch_markets(self, params={}) -> List[Market]:
+        """
+        retrieves data on all markets for cube
+        :see: https://cubexch.gitbook.io/cube-api/rest-iridium-api#markets
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of objects representing market data
+        """
+        response = await self.restIridiumPublicGetMarkets(params)
+        # {
+        #     "result": {
+        #         "assets": [
         #             {
-        #                 "sourceId": 0,
-        #                 "name": "fiat",
-        #                 "metadata": {}
+        #                 "assetId": 1,
+        #                 "symbol": "BTC",
+        #                 "decimals": 8,
+        #                 "displayDecimals": 5,
+        #                 "settles": True,
+        #                 "assetType": "Crypto",
+        #                 "sourceId": 1,
+        #                 "metadata": {
+        #                     "dustAmount": 3000
+        #                 },
+        #                 "status": 1
         #             },
         #             ...
         #         ],
@@ -353,43 +531,126 @@ class cube(Exchange, ImplicitAPI):
         #         ]
         #     }
         # }
-        result: Currencies = {}
-        rawCurrencies = self.safe_dict(
-            self.safe_dict(response, 'result'),
-            'assets'
-        )
-        for i in range(0, len(rawCurrencies)):
-            rawCurrency = rawCurrencies[i]
-            id = self.safe_string_upper(rawCurrency, 'symbol')
-            code = self.safe_currency_code(id)
-            # TODO verifynot !!
-            currency = self.safe_currency_structure({
-                'id': id,
-                'numericId': self.safe_integer(rawCurrency, 'assetId'),
-                'code': self.safe_string_upper(rawCurrency, 'symbol'),
-                'precision': self.safe_integer(rawCurrency, 'decimals'),
-                'type': self.safe_string_lower(rawCurrency, 'assetType'),
-                'name': self.safe_string(rawCurrency, 'symbol'),
-                'active': self.safe_integer(rawCurrency, 'status') == 1,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'fees': {},
-                'networks': {},
-                'limits': {
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'info': rawCurrency,
-            })
-            result[code] = currency
+        rawMarkets = self.safe_dict(self.safe_dict(response, 'result'), 'markets')
+        rawAssets = self.safe_dict(self.safe_dict(response, 'result'), 'assets')
+        self.currencies = self.parse_currencies(rawAssets)
+        return self.parse_markets(rawMarkets)
+
+    def parse_markets(self, markets: dict) -> List[Market]:
+        result = []
+        for i in range(0, len(markets)):
+            market = self.parse_market(markets[i])
+            result.append(market)
         return result
+
+    def parse_market(self, market: dict) -> Market:
+        id = self.safe_string_lower(market, 'symbol')
+        rawBaseAsset = self.currencies[self.safe_integer(market, 'baseAssetId')]
+        rawQuoteAsset = self.currencies[self.safe_integer(market, 'quoteAssetId')]
+        baseId = self.safe_string_upper(rawBaseAsset, 'symbol')
+        quoteId = self.safe_string_upper(rawQuoteAsset, 'symbol')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        return self.safe_market_structure({
+            'id': id,
+            'lowercaseId': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': self.safe_integer(market, 'status') == 1,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'taker': self.safe_number(self.safe_dict(self.fees, 'trading'), 'taker'),
+            'maker': self.safe_number(self.safe_dict(self.fees, 'trading'), 'maker'),
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityTickSize'))),
+                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'priceTickSize'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': market,
+        })
+
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://cubexch.gitbook.io/cube-api/rest-mendelev-api#book-market_id-snapshot
+        :see: https://cubexch.gitbook.io/cube-api/rest-mendelev-api#parsed-book-market_symbol-snapshot
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        marketInfo = self.safe_dict(market, 'info')
+        symbolFromInfo = self.safe_string(marketInfo, 'symbol')
+        request = {'market_symbol': symbolFromInfo}
+        response = await self.restMendelevPublicGetParsedBookMarketSymbolSnapshot(self.extend(request, params))
+        #
+        # {
+        #   "result":{
+        #       "ticker_id":"BTCUSDC",
+        #       "timestamp":1711544655331,
+        #       "bids":[
+        #           [
+        #               70635.6,
+        #               0.01
+        #           ]
+        #       ],
+        #       "asks":[
+        #           [
+        #               70661.8,
+        #               0.1421
+        #           ]
+        #       ]
+        #   }
+        # }
+        #
+        rawBids = self.safe_list(self.safe_dict(response, 'result'), 'bids', [])
+        rawAsks = self.safe_list(self.safe_dict(response, 'result'), 'asks', [])
+        rawOrderbook = {
+            'bids': rawBids,
+            'asks': rawAsks,
+        }
+        timestamp = self.safe_timestamp(self.safe_dict(response, 'result'), 'timestamp')
+        return self.parse_order_book(rawOrderbook, symbol, timestamp, 'bids', 'asks')
+
+    def parse_bids_asks(self, bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) -> List[Any]:
+        return bidasks
 
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         tickers = await self.fetch_tickers([symbol], params)
@@ -397,6 +658,39 @@ class cube(Exchange, ImplicitAPI):
         if ticker is None:
             raise BadSymbol(self.id + ' fetchTicker() symbol ' + symbol + ' not found')
         return ticker
+
+    def parse_ticker(self, ticker: dict) -> Ticker:
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        symbol = self.safe_string(ticker, 'ticker_id')
+        baseVolume = self.safe_number(ticker, 'base_volume')
+        quoteVolume = self.safe_number(ticker, 'quote_volume')
+        last = self.safe_number(ticker, 'last_price')
+        high = self.safe_number(ticker, 'high')
+        low = self.safe_number(ticker, 'low')
+        bid = self.safe_number(ticker, 'bid')
+        ask = self.safe_number(ticker, 'ask')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': high,
+            'low': low,
+            'bid': bid,
+            'bidVolume': None,
+            'ask': ask,
+            'askVolume': None,
+            'vwap': None,
+            'open': self.safe_number(ticker, 'open'),
+            'close': None,
+            'last': last,
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        })
 
     async def fetch_tickers(self, symbols=None, params={}) -> Tickers:
         """
@@ -435,246 +729,659 @@ class cube(Exchange, ImplicitAPI):
                 result[ticker.symbol] = ticker
         return result
 
-    def parse_ticker(self, ticker: dict) -> Ticker:
-        timestamp = self.safe_integer(ticker, 'timestamp')
-        symbol = self.safe_string(ticker, 'ticker_id')
-        baseVolume = self.safe_number(ticker, 'base_volume')
-        quoteVolume = self.safe_number(ticker, 'quote_volume')
-        last = self.safe_number(ticker, 'last_price')
-        high = self.safe_number(ticker, 'high')
-        low = self.safe_number(ticker, 'low')
-        bid = self.safe_number(ticker, 'bid')
-        ask = self.safe_number(ticker, 'ask')
+    async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://cubexch.gitbook.io/cube-api/rest-mendelev-api#parsed-tickers
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        meta = await self.fetch_market_meta(symbol)
+        symbol = self.safe_string(meta, 'symbol')
+        marketId = self.safe_string(meta, 'marketId')
+        market = self.safe_dict(meta, 'market')
+        request = {
+            'market': marketId,
+        }
+        response = await self.restMendelevPublicGetParsedTickers(self.extend(request, params))
+        #
+        #    {
+        #     result: [
+        #       {
+        #         ticker_id: "JTOUSDC",
+        #         base_currency: "JTO",
+        #         quote_currency: "USDC",
+        #         timestamp: 1713217334960,
+        #         last_price: 2.6624,
+        #         base_volume: 337.12,
+        #         quote_volume: 961.614166,
+        #         bid: 2.6627,
+        #         ask: 2.6715,
+        #         high: 3.0515,
+        #         low: 2.6272,
+        #         open: 2.8051,
+        #       },
+        #     ],
+        #   }
+        #
+        return self.parse_ticker(response, market)
+
+    def parse_ticker(self, ticker, market=None):
+        #
+        #       {
+        #         ticker_id: "JTOUSDC",
+        #         base_currency: "JTO",
+        #         quote_currency: "USDC",
+        #         timestamp: 1713217334960,
+        #         last_price: 2.6624,
+        #         base_volume: 337.12,
+        #         quote_volume: 961.614166,
+        #         bid: 2.6627,
+        #         ask: 2.6715,
+        #         high: 3.0515,
+        #         low: 2.6272,
+        #         open: 2.8051,
+        #       }
+        #
+        timestamp = int(math.floor(self.now()) / 1000)
         return self.safe_ticker({
-            'symbol': symbol,
+            'symbol': self.safe_string(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': high,
-            'low': low,
-            'bid': bid,
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': ask,
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': self.safe_number(ticker, 'open'),
             'close': None,
-            'last': last,
+            'last': self.safe_number(ticker, 'last_price'),
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': self.safe_number(ticker, 'base_volume'),
+            'quoteVolume': self.safe_number(ticker, 'quote_volume'),
             'info': ticker,
+        }, market)
+
+    async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :see: https://cubexch.gitbook.io/cube-api/rest-mendelev-api#parsed-tickers
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        meta = await self.fetch_market_meta(symbols)
+        symbols = self.safe_string(meta, 'symbols')
+        response = await self.restMendelevPublicGetParsedTickers(params)
+        #
+        #  {
+        #     result: [
+        #       {
+        #     ticker_id: "JTOUSDC",
+        #     base_currency: "JTO",
+        #     quote_currency: "USDC",
+        #     timestamp: 1713216571697,
+        #     last_price: 2.6731,
+        #     base_volume: 333.66,
+        #     quote_volume: 953.635304,
+        #     bid: 2.6653,
+        #     ask: 2.6761,
+        #     high: 3.0515,
+        #     low: 2.6272,
+        #     open: 2.8231,
+        #      },
+        #    ],
+        #  }
+        #
+        rawTickers = self.safe_list(response, 'result', [])
+        result = {}
+        for i in range(0, len(rawTickers)):
+            rawTicker = rawTickers[i]
+            marketId = self.market_id(self.safe_string(rawTicker, 'ticker_id').lower())
+            market = self.market(marketId)
+            ticker = self.parse_ticker(rawTicker, market)
+            result[market['symbol']] = ticker
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://cubexch.gitbook.io/cube-api/rest-mendelev-api#parsed-tickers
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        meta = await self.fetch_market_meta(symbol)
+        symbol = self.safe_string(meta, 'symbol')
+        market = self.safe_dict(meta, 'market')
+        request = {
+            'duration': self.timeframes[timeframe],
+        }
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['startTime'] = since
+        response = await self.restMendelevPublicGetParsedTickers(self.extend(request, params))
+        data = self.safe_value(response, 'result', [])
+        #
+        #  {
+        #     result: [
+        #       {
+        #     ticker_id: "JTOUSDC",
+        #     base_currency: "JTO",
+        #     quote_currency: "USDC",
+        #     timestamp: 1713216571697,
+        #     last_price: 2.6731,
+        #     base_volume: 333.66,
+        #     quote_volume: 953.635304,
+        #     bid: 2.6653,
+        #     ask: 2.6761,
+        #     high: 3.0515,
+        #     low: 2.6272,
+        #     open: 2.8231,
+        #      },
+        #    ],
+        #  }
+        #
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+        #
+        #       {
+        #         ticker_id: "JTOUSDC",
+        #         base_currency: "JTO",
+        #         quote_currency: "USDC",
+        #         timestamp: 1713217334960,
+        #         last_price: 2.6624,
+        #         base_volume: 337.12,
+        #         quote_volume: 961.614166,
+        #         bid: 2.6627,
+        #         ask: 2.6715,
+        #         high: 3.0515,
+        #         low: 2.6272,
+        #         open: 2.8051,
+        #       }
+        #
+        return [
+            self.safe_timestamp(ohlcv, 'timestamp'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'last_price'),
+            # TODO CHECK(base_volume + quote_volume(?))not !!
+            self.safe_number(ohlcv,('base_volume')) + self.safe_number(ohlcv,('quote_volume')),
+        ]
+
+    async def fetch_balance(self, params={}) -> Balances:
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://cubexch.gitbook.io/cube-api/rest-iridium-api#users-positions
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        """
+        response = await self.restIridiumPrivateGetUsersPositions(params)
+        subaccountId = self.safe_integer(self.options, 'subaccountId')
+        result = self.safe_list(self.safe_dict(self.safe_dict(response, 'result'), subaccountId), 'inner')
+        allOrders = self.fetch_orders_all_markets()
+        result = self.extend(result, {'orders': allOrders})
+        return self.parse_balance(result)
+
+    def parse_balance(self, response):
+        allOrders = self.safe_dict(response, 'orders')
+        openOrders = []
+        filledUnsettledOrders = []
+        allMarkets = {}
+        for i in range(0, self.markets_by_id):
+            marketSymbol = self.markets_by_id[i]
+            marketArrayItem = self.markets_by_id[marketSymbol]
+            market = marketArrayItem[0]
+            marketInfo = self.safe_dict(market, 'info')
+            marketNumericId = self.safe_string(marketInfo, 'marketId')
+            allMarkets[marketNumericId] = market
+        # free = {}
+        used = {}
+        total = {}
+        for i in range(0, len(response)):
+            asset = response[i]
+            assetAmount = int(self.safe_string(asset, 'amount'))
+            if assetAmount > 0:
+                assetNumericId = self.safe_string(asset, 'assetId')
+                currency = self.currency(assetNumericId)
+                currencyPrecision = self.safe_integer(currency, 'precision')
+                assetSymbol = self.safe_string(currency, 'id')
+                total[assetSymbol] = assetAmount / 10 ** currencyPrecision
+        for i in range(0, len(allOrders)):
+            order = allOrders[i]
+            orderStatus = self.safe_string(order, 'status')
+            if orderStatus == 'open':
+                openOrders.append(order)
+            if orderStatus == 'filled':
+                isSettled = self.safe_string(order, 'settled')
+                if not isSettled:
+                    filledUnsettledOrders.append(order)
+        for i in range(0, len(openOrders)):
+            order = openOrders[i]
+            orderMarketId = self.safe_string(order, 'marketId')
+            orderMarket = self.safe_dict(allMarkets, orderMarketId)
+            orderMarketAmountPrecision = self.safe_number(self.safe_dict(orderMarket, 'precision'), 'amount')
+            orderSide = self.safe_string(order, 'side')
+            orderBaseToken = self.safe_string(orderMarket, 'base')
+            orderQuoteToken = self.safe_string(orderMarket, 'quote')
+            orderAmount = self.safe_integer(order, 'qty')
+            targetToken = ''
+            if orderSide == 'Ask':
+                targetToken = orderBaseToken
+            elif orderSide == 'Bid':
+                targetToken = orderQuoteToken
+            # targetCurrency = self.currencies_by_id[targetToken]
+            # targetCurrencyPrecision = self.safe_integer(targetCurrency, 'precision')
+            # TODO - Try to find the conversion pattern for order amount values.not !!
+            if used[targetToken] is None:
+                used[targetToken] = orderAmount * orderMarketAmountPrecision
+            else:
+                used[targetToken] += orderAmount * orderMarketAmountPrecision
+        timestamp = self.now()
+        return self.safe_balance({
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'free': {},
+            'used': used,
+            'total': total,
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
-        retrieves data on all markets for cube
-        :see: https://cubexch.gitbook.io/cube-api/rest-iridium-api#markets
+        create a trade order
+        :see: https://cubexch.gitbook.io/cube-api/rest-osmium-api#order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of you want to trade in units of the base currency
+        :param float [price]: the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: an array of objects representing market data
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        response = await self.restIridiumPublicGetMarkets(params)
-        # {
-        #     "result": {
-        #         "assets": [
-        #             {
-        #                 "assetId": 1,
-        #                 "symbol": "BTC",
-        #                 "decimals": 8,
-        #                 "displayDecimals": 5,
-        #                 "settles": True,
-        #                 "assetType": "Crypto",
-        #                 "sourceId": 1,
-        #                 "metadata": {
-        #                     "dustAmount": 3000
-        #                 },
-        #                 "status": 1
-        #             },
-        #             ...
-        #         ],
-        #         "sources": [
-        #             {
-        #                 "sourceId": 0,
-        #                 "name": "fiat",
-        #                 "metadata": {}
-        #             },
-        #             ...
-        #         ],
-        #         "markets": [
-        #             {
-        #                 "marketId": 100004,
-        #                 "symbol": "BTCUSDC",
-        #                 "baseAssetId": 1,
-        #                 "baseLotSize": "1000",
-        #                 "quoteAssetId": 7,
-        #                 "quoteLotSize": "1",
-        #                 "priceDisplayDecimals": 2,
-        #                 "protectionPriceLevels": 3000,
-        #                 "priceBandBidPct": 25,
-        #                 "priceBandAskPct": 400,
-        #                 "priceTickSize": "0.1",
-        #                 "quantityTickSize": "0.00001",
-        #                 "status": 1,
-        #                 "feeTableId": 2
-        #             },
-        #             ...
-        #         ],
-        #         "feeTables": [
-        #             {
-        #                 "feeTableId": 1,
-        #                 "feeTiers": [
-        #                     {
-        #                         "priority": 0,
-        #                         "makerFeeRatio": 0.0,
-        #                         "takerFeeRatio": 0.0
-        #                     }
-        #                 ]
-        #             },
-        #             {
-        #                 "feeTableId": 2,
-        #                 "feeTiers": [
-        #                     {
-        #                         "priority": 0,
-        #                         "makerFeeRatio": 0.0004,
-        #                         "takerFeeRatio": 0.0008
-        #                     }
-        #                 ]
-        #             }
-        #         ]
-        #     }
-        # }
-        result = []
-        rawMarkets = self.safe_dict(self.safe_dict(response, 'result'), 'markets')
-        rawAssets = self.safe_dict(
-            self.safe_dict(response, 'result'),
-            'assets'
-        )
-        for i in range(0, len(rawMarkets)):
-            rawMarket = self.safe_dict(rawMarkets, i)
-            id = self.safe_string_lower(rawMarket, 'symbol')
-            rawBaseAsset = None
-            for j in range(0, len(rawAssets)):
-                if self.safe_string(self.safe_dict(rawAssets, j), 'assetId') == self.safe_string(rawMarket, 'baseAssetId'):
-                    rawBaseAsset = self.safe_dict(rawAssets, j)
-                    break
-            rawQuoteAsset = None
-            for j in range(0, len(rawAssets)):
-                if self.safe_string(self.safe_dict(rawAssets, j), 'assetId') == self.safe_string(rawMarket, 'quoteAssetId'):
-                    rawQuoteAsset = self.safe_dict(rawAssets, j)
-                    break
-            baseId = self.safe_string_upper(rawBaseAsset, 'symbol')
-            quoteId = self.safe_string_upper(rawQuoteAsset, 'symbol')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            market = self.safe_market_structure({
-                'id': id,
-                'lowercaseId': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': self.safe_integer(rawMarket, 'status') == 1,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'taker': self.safe_number(self.safe_dict(self.fees, 'trading'), 'taker'),
-                'maker': self.safe_number(self.safe_dict(self.fees, 'trading'), 'maker'),
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.parse_number(
-                        self.parse_precision(self.safe_string(rawMarket, 'quantityTickSize'))
-                    ),
-                    'price': self.parse_number(
-                        self.parse_precision(self.safe_string(rawMarket, 'priceTickSize'))
-                    ),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'created': None,
-                'info': rawMarket,
-            })
-            result.append(market)
-        return result
-
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
-        """
-        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://cubexch.gitbook.io/cube-api/rest-mendelev-api#book-market_id-snapshot
-        :see: https://cubexch.gitbook.io/cube-api/rest-mendelev-api#parsed-book-market_symbol-snapshot
-        :param str symbol: unified symbol of the market to fetch the order book for
-        :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
-        """
-        await self.load_markets()
-        marketId = symbol.lower()
-        market = self.market(marketId)
-        marketInfo = self.safe_dict(market, 'info')
-        symbolFromInfo = self.safe_string(marketInfo, 'symbol')
-        request = {'market_symbol': symbolFromInfo}
-        response = await self.restMendelevPublicGetParsedBookMarketSymbolSnapshot(self.extend(request, params))
-        #
-        # {
-        #   "result":{
-        #       "ticker_id":"BTCUSDC",
-        #       "timestamp":1711544655331,
-        #       "bids":[
-        #           [
-        #               70635.6,
-        #               0.01
-        #           ]
-        #       ],
-        #       "asks":[
-        #           [
-        #               70661.8,
-        #               0.1421
-        #           ]
-        #       ]
-        #   }
-        # }
-        #
-        rawBids = self.safe_list(self.safe_dict(response, 'result'), 'bids', [])
-        rawAsks = self.safe_list(self.safe_dict(response, 'result'), 'asks', [])
-        rawOrderbook = {
-            'bids': rawBids,
-            'asks': rawAsks,
+        meta = await self.fetch_market_meta(symbol)
+        symbol = self.safe_string(meta, 'symbol')
+        marketId = self.safe_string(meta, 'marketId')
+        market = self.safe_dict(meta, 'market')
+        rawMarketId = self.safe_integer(self.safe_dict(market, 'info'), 'marketId')
+        exchangePrice = price * 100
+        exchangeAmount = amount * 100
+        exchangeOrderType = None
+        if type == 'limit':
+            exchangeOrderType = 0
+        elif type == 'market':
+            exchangeOrderType = 1
+        elif type == 'MARKET_WITH_PROTECTION':
+            exchangeOrderType = 2
+        else:
+            raise InvalidOrder('OrderType was not recognized: ' + type)
+        exchangeOrderSide = None
+        if side == 'buy':
+            exchangeOrderSide = 0
+        elif side == 'sell':
+            exchangeOrderSide = 1
+        else:
+            raise InvalidOrder('OrderSide was not recognized: ' + side)
+        timestamp = self.now()
+        clientOrderIdFromParams = self.safe_integer(params, 'clientOrderId')
+        clientOrderId = timestamp if (clientOrderIdFromParams == None or clientOrderIdFromParams is None) else clientOrderIdFromParams
+        request = {
+            'clientOrderId': clientOrderId,
+            'requestId': self.safe_integer(params, 'requestId', 1),
+            'marketId': rawMarketId,
+            'price': exchangePrice,
+            'quantity': exchangeAmount,
+            'side': exchangeOrderSide,
+            'timeInForce': self.safe_integer(params, 'timeInForce', 1),
+            'orderType': exchangeOrderType,
+            'selfTradePrevention': self.safe_integer(params, 'selfTradePrevention', 0),
+            'postOnly': self.safe_integer(params, 'postOnly', 0),
+            'cancelOnDisconnect': self.safe_bool(params, 'cancelOnDisconnect', False),
         }
-        timestamp = self.safe_timestamp(self.safe_dict(response, 'result'), 'timestamp')
-        return self.parse_order_book(rawOrderbook, symbol, timestamp, 'bids', 'asks')
+        self.inject_sub_account_id(request, params)
+        response = await self.restOsmiumPrivatePostOrder(self.extend(request, params))
+        order = self.safe_dict(self.safe_dict(response, 'result'), 'Ack')
+        exchangeOrderId = self.safe_string(order, 'exchangeOrderId')
+        fetchedOrder = await self.fetch_raw_order(exchangeOrderId, marketId)
+        return self.parse_order(
+            {
+                'order': order,
+                'fetchedOrder': fetchedOrder,
+            },
+            market
+        )
 
-    def parse_bids_asks(self, bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) -> List[Any]:
-        return bidasks
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+        """
+        cancels an open order
+        :see: https://cubexch.gitbook.io/cube-api/rest-osmium-api#order-1
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        meta = await self.fetch_market_meta(symbol)
+        symbol = self.safe_string(meta, 'symbol')
+        marketId = self.safe_string(meta, 'marketId')
+        market = self.safe_dict(meta, 'market')
+        rawMarketId = self.safe_integer(self.safe_dict(market, 'info'), 'marketId')
+        fetchedOrder = await self.fetch_raw_order(id, marketId)
+        if fetchedOrder is None:
+            fetchedOrder = {}
+        clientOrderId = int(self.safe_string(fetchedOrder, 'clientOrderId'))
+        request = {
+            'clientOrderId': clientOrderId,
+            'requestId': self.safe_integer(params, 'requestId'),
+            'marketId': rawMarketId,
+        }
+        self.inject_sub_account_id(request, params)
+        response = await self.restOsmiumPrivateDeleteOrder(self.extend(request, params))
+        return self.parse_order(
+            {
+                'fetchedOrder': fetchedOrder,
+                'cancellationResponse': response,
+            },
+            market
+        )
+
+    async def cancel_all_orders(self, symbol: Str = None, params={}):
+        """
+        cancel all open orders
+        :see: https://cubexch.gitbook.io/cube-api/rest-osmium-api#orders-1
+        :param str symbol: cube cancelAllOrders cannot setting symbol, it will cancel all open orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        meta = await self.fetch_market_meta(symbol)
+        symbol = self.safe_string(meta, 'symbol')
+        market = self.safe_dict(meta, 'market')
+        rawMarkeId = self.safe_integer(self.safe_dict(market, 'info'), 'marketId')
+        request = {
+            'marketId': rawMarkeId,
+            'requestId': self.safe_integer(params, 'requestId', 1),
+            'side': self.safe_integer(params, 'side', None),
+        }
+        self.inject_sub_account_id(request, params)
+        # TODO wrong response, it is needed to return the cancelled ordersnot !!
+        return await self.restOsmiumPrivateDeleteOrders(self.extend(request, params))
+
+    async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :see: https://cubexch.gitbook.io/cube-api/rest-osmium-api#orders
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        meta = await self.fetch_market_meta(symbol)
+        symbol = self.safe_string(meta, 'symbol')
+        market = self.safe_dict(meta, 'market')
+        request = {}
+        self.inject_sub_account_id(request, params)
+        rawResponse = await self.restOsmiumPrivateGetOrders(self.extend(request, params))
+        #
+        #  {
+        #      "result": {
+        #          "orders": [
+        #              {
+        #                  "clientOrderId": 1713422528124,
+        #                  "exchangeOrderId": 1295024967,
+        #                  "marketId": 100006,
+        #                  "price": 11000,
+        #                  "orderQuantity": 1,
+        #                  "side": 0,
+        #                  "timeInForce": 1,
+        #                  "orderType": 0,
+        #                  "remainingQuantity": 1,
+        #                  "restTime": 1713422528222471490,
+        #                  "subaccountId": 38393,
+        #                  "cumulativeQuantity": 0,
+        #                  "cancelOnDisconnect": False
+        #              },
+        #              ...
+        #          ]
+        #      }
+        #  }
+        #
+        result = self.safe_list(self.safe_dict(rawResponse, 'result'), 'orders')
+        order = await self.parse_order({'fetchedOrder': self.safe_value(result, 0)}, market)
+        if order is not None:
+            return order
+        raise OrderNotFound('Order "' + id + '" not found.')
+
+    async def fetch_raw_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :see: https://cubexch.gitbook.io/cube-api/rest-osmium-api#orders
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        meta = await self.fetch_market_meta(symbol)
+        symbol = self.safe_string(meta, 'symbol')
+        request = {}
+        self.inject_sub_account_id(request, params)
+        rawResponse = await self.restOsmiumPrivateGetOrders(self.extend(request, params))
+        #
+        # {
+        #    "result": {
+        #        "orders": [
+        #            {
+        #                "clientOrderId": 1713422528124,
+        #                "exchangeOrderId": 1295024967,
+        #                "marketId": 100006,
+        #                "price": 11000,
+        #                "orderQuantity": 1,
+        #                "side": 0,
+        #                "timeInForce": 1,
+        #                "orderType": 0,
+        #                "remainingQuantity": 1,
+        #                "restTime": 1713422528222471490,
+        #                "subaccountId": 38393,
+        #                "cumulativeQuantity": 0,
+        #                "cancelOnDisconnect": False
+        #            },
+        #            ...
+        #        ]
+        #    }
+        # }
+        #
+        result = self.safe_list(self.safe_dict(rawResponse, 'result'), 'orders')
+        return self.safe_value(result, 0)
+
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        meta = await self.fetch_market_meta(symbol)
+        symbol = self.safe_string(meta, 'symbol')
+        market = self.safe_market(self.safe_string(meta, 'marketId'), self.safe_dict(meta, 'market'))
+        request = {}
+        self.inject_sub_account_id(request, params)
+        response = await self.restIridiumPrivateGetUsersSubaccountSubaccountIdOrders(self.extend(request, params))
+        rawOrders = self.safe_list(self.safe_dict(response, 'result'), 'orders')
+        return self.parse_orders(rawOrders, market, since, limit)
+
+    def parse_orders(self, orders: object, market: Market = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        #
+        # the value of orders is either a dict or a list
+        #
+        # dict
+        #
+        #     {
+        #         'id1': {...},
+        #         'id2': {...},
+        #         'id3': {...},
+        #         ...
+        #     }
+        #
+        # list
+        #
+        #     [
+        #         {'id': 'id1', ...},
+        #         {'id': 'id2', ...},
+        #         {'id': 'id3', ...},
+        #         ...
+        #     ]
+        #
+        for i in range(0, orders):
+            order = self.safe_dict(orders, i)
+            order['id'] = self.safe_string(order, 'exchangeOrderId')
+        results = []
+        if isinstance(orders, list):
+            for i in range(0, len(orders)):
+                order = self.extend(self.parse_order(orders[i], market), params)
+                results.append(order)
+        else:
+            ids = list(orders.keys())
+            for i in range(0, len(ids)):
+                id = ids[i]
+                order = self.extend(self.parse_order(self.extend({'id': id}, orders[id]), market), params)
+                results.append(order)
+        results = self.sort_by(results, 'timestamp')
+        symbol = market['symbol'] if (market is not None) else None
+        return self.filter_by_symbol_since_limit(results, symbol, since, limit)
+
+    def parse_order(self, order, market: Market = None):
+        # transactionType = ''
+        fetchedOrder = self.safe_dict(order, 'fetchedOrder')
+        mainOrderObject = {}
+        if order['cancellationResponse'] is not None:
+            # transactionType = 'cancellation'
+            mainOrderObject = self.safe_dict(order, 'cancellationResponse')
+        else:
+            # transactionType = 'creation'
+            mainOrderObject = self.safe_dict(order, 'order')
+        timestampInNanoseconds = self.safe_number(mainOrderObject, 'transactTime')
+        timestampInMilliseconds = timestampInNanoseconds / 1000000
+        # orderStatus = ''  # TODO fix not !!
+        # if list(fetchedOrder).'length == 0.keys():
+        #     orderStatus = 'canceled'
+        # else:
+        #     orderStatus = 'open'
+        # }
+        result = {}
+        # TODO Improve self part to reuse the original response from create, cancel, instead of relying in the fetched ordernot !!
+        if fetchedOrder and not (len(fetchedOrder) == 0):
+            exchangeOrderId = self.safe_integer(fetchedOrder, 'exchangeOrderId')
+            clientOrderId = self.safe_integer(fetchedOrder, 'clientOrderId')
+            orderSide = self.safe_integer(fetchedOrder, 'side') == 'buy' if 0 else 'sell'
+            price = self.safe_integer(fetchedOrder, 'price') / 100
+            symbol = self.safe_string(market, 'base') + '/' + self.safe_string(market, 'quote')
+            amount = self.safe_integer(fetchedOrder, 'orderQuantity')
+            remainingAmount = self.safe_integer(fetchedOrder, 'remainingQuantity')
+            filledAmount = amount - remainingAmount
+            currency = ''
+            if orderSide == 'buy':
+                currency = self.safe_string(market, 'base')
+            else:
+                currency = self.safe_string(market, 'quote')
+            orderType = ''
+            orderTypeRaw = self.safe_integer(fetchedOrder, 'orderType')
+            if orderTypeRaw == 0:
+                orderType = 'limit'
+            elif orderTypeRaw == 1:
+                orderType = 'market'
+            elif orderTypeRaw == 2:
+                orderType = 'MARKET_WITH_PROTECTION'
+            else:
+                raise InvalidOrder('OrderType was not recognized while parsing: ' + orderTypeRaw)
+            timeInForce = ''
+            timeInForceRaw = self.safe_integer(fetchedOrder, 'timeInForce')
+            if timeInForceRaw == 0:
+                timeInForce = 'IOC'
+            elif timeInForceRaw == 1:
+                timeInForce = 'GTC'
+            elif timeInForceRaw == 2:
+                timeInForce = 'FOK'
+            else:
+                raise InvalidOrder('TimeInForce was not recognized while parsing: ' + timeInForceRaw)
+            tradeFeeRatios = self.safe_string(self.fees, 'trading')
+            rate = orderSide == self.safe_string(tradeFeeRatios, 'maker') if 'buy' else self.safe_string(tradeFeeRatios, 'taker')
+            decimalAmount = amount / 100
+            decimalFilledAmount = filledAmount / 100
+            decimalRemainingAmount = remainingAmount / 100
+            cost = filledAmount * price
+            feeCost = decimalAmount * float(rate)
+            result = {
+                'id': exchangeOrderId,
+                'clientOrderId': clientOrderId,
+                'datetime': self.iso8601(timestampInMilliseconds),
+                'timestamp': timestampInMilliseconds,
+                'lastTradeTimestamp': timestampInMilliseconds,
+                'status': 'open',
+                'symbol': symbol,
+                'type': orderType,
+                'timeInForce': timeInForce,
+                'side': orderSide,
+                'price': price,
+                'average': 0.06917684,
+                'amount': decimalAmount,
+                'filled': decimalFilledAmount,
+                'remaining': decimalRemainingAmount,
+                'cost': cost,
+                'trades': [],  # TODO: Implement trades
+                'fee': {
+                    'currency': currency,  # a deduction from the asset hasattr(self, received) trade
+                    'cost': feeCost,
+                    'rate': rate,
+                },
+                'info': {
+                    'mainOrderObjetc': mainOrderObject,
+                    'fetchedOrder': fetchedOrder,
+                },
+            }
+        return self.safe_order(result)
+
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        meta = await self.fetch_market_meta(symbol)
+        symbol = self.safe_string(meta, 'symbol')
+        market = self.safe_dict(meta, 'market')
+        request = {}
+        self.inject_sub_account_id(request, params)
+        response = await self.restOsmiumPrivateGetOrders(self.extend(request, params))
+        rawOrders = self.safe_list(self.safe_dict(response, 'result'), 'orders')
+        return self.parse_orders(rawOrders, market, since, limit)
+
+    async def fetch_orders_all_markets(self, since=None, limit=None):
+        """
+        fetch all orders from all markets
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        request = {}
+        self.inject_sub_account_id(request, {})
+        response = await self.restIridiumPrivateGetUsersSubaccountSubaccountIdOrders(self.extend(request))
+        rawOrders = self.safe_list(self.safe_dict(response, 'result'), 'orders')
+        return rawOrders
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
@@ -688,10 +1395,16 @@ class cube(Exchange, ImplicitAPI):
         :param int params['lastId']: order id
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
-        await self.load_markets()
-        market = self.market(symbol)
-        request = {}
-        # response = await self.restMendelevPublicGetParsedBookMarketIdRecentTrades(self.extend(request, params))
+        meta = await self.fetch_market_meta(symbol)
+        symbol = self.safe_string(meta, 'symbol')
+        market = self.safe_dict(meta, 'market')
+        rawMarketId = self.safe_string(self.safe_dict(market, 'info'), 'marketId')
+        rawMarketSymbol = self.safe_string(self.safe_dict(market, 'info'), 'symbol')
+        request = None
+        request = {
+            'market_id': rawMarketId,
+        }
+        recentTradesResponse = await self.restMendelevPublicGetBookMarketIdRecentTrades(self.extend(request, params))
         #
         # {
         #     "result":{
@@ -718,7 +1431,10 @@ class cube(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        response = await self.restMendelevPublicGetParsedBookMarketSymbolRecentTrades(self.extend(request, params))
+        request = {
+            'market_symbol': rawMarketSymbol,
+        }
+        parsedRecentTradesResponse = await self.restMendelevPublicGetParsedBookMarketSymbolRecentTrades(self.extend(request, params))
         #
         # {
         #     "result":{
@@ -742,138 +1458,114 @@ class cube(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        return self.parse_trades(response, market, since, limit)
+        rawTrades = {
+            'trades': self.safe_list(self.safe_dict(recentTradesResponse, 'result'), 'trades'),
+            'parsedTrades': self.safe_list(self.safe_dict(parsedRecentTradesResponse, 'result'), 'trades'),
+        }
+        return self.parse_trades(rawTrades, market)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
-        raise Error('Not implemented!')  # TODO fixnot !!
+    def parse_trades(self, rawTrades, market=None):
+        # nonParsedTrades = self.safe_list(rawTrades, 'trades')
+        parsedTrades = self.safe_list(rawTrades, 'parsedTrades')
+        finalTrades = []
+        for i in range(0, len(parsedTrades)):
+            trade = parsedTrades[i]
+            finalTrades.append(self.parse_trade(trade, market))
+        return finalTrades
 
-    async def fetch_balance(self, params={}) -> Balances:
+    def parse_trade(self, trade, market=None):
+        timestampSeconds = 0
+        if trade['ts'] is not None:
+            timestampSeconds = self.safe_integer(trade, 'ts')
+        elif trade['transactTime'] is not None:
+            timestampNanoseconds = trade['transactTime']
+            timestampSeconds = timestampNanoseconds / 1000000
+        datetime = self.iso8601(timestampSeconds)
+        tradeSide = self.safe_string(trade, 'side')
+        side = ''
+        if tradeSide == 'Bid':
+            side = 'buy'
+        elif tradeSide == 'Ask':
+            side = 'sell'
+        marketSymbol = self.safe_string(market, 'symbol')
+        price = float(self.safe_string(trade, 'p'))
+        amount = float(self.safe_string(trade, 'q'))
+        return self.safe_trade({
+            'info': trade,
+            'timestamp': timestampSeconds,
+            'datetime': datetime,
+            'symbol': marketSymbol,
+            'id': self.safe_string(trade, 'id'),
+            'order': None,
+            'type': None,
+            'takerOrMaker': None,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': None,
+            'fee': None,
+            'fees': [
+                {
+                    'cost': None,
+                    'currency': None,
+                    'rate': None,
+                },
+            ],
+        }, market)
+
+    async def fetch_trading_fee(self, symbol, params={}):
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://cubexch.gitbook.io/cube-api/rest-iridium-api#users-positions
+        fetch the trading fees for a market
+        :see: https://cubexch.gitbook.io/cube-api/rest-iridium-api#users-fee-estimate-market-id
+        :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
-        await self.load_markets()
-        response = await self.restIridiumPrivateGetUsersPositions(params)
-        result = self.safe_dict(response, 'balances', {})
-        return self.parse_balances(result)
-
-    def parse_balances(self, response) -> Balances:
-        # TODO fill and fixnot !!
-        return self.safe_balance({
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-            'free': {},
-            'used': {},
-            'total': {},
-        })
-
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
-        """
-        create a trade order
-        :see: https://cubexch.gitbook.io/cube-api/rest-osmium-api#order
-        :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
-        :param str side: 'buy' or 'sell'
-        :param float amount: how much of you want to trade in units of the base currency
-        :param float [price]: the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
-        """
-        await self.load_markets()
-        # marketId = symbol.lower()
-        market = self.market(symbol)
+        meta = await self.fetch_market_meta(symbol)
+        symbol = self.safe_string(meta, 'symbol')
+        market = self.safe_dict(meta, 'market')
         rawMarketId = self.safe_integer(self.safe_dict(market, 'info'), 'marketId')
-        exchangePrice = price * 100
-        exchangeAmount = amount * 100
-        exchangeSide = 1  # TODO fixnot !!
-        exchangeOrderType = 0  # TODO fixnot !!
         request = {
-            'clientOrderId': self.safe_integer(params, 'clientOrderId'),
-            'requestId': self.safe_integer(params, 'requestId'),
-            'marketId': rawMarketId,
-            'price': exchangePrice,
-            'quantity': exchangeAmount,
-            'side': exchangeSide,
-            'timeInForce': self.safe_integer(params, 'timeInForce'),
-            'orderType': exchangeOrderType,
-            'subaccountId': self.safe_integer(params, 'subaccountId'),
-            'selfTradePrevention': self.safe_integer(params, 'selfTradePrevention'),
-            'postOnly': self.safe_integer(params, 'postOnly'),
-            'cancelOnDisconnect': self.safe_bool(params, 'cancelOnDisconnect'),
+            'market_id': rawMarketId,
         }
-        response = await self.restOsmiumPrivatePostOrder(self.extend(request, params))
-        return self.parse_order(response, market)
-
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
-        """
-        cancels an open order
-        :param str id: order id
-        :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
-        """
-        # IMPLEMENTAR A LÓGICAnot !!
-        await self.load_markets()
-        request = {
-            'uuid': id,
+        response = await self.restIridiumPrivateGetUsersFeeEstimateMarketId(self.extend(request, params))
+        # {
+        #     "result": {
+        #         "userKey": "123e4567-e89b-12d3-a456-426614174000",
+        #         "makerFeeRatio": 0,
+        #         "takerFeeRatio": 0
+        #     }
+        # }
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': self.safe_number(self.safe_dict(response, 'result'), 'makerFeeRatio'),
+            'taker': self.safe_number(self.safe_dict(response, 'result'), 'takerFeeRatio'),
+            'percentage': None,
+            'tierBased': None,
         }
-        response = await self.restOsmiumPrivateDeleteOrder(self.extend(request, params))
-        return self.parse_order(response)
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        raise NotSupported(self.id + ' fetchMyTrades() is not supported yet')
+
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        if self.has['fetchOrders']:
+            orders = await self.fetch_orders(symbol, since, limit, params)
+            return self.filter_by(orders, 'status', 'closed')
+        raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
+
+    async def fetch_status(self, params={}):
+        raise NotSupported(self.id + ' fetchStatus() is not supported yet')
+
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
-        cancel all open orders
-        :param str symbol: alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+        make a withdrawal
+        :see: https://binance-docs.github.io/apidocs/spot/en/#withdraw-user_data
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        await self.load_markets()
-        return await self.cancel_order('all', symbol, params)
-
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        """
-        fetch all unfilled currently open orders
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of order structures to retrieve
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
-        """
-        # IMPLEMENTAR A LÓGICAnot !!
-        await self.load_markets()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-        request = {}
-        if symbol is not None:
-            request['market'] = market['id']
-        response = await self.restOsmiumPrivateGetOrders(self.extend(request, params))
-        return self.parse_orders(response, market, since, limit)
-
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
-        """
-        fetches information on an order made by the user
-        :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
-        :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
-        """
-        await self.load_markets()
-        request = {}
-        response = await self.restOsmiumPrivateGetOrders(self.extend(request, params))
-        rawOrders = self.safe_dict(self.safe_dict(response, 'result'), 'orders')
-        targetRawOrder = None
-        for i in range(0, len(rawOrders)):
-            rawOrder = rawOrders[i]
-            rawOrderId = self.safe_string(rawOrder, 'orderId')
-            if rawOrderId == id:
-                targetRawOrder = rawOrder
-        if targetRawOrder:
-            return self.parse_order(targetRawOrder, None)
-        raise OrderNotFound('Order "' + id + '" not found.')
-
-    def parse_order(self, order, market: Market = None) -> Order:
-        return self.safe_order({})
+        raise NotSupported(self.id + ' withdraw() is not supported yet')

@@ -7,6 +7,7 @@ import {
     AuthenticationError,
     BadRequest,
     BadSymbol,
+    InvalidOrder,
 } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import {
@@ -348,7 +349,7 @@ export default class cube extends Exchange {
         }
     }
 
-    async initialize (symbolOrSymbols) {
+    async fetchMarketMeta (symbolOrSymbols) {
         let symbol = undefined;
         let marketId = undefined;
         let market = undefined;
@@ -393,7 +394,7 @@ export default class cube extends Exchange {
                     'markets': markets,
                 };
             } else {
-                throw Error ('Invalid symbol or symbols informed.');
+                throw new BadSymbol (this.id + ' symbolOrSymbols must be a string or an array of strings');
             }
         }
         return {
@@ -792,7 +793,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        const meta = await this.initialize (symbol);
+        const meta = await this.fetchMarketMeta (symbol);
         symbol = this.safeString (meta, 'symbol');
         const marketId = this.safeString (meta, 'marketId');
         const market = this.safeDict (meta, 'market');
@@ -840,7 +841,7 @@ export default class cube extends Exchange {
         //         open: 2.8051,
         //       }
         //
-        const timestamp = Math.floor (Date.now () / 1000);
+        const timestamp = Math.floor (this.now () / 1000);
         return this.safeTicker ({
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
@@ -875,7 +876,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        const meta = await this.initialize (symbols);
+        const meta = await this.fetchMarketMeta (symbols);
         symbols = this.safeString (meta, 'symbols');
         const response = await this.restMendelevPublicGetParsedTickers (params);
         //
@@ -923,7 +924,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        const meta = await this.initialize (symbol);
+        const meta = await this.fetchMarketMeta (symbol);
         symbol = this.safeString (meta, 'symbol');
         const market = this.safeDict (meta, 'market');
         const request = {
@@ -1010,7 +1011,7 @@ export default class cube extends Exchange {
         const openOrders = [];
         const filledUnsettledOrders = [];
         const allMarkets = {};
-        for (let i = 0; Object.keys (this.markets_by_id); i++) {
+        for (let i = 0; i < Object.keys (this.markets_by_id).length; i++) {
             const marketSymbol = this.markets_by_id[i];
             const marketArrayItem = this.markets_by_id[marketSymbol];
             const market = marketArrayItem[0];
@@ -1069,7 +1070,7 @@ export default class cube extends Exchange {
                 used[targetToken] += orderAmount * orderMarketAmountPrecision;
             }
         }
-        const timestamp = Date.now ();  // TODO: Fix Date
+        const timestamp = this.now ();
         return this.safeBalance ({
             'info': response,
             'timestamp': timestamp,
@@ -1080,7 +1081,7 @@ export default class cube extends Exchange {
         });
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name cube#createOrder
@@ -1094,7 +1095,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const meta = await this.initialize (symbol);
+        const meta = await this.fetchMarketMeta (symbol);
         symbol = this.safeString (meta, 'symbol');
         const marketId = this.safeString (meta, 'marketId');
         const market = this.safeDict (meta, 'market');
@@ -1109,7 +1110,7 @@ export default class cube extends Exchange {
         } else if (type === 'MARKET_WITH_PROTECTION') {
             exchangeOrderType = 2;
         } else {
-            throw Error ('OrderType was not recognized.');
+            throw new InvalidOrder ('OrderType was not recognized: ' + type);
         }
         let exchangeOrderSide = undefined;
         if (side === 'buy') {
@@ -1117,9 +1118,9 @@ export default class cube extends Exchange {
         } else if (side === 'sell') {
             exchangeOrderSide = 1;
         } else {
-            throw Error ('OrderSide was not recognized.');
+            throw new InvalidOrder ('OrderSide was not recognized: ' + side);
         }
-        const timestamp = Date.now ();
+        const timestamp = this.now ();
         const clientOrderIdFromParams = this.safeInteger (params, 'clientOrderId');
         const clientOrderId = (clientOrderIdFromParams === null || clientOrderIdFromParams === undefined) ? timestamp : clientOrderIdFromParams;
         const request = {
@@ -1139,7 +1140,7 @@ export default class cube extends Exchange {
         const response = await this.restOsmiumPrivatePostOrder (this.extend (request, params));
         const order = this.safeDict (this.safeDict (response, 'result'), 'Ack');
         const exchangeOrderId = this.safeString (order, 'exchangeOrderId');
-        const fetchedOrder = (await this.fetchRawOrder (exchangeOrderId, marketId)) || {};
+        const fetchedOrder = await this.fetchRawOrder (exchangeOrderId, marketId);
         return this.parseOrder (
             {
                 'order': order,
@@ -1160,7 +1161,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const meta = await this.initialize (symbol);
+        const meta = await this.fetchMarketMeta (symbol);
         symbol = this.safeString (meta, 'symbol');
         const marketId = this.safeString (meta, 'marketId');
         const market = this.safeDict (meta, 'market');
@@ -1196,7 +1197,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const meta = await this.initialize (symbol);
+        const meta = await this.fetchMarketMeta (symbol);
         symbol = this.safeString (meta, 'symbol');
         const market = this.safeDict (meta, 'market');
         const rawMarkeId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
@@ -1220,36 +1221,36 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const meta = await this.initialize (symbol);
+        const meta = await this.fetchMarketMeta (symbol);
         symbol = this.safeString (meta, 'symbol');
         const market = this.safeDict (meta, 'market') as Market;
         const request = {};
         this.injectSubAccountId (request, params);
         const rawResponse = await this.restOsmiumPrivateGetOrders (this.extend (request, params));
-        /**
-         * {
-         *     "result": {
-         *         "orders": [
-         *             {
-         *                 "clientOrderId": 1713422528124,
-         *                 "exchangeOrderId": 1295024967,
-         *                 "marketId": 100006,
-         *                 "price": 11000,
-         *                 "orderQuantity": 1,
-         *                 "side": 0,
-         *                 "timeInForce": 1,
-         *                 "orderType": 0,
-         *                 "remainingQuantity": 1,
-         *                 "restTime": 1713422528222471490,
-         *                 "subaccountId": 38393,
-         *                 "cumulativeQuantity": 0,
-         *                 "cancelOnDisconnect": false
-         *             },
-         *             ...
-         *         ]
-         *     }
-         * }
-         */
+        //
+        //  {
+        //      "result": {
+        //          "orders": [
+        //              {
+        //                  "clientOrderId": 1713422528124,
+        //                  "exchangeOrderId": 1295024967,
+        //                  "marketId": 100006,
+        //                  "price": 11000,
+        //                  "orderQuantity": 1,
+        //                  "side": 0,
+        //                  "timeInForce": 1,
+        //                  "orderType": 0,
+        //                  "remainingQuantity": 1,
+        //                  "restTime": 1713422528222471490,
+        //                  "subaccountId": 38393,
+        //                  "cumulativeQuantity": 0,
+        //                  "cancelOnDisconnect": false
+        //              },
+        //              ...
+        //          ]
+        //      }
+        //  }
+        //
         const result = this.safeList (this.safeDict (rawResponse, 'result'), 'orders');
         const order = await this.parseOrder ({ 'fetchedOrder': this.safeValue (result, 0) }, market);
         if (order !== undefined) {
@@ -1268,37 +1269,37 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const meta = await this.initialize (symbol);
+        const meta = await this.fetchMarketMeta (symbol);
         symbol = this.safeString (meta, 'symbol');
         const request = {};
         this.injectSubAccountId (request, params);
         const rawResponse = await this.restOsmiumPrivateGetOrders (this.extend (request, params));
-        /**
-         * {
-         *     "result": {
-         *         "orders": [
-         *             {
-         *                 "clientOrderId": 1713422528124,
-         *                 "exchangeOrderId": 1295024967,
-         *                 "marketId": 100006,
-         *                 "price": 11000,
-         *                 "orderQuantity": 1,
-         *                 "side": 0,
-         *                 "timeInForce": 1,
-         *                 "orderType": 0,
-         *                 "remainingQuantity": 1,
-         *                 "restTime": 1713422528222471490,
-         *                 "subaccountId": 38393,
-         *                 "cumulativeQuantity": 0,
-         *                 "cancelOnDisconnect": false
-         *             },
-         *             ...
-         *         ]
-         *     }
-         * }
-         */
+        //
+        // {
+        //    "result": {
+        //        "orders": [
+        //            {
+        //                "clientOrderId": 1713422528124,
+        //                "exchangeOrderId": 1295024967,
+        //                "marketId": 100006,
+        //                "price": 11000,
+        //                "orderQuantity": 1,
+        //                "side": 0,
+        //                "timeInForce": 1,
+        //                "orderType": 0,
+        //                "remainingQuantity": 1,
+        //                "restTime": 1713422528222471490,
+        //                "subaccountId": 38393,
+        //                "cumulativeQuantity": 0,
+        //                "cancelOnDisconnect": false
+        //            },
+        //            ...
+        //        ]
+        //    }
+        // }
+        //
         const result = this.safeList (this.safeDict (rawResponse, 'result'), 'orders');
-        return result[0];
+        return this.safeValue (result, 0);
     }
 
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1312,7 +1313,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const meta = await this.initialize (symbol);
+        const meta = await this.fetchMarketMeta (symbol);
         symbol = this.safeString (meta, 'symbol');
         const market = this.safeMarket (this.safeString (meta, 'marketId'), this.safeDict (meta, 'market') as Market);
         const request = {};
@@ -1380,7 +1381,6 @@ export default class cube extends Exchange {
         }
         const timestampInNanoseconds = this.safeNumber (mainOrderObject, 'transactTime');
         const timestampInMilliseconds = timestampInNanoseconds / 1000000;
-        const datetime = new Date (timestampInMilliseconds);
         // let orderStatus = ''; // TODO fix !!!
         // if (Object.keys (fetchedOrder).'length === 0) {
         //     orderStatus = 'canceled'
@@ -1413,7 +1413,7 @@ export default class cube extends Exchange {
             } else if (orderTypeRaw === 2) {
                 orderType = 'MARKET_WITH_PROTECTION';
             } else {
-                throw Error ('OrderType was not recognized.');
+                throw new InvalidOrder ('OrderType was not recognized while parsing: ' + orderTypeRaw);
             }
             let timeInForce = '';
             const timeInForceRaw = this.safeInteger (fetchedOrder, 'timeInForce');
@@ -1424,7 +1424,7 @@ export default class cube extends Exchange {
             } else if (timeInForceRaw === 2) {
                 timeInForce = 'FOK';
             } else {
-                throw Error ('Time-in-force (TIF) was not recognized.');
+                throw new InvalidOrder ('TimeInForce was not recognized while parsing: ' + timeInForceRaw);
             }
             const tradeFeeRatios = this.safeString (this.fees, 'trading');
             const rate = orderSide === 'buy' ? this.safeString (tradeFeeRatios, 'maker') : this.safeString (tradeFeeRatios, 'taker');
@@ -1436,7 +1436,7 @@ export default class cube extends Exchange {
             result = {
                 'id': exchangeOrderId,
                 'clientOrderId': clientOrderId,
-                'datetime': datetime,
+                'datetime': this.iso8601 (timestampInMilliseconds),
                 'timestamp': timestampInMilliseconds,
                 'lastTradeTimestamp': timestampInMilliseconds,
                 'status': 'open',
@@ -1476,7 +1476,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const meta = await this.initialize (symbol);
+        const meta = await this.fetchMarketMeta (symbol);
         symbol = this.safeString (meta, 'symbol');
         const market = this.safeDict (meta, 'market');
         const request = {};
@@ -1518,7 +1518,7 @@ export default class cube extends Exchange {
          * @param {int} params.lastId order id
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        const meta = await this.initialize (symbol);
+        const meta = await this.fetchMarketMeta (symbol);
         symbol = this.safeString (meta, 'symbol');
         const market = this.safeDict (meta, 'market');
         const rawMarketId = this.safeString (this.safeDict (market, 'info'), 'marketId');
@@ -1592,7 +1592,7 @@ export default class cube extends Exchange {
         // const nonParsedTrades = this.safeList (rawTrades, 'trades');
         const parsedTrades = this.safeList (rawTrades, 'parsedTrades');
         const finalTrades = [];
-        for (let i = 0; parsedTrades.length; i++) {
+        for (let i = 0; i < parsedTrades.length; i++) {
             const trade = parsedTrades[i];
             finalTrades.push (this.parseTrade (trade, market));
         }
@@ -1609,7 +1609,7 @@ export default class cube extends Exchange {
         }
         const datetime = this.iso8601 (timestampSeconds);
         const tradeSide = this.safeString (trade, 'side');
-        let side;
+        let side = '';
         if (tradeSide === 'Bid') {
             side = 'buy';
         } else if (tradeSide === 'Ask') {
@@ -1652,7 +1652,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
-        const meta = await this.initialize (symbol);
+        const meta = await this.fetchMarketMeta (symbol);
         symbol = this.safeString (meta, 'symbol');
         const market = this.safeDict (meta, 'market');
         const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
@@ -1706,6 +1706,6 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        throw Error ('Not implemented!');
+        throw new NotSupported (this.id + ' withdraw() is not supported yet');
     }
 }
