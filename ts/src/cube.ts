@@ -899,7 +899,7 @@ export default class cube extends Exchange {
         return await this.cancelOrder ('all', symbol, params);
     }
 
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cube#fetchOpenOrders
@@ -910,18 +910,14 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        // IMPLEMENTAR A LÓGICA!!!
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
+        const meta = await this.initialize (symbol);
+        symbol = this.safeString (meta, 'symbol');
+        const market = this.safeDict (meta, 'market');
         const request = {};
-        if (symbol !== undefined) {
-            request['market'] = market['id'];
-        }
+        this.injectSubAccountId (request, params);
         const response = await this.restOsmiumPrivateGetOrders (this.extend (request, params));
-        return this.parseOrders (response, market, since, limit);
+        const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
+        return await this.parseOrders (rawOrders, market, since, limit);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
