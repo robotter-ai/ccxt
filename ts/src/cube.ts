@@ -35,7 +35,7 @@ import {
     OrderBook,
     OrderSide,
     OrderType,
-    Str, Ticker, Tickers,
+    Str, Strings, Ticker, Tickers,
     Trade,
 } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -441,7 +441,7 @@ export default class cube extends Exchange {
         return ticker;
     }
 
-    async fetchTickers (symbols = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name cube#fetchTickers
