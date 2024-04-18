@@ -879,8 +879,7 @@ export default class cube extends Exchange {
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
             this.safeNumber (ohlcv, 'last_price'),
-            // TODO CHECK (base_volume + quote_volume(?))!!!
-            this.safeNumber (ohlcv, ('base_volume')) + this.safeNumber (ohlcv, ('quote_volume')),
+            this.safeNumber (ohlcv, 'quote_volume'),
         ];
     }
 
@@ -1017,7 +1016,7 @@ export default class cube extends Exchange {
         }
         const timestamp = this.now ();
         const clientOrderIdFromParams = this.safeInteger (params, 'clientOrderId');
-        const clientOrderId = (clientOrderIdFromParams === null || clientOrderIdFromParams === undefined) ? timestamp : clientOrderIdFromParams;
+        const clientOrderId = (clientOrderIdFromParams === undefined) ? timestamp : clientOrderIdFromParams;
         const request = {
             'clientOrderId': clientOrderId,
             'requestId': this.safeInteger (params, 'requestId', 1),

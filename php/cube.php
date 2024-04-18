@@ -666,6 +666,15 @@ class cube extends Exchange {
     }
 
     public function fetch_ticker(string $symbol, $params = array ()): array {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://cubexch.gitbook.io/cube-api/rest-mendelev-api#parsed-$tickers
+         * @param {string} $symbol unified $symbol of the market to fetch the $ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+         */
+        $meta = $this->fetch_market_meta($symbol);
+        $symbol = $this->safe_string($meta, 'symbol');
         $tickers = $this->fetch_tickers(array( $symbol ), $params);
         $ticker = $this->safe_value($tickers, $symbol, null);
         if ($ticker === null) {
@@ -674,120 +683,7 @@ class cube extends Exchange {
         return $ticker;
     }
 
-    public function parse_ticker(array $ticker): array {
-        $timestamp = $this->safe_integer($ticker, 'timestamp');
-        $symbol = $this->safe_string($ticker, 'ticker_id');
-        $baseVolume = $this->safe_number($ticker, 'base_volume');
-        $quoteVolume = $this->safe_number($ticker, 'quote_volume');
-        $last = $this->safe_number($ticker, 'last_price');
-        $high = $this->safe_number($ticker, 'high');
-        $low = $this->safe_number($ticker, 'low');
-        $bid = $this->safe_number($ticker, 'bid');
-        $ask = $this->safe_number($ticker, 'ask');
-        return $this->safe_ticker(array(
-            'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'high' => $high,
-            'low' => $low,
-            'bid' => $bid,
-            'bidVolume' => null,
-            'ask' => $ask,
-            'askVolume' => null,
-            'vwap' => null,
-            'open' => $this->safe_number($ticker, 'open'),
-            'close' => null,
-            'last' => $last,
-            'previousClose' => null,
-            'change' => null,
-            'percentage' => null,
-            'average' => null,
-            'baseVolume' => $baseVolume,
-            'quoteVolume' => $quoteVolume,
-            'info' => $ticker,
-        ));
-    }
-
-    public function fetch_tickers($symbols = null, $params = array ()): array {
-        /**
-         * fetches the $ticker for all markets
-         * @see https://cubexch.gitbook.io/cube-api/rest-mendelev-api#tickers-snapshot
-         * @param {string[]} [$symbols] an array of $symbols to fetch the tickers for
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of tickers indexed by symbol
-         */
-        $response = $this->restMendelevPublicGetParsedTickers ($params);
-        // {
-        //   "result" => array(
-        //     array(
-        //       "ask" => 101.17,
-        //       "base_currency" => "SOL",
-        //       "base_volume" => 29332.58,
-        //       "bid" => 101.16,
-        //       "high" => 109.69,
-        //       "last_price" => 101.17,
-        //       "low" => 100.23,
-        //       "open" => 107.72,
-        //       "quote_currency" => "USDC",
-        //       "quote_volume" => 3062431.887,
-        //       "ticker_id" => "SOLUSDC",
-        //       "timestamp" => 1708521090000
-        //     ),
-        //     ...
-        //   )
-        // }
-        $result = array();
-        $rawTickers = $this->safe_list($response, 'result', array());
-        for ($i = 0; $i < count($rawTickers); $i++) {
-            if ($symbols !== null && !$this->in_array($this->safe_string($rawTickers[$i], 'ticker_id'), $symbols)) {
-                $rawTicker = $this->safe_dict($rawTickers, $i);
-                $ticker = $this->parse_ticker($rawTicker);
-                $result[$ticker->symbol] = $ticker;
-            }
-        }
-        return $result;
-    }
-
-    public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @see https://cubexch.gitbook.io/cube-api/rest-mendelev-api#parsed-tickers
-         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
-         */
-        $meta = $this->fetch_market_meta($symbol);
-        $symbol = $this->safe_string($meta, 'symbol');
-        $marketId = $this->safe_string($meta, 'marketId');
-        $market = $this->safe_dict($meta, 'market');
-        $request = array(
-            'market' => $marketId,
-        );
-        $response = $this->restMendelevPublicGetParsedTickers (array_merge($request, $params));
-        //
-        //    {
-        //     result => array(
-        //       array(
-        //         ticker_id => "JTOUSDC",
-        //         base_currency => "JTO",
-        //         quote_currency => "USDC",
-        //         timestamp => 1713217334960,
-        //         last_price => 2.6624,
-        //         base_volume => 337.12,
-        //         quote_volume => 961.614166,
-        //         bid => 2.6627,
-        //         ask => 2.6715,
-        //         high => 3.0515,
-        //         low => 2.6272,
-        //         open => 2.8051,
-        //       ),
-        //     ),
-        //   }
-        //
-        return $this->parse_ticker($response, $market);
-    }
-
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //       {
         //         ticker_id => "JTOUSDC",
@@ -804,7 +700,7 @@ class cube extends Exchange {
         //         open => 2.8051,
         //       }
         //
-        $timestamp = (int) floor($this->now() / 1000);
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
         return $this->safe_ticker(array(
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $timestamp,
@@ -812,9 +708,9 @@ class cube extends Exchange {
             'high' => $this->safe_number($ticker, 'high'),
             'low' => $this->safe_number($ticker, 'low'),
             'bid' => $this->safe_number($ticker, 'bid'),
-            'bidVolume' => null,
+            'bidVolume' => $this->safe_number($ticker, 'base_volume'),
             'ask' => $this->safe_number($ticker, 'ask'),
-            'askVolume' => null,
+            'askVolume' => $this->safe_number($ticker, 'quote_volume'),
             'vwap' => null,
             'open' => $this->safe_number($ticker, 'open'),
             'close' => null,
@@ -829,7 +725,7 @@ class cube extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          * @see https://cubexch.gitbook.io/cube-api/rest-mendelev-api#parsed-tickers
@@ -866,8 +762,9 @@ class cube extends Exchange {
             $rawTicker = $rawTickers[$i];
             $marketId = strtolower($this->market_id($this->safe_string($rawTicker, 'ticker_id')));
             $market = $this->market($marketId);
+            $symbol = $this->safe_string($market, 'symbol');
             $ticker = $this->parse_ticker($rawTicker, $market);
-            $result[$market['symbol']] = $ticker;
+            $result[$symbol] = $ticker;
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
@@ -943,8 +840,7 @@ class cube extends Exchange {
             $this->safe_number($ohlcv, 'high'),
             $this->safe_number($ohlcv, 'low'),
             $this->safe_number($ohlcv, 'last_price'),
-            // TODO CHECK (base_volume . quote_volume(?))!!!
-            $this->safe_number($ohlcv, ('base_volume')) . $this->safe_number($ohlcv, ('quote_volume')),
+            $this->safe_number($ohlcv, 'quote_volume'),
         );
     }
 
@@ -1077,7 +973,7 @@ class cube extends Exchange {
         }
         $timestamp = $this->now();
         $clientOrderIdFromParams = $this->safe_integer($params, 'clientOrderId');
-        $clientOrderId = ($clientOrderIdFromParams === null || $clientOrderIdFromParams === null) ? $timestamp : $clientOrderIdFromParams;
+        $clientOrderId = ($clientOrderIdFromParams === null) ? $timestamp : $clientOrderIdFromParams;
         $request = array(
             'clientOrderId' => $clientOrderId,
             'requestId' => $this->safe_integer($params, 'requestId', 1),

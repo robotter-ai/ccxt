@@ -653,83 +653,6 @@ class cube(Exchange, ImplicitAPI):
         return bidasks
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
-        tickers = self.fetch_tickers([symbol], params)
-        ticker = self.safe_value(tickers, symbol, None)
-        if ticker is None:
-            raise BadSymbol(self.id + ' fetchTicker() symbol ' + symbol + ' not found')
-        return ticker
-
-    def parse_ticker(self, ticker: dict) -> Ticker:
-        timestamp = self.safe_integer(ticker, 'timestamp')
-        symbol = self.safe_string(ticker, 'ticker_id')
-        baseVolume = self.safe_number(ticker, 'base_volume')
-        quoteVolume = self.safe_number(ticker, 'quote_volume')
-        last = self.safe_number(ticker, 'last_price')
-        high = self.safe_number(ticker, 'high')
-        low = self.safe_number(ticker, 'low')
-        bid = self.safe_number(ticker, 'bid')
-        ask = self.safe_number(ticker, 'ask')
-        return self.safe_ticker({
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'high': high,
-            'low': low,
-            'bid': bid,
-            'bidVolume': None,
-            'ask': ask,
-            'askVolume': None,
-            'vwap': None,
-            'open': self.safe_number(ticker, 'open'),
-            'close': None,
-            'last': last,
-            'previousClose': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
-            'info': ticker,
-        })
-
-    def fetch_tickers(self, symbols=None, params={}) -> Tickers:
-        """
-        fetches the ticker for all markets
-        :see: https://cubexch.gitbook.io/cube-api/rest-mendelev-api#tickers-snapshot
-        :param str[] [symbols]: an array of symbols to fetch the tickers for
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of tickers indexed by symbol
-        """
-        response = self.restMendelevPublicGetParsedTickers(params)
-        # {
-        #   "result": [
-        #     {
-        #       "ask": 101.17,
-        #       "base_currency": "SOL",
-        #       "base_volume": 29332.58,
-        #       "bid": 101.16,
-        #       "high": 109.69,
-        #       "last_price": 101.17,
-        #       "low": 100.23,
-        #       "open": 107.72,
-        #       "quote_currency": "USDC",
-        #       "quote_volume": 3062431.887,
-        #       "ticker_id": "SOLUSDC",
-        #       "timestamp": 1708521090000
-        #     },
-        #     ...
-        #   ]
-        # }
-        result = {}
-        rawTickers = self.safe_list(response, 'result', [])
-        for i in range(0, len(rawTickers)):
-            if symbols is not None and not self.in_array(self.safe_string(rawTickers[i], 'ticker_id'), symbols):
-                rawTicker = self.safe_dict(rawTickers, i)
-                ticker = self.parse_ticker(rawTicker)
-                result[ticker.symbol] = ticker
-        return result
-
-    def fetch_ticker(self, symbol, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://cubexch.gitbook.io/cube-api/rest-mendelev-api#parsed-tickers
@@ -739,35 +662,13 @@ class cube(Exchange, ImplicitAPI):
         """
         meta = self.fetch_market_meta(symbol)
         symbol = self.safe_string(meta, 'symbol')
-        marketId = self.safe_string(meta, 'marketId')
-        market = self.safe_dict(meta, 'market')
-        request = {
-            'market': marketId,
-        }
-        response = self.restMendelevPublicGetParsedTickers(self.extend(request, params))
-        #
-        #    {
-        #     result: [
-        #       {
-        #         ticker_id: "JTOUSDC",
-        #         base_currency: "JTO",
-        #         quote_currency: "USDC",
-        #         timestamp: 1713217334960,
-        #         last_price: 2.6624,
-        #         base_volume: 337.12,
-        #         quote_volume: 961.614166,
-        #         bid: 2.6627,
-        #         ask: 2.6715,
-        #         high: 3.0515,
-        #         low: 2.6272,
-        #         open: 2.8051,
-        #       },
-        #     ],
-        #   }
-        #
-        return self.parse_ticker(response, market)
+        tickers = self.fetch_tickers([symbol], params)
+        ticker = self.safe_value(tickers, symbol, None)
+        if ticker is None:
+            raise BadSymbol(self.id + ' fetchTicker() symbol ' + symbol + ' not found')
+        return ticker
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #       {
         #         ticker_id: "JTOUSDC",
@@ -784,7 +685,7 @@ class cube(Exchange, ImplicitAPI):
         #         open: 2.8051,
         #       }
         #
-        timestamp = int(math.floor(self.now()) / 1000)
+        timestamp = self.safe_integer(ticker, 'timestamp')
         return self.safe_ticker({
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': timestamp,
@@ -792,9 +693,9 @@ class cube(Exchange, ImplicitAPI):
             'high': self.safe_number(ticker, 'high'),
             'low': self.safe_number(ticker, 'low'),
             'bid': self.safe_number(ticker, 'bid'),
-            'bidVolume': None,
+            'bidVolume': self.safe_number(ticker, 'base_volume'),
             'ask': self.safe_number(ticker, 'ask'),
-            'askVolume': None,
+            'askVolume': self.safe_number(ticker, 'quote_volume'),
             'vwap': None,
             'open': self.safe_number(ticker, 'open'),
             'close': None,
@@ -808,7 +709,7 @@ class cube(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :see: https://cubexch.gitbook.io/cube-api/rest-mendelev-api#parsed-tickers
@@ -845,8 +746,9 @@ class cube(Exchange, ImplicitAPI):
             rawTicker = rawTickers[i]
             marketId = self.market_id(self.safe_string(rawTicker, 'ticker_id').lower())
             market = self.market(marketId)
+            symbol = self.safe_string(market, 'symbol')
             ticker = self.parse_ticker(rawTicker, market)
-            result[market['symbol']] = ticker
+            result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -917,8 +819,7 @@ class cube(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'high'),
             self.safe_number(ohlcv, 'low'),
             self.safe_number(ohlcv, 'last_price'),
-            # TODO CHECK(base_volume + quote_volume(?))not !!
-            self.safe_number(ohlcv,('base_volume')) + self.safe_number(ohlcv,('quote_volume')),
+            self.safe_number(ohlcv, 'quote_volume'),
         ]
 
     def fetch_balance(self, params={}) -> Balances:
@@ -1036,7 +937,7 @@ class cube(Exchange, ImplicitAPI):
             raise InvalidOrder('OrderSide was not recognized: ' + side)
         timestamp = self.now()
         clientOrderIdFromParams = self.safe_integer(params, 'clientOrderId')
-        clientOrderId = timestamp if (clientOrderIdFromParams == None or clientOrderIdFromParams is None) else clientOrderIdFromParams
+        clientOrderId = timestamp if (clientOrderIdFromParams is None) else clientOrderIdFromParams
         request = {
             'clientOrderId': clientOrderId,
             'requestId': self.safe_integer(params, 'requestId', 1),
