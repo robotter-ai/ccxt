@@ -749,7 +749,7 @@ export default class cube extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {};
-        // const response = await this.restMendelevPublicGetParsedBookMarketIdRecentTrades(this.extend(request, params));
+        // const response = await this.restMendelevPublicGetParsedBookMarketIdRecentTrades (this.extend (request, params));
         //
         // {
         //     "result":{
