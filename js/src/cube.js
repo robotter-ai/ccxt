@@ -1465,12 +1465,15 @@ export default class cube extends Exchange {
         return this.parseTrades(rawTrades, market);
     }
     parseTrades(rawTrades, market = undefined) {
-        // const nonParsedTrades = this.safeList (rawTrades, 'trades');
-        const parsedTrades = this.safeList(rawTrades, 'parsedTrades');
+        const nonParsedTrades = this.safeList (rawTrades, 'trades');
+        const parsedTradesObject = this.safeDict (rawTrades, 'parsedTrades');
         const finalTrades = [];
-        for (let i = 0; i < parsedTrades.length; i++) {
-            const trade = parsedTrades[i];
-            finalTrades.push(this.parseTrade(trade, market));
+        if (parsedTradesObject && typeof parsedTradesObject === 'object') {
+            const parsedTrades = Object.values(parsedTradesObject);
+
+            for (const trade of parsedTrades) {
+                finalTrades.push(this.parseTrade(trade, market));
+            }
         }
         return finalTrades;
     }
