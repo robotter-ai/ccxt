@@ -316,7 +316,7 @@ export default class cube extends Exchange {
         const apiString = (api as any).join (',');
         const environment = this.options['environment'];
         let baseUrl: string = undefined;
-        if (apiString.indexOf ('iridium')  > -1) {
+        if (apiString.indexOf ('iridium') > -1) {
             baseUrl = this.urls['api']['rest'][environment]['iridium'];
         } else if (apiString.indexOf ('mendelev') > -1) {
             baseUrl = this.urls['api']['rest'][environment]['mendelev'];
