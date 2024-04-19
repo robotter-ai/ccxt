@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Balances, Currencies, Currency, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -25,7 +26,6 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -1333,7 +1333,7 @@ class kraken(Exchange, ImplicitAPI):
             'ordertype': type,
             'volume': self.amount_to_precision(symbol, amount),
         }
-        orderRequest = self.order_request('createOrder()', symbol, type, request, price, params)
+        orderRequest = self.order_request('createOrder', symbol, type, request, price, params)
         response = self.privatePostAddOrder(self.extend(orderRequest[0], orderRequest[1]))
         #
         #     {
@@ -1501,9 +1501,10 @@ class kraken(Exchange, ImplicitAPI):
         #  }
         #
         description = self.safe_dict(order, 'descr', {})
+        orderDescriptionObj = self.safe_dict(order, 'descr')  # can be null
         orderDescription = None
-        if description is not None:
-            orderDescription = self.safe_string(description, 'order')
+        if orderDescriptionObj is not None:
+            orderDescription = self.safe_string(orderDescriptionObj, 'order')
         else:
             orderDescription = self.safe_string(order, 'descr')
         side = None
@@ -1564,8 +1565,8 @@ class kraken(Exchange, ImplicitAPI):
                     fee['currency'] = market['base']
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string_2(order, 'id', 'txid')
-        if (id is None) or (id[0:1] == '['):
-            txid = self.safe_value(order, 'txid')
+        if (id is None) or (id.startswith('[')):
+            txid = self.safe_list(order, 'txid')
             id = self.safe_string(txid, 0)
         clientOrderId = self.safe_string(order, 'userref')
         rawTrades = self.safe_value(order, 'trades', [])
@@ -1658,7 +1659,10 @@ class kraken(Exchange, ImplicitAPI):
                 request['price'] = trailingAmountString
                 request['ordertype'] = 'trailing-stop'
         if reduceOnly:
-            request['reduce_only'] = 'true'  # not using hasattr(self, boolean) case, because the urlencodedNested transforms it into 'True' string
+            if method == 'createOrderWs':
+                request['reduce_only'] = True  # ws request can't have stringified bool
+            else:
+                request['reduce_only'] = 'true'  # not using hasattr(self, boolean) case, because the urlencodedNested transforms it into 'True' string
         close = self.safe_value(params, 'close')
         if close is not None:
             close = self.extend({}, close)
@@ -1709,7 +1713,7 @@ class kraken(Exchange, ImplicitAPI):
         }
         if amount is not None:
             request['volume'] = self.amount_to_precision(symbol, amount)
-        orderRequest = self.order_request('editOrder()', symbol, type, request, price, params)
+        orderRequest = self.order_request('editOrder', symbol, type, request, price, params)
         response = self.privatePostEditOrder(self.extend(orderRequest[0], orderRequest[1]))
         #
         #     {

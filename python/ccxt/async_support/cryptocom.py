@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import ArgumentsRequired
@@ -20,7 +21,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -1500,7 +1500,7 @@ class cryptocom(Exchange, ImplicitAPI):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         await self.load_markets()
-        currency = self.currency(code)
+        currency = self.safe_currency(code)  # for instance, USDC is not inferred from markets but it's still available
         request = {
             'currency': currency['id'],
             'amount': amount,
@@ -1542,7 +1542,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `address structures <https://docs.ccxt.com/#/?id=address-structure>` indexed by the network
         """
         await self.load_markets()
-        currency = self.currency(code)
+        currency = self.safe_currency(code)
         request = {
             'currency': currency['id'],
         }
@@ -1633,7 +1633,7 @@ class cryptocom(Exchange, ImplicitAPI):
         currency = None
         request = {}
         if code is not None:
-            currency = self.currency(code)
+            currency = self.safe_currency(code)
             request['currency'] = currency['id']
         if since is not None:
             # 90 days date range
@@ -1686,7 +1686,7 @@ class cryptocom(Exchange, ImplicitAPI):
         currency = None
         request = {}
         if code is not None:
-            currency = self.currency(code)
+            currency = self.safe_currency(code)
             request['currency'] = currency['id']
         if since is not None:
             # 90 days date range
@@ -2179,7 +2179,7 @@ class cryptocom(Exchange, ImplicitAPI):
         request = {}
         currency = None
         if code is not None:
-            currency = self.currency(code)
+            currency = self.safe_currency(code)
         if since is not None:
             request['start_time'] = since
         if limit is not None:

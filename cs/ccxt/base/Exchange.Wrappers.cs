@@ -597,6 +597,11 @@ public partial class Exchange
         var res = await this.cancelAllOrders(symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
+    public async Task<Dictionary<string, object>> CancelOrdersForSymbols(List<CancellationRequest> orders, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrdersForSymbols(orders, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     public async Task<Dictionary<string, object>> CancelAllOrdersWs(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrdersWs(symbol, parameters);
@@ -719,6 +724,12 @@ public partial class Exchange
     {
         var res = await this.fetchOption(symbol, parameters);
         return new Option(res);
+    }
+    public async Task<Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var res = await this.fetchConvertQuote(fromCode, toCode, amount, parameters);
+        return new Conversion(res);
     }
     public async Task<List<Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
@@ -869,6 +880,11 @@ public partial class Exchange
     {
         var res = await this.fetchTradingFee(symbol, parameters);
         return new TradingFeeInterface(res);
+    }
+    public async Task<Currencies> FetchConvertCurrencies(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchConvertCurrencies(parameters);
+        return new Currencies(res);
     }
     public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
