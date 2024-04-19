@@ -30,7 +30,7 @@ import {
 } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { NotSupported } from '../../js/src/base/errors.js';
-import { utf8ToBytes, hexToBytes } from './static_dependencies/noble-curves/abstract/utils';
+import { utf8ToBytes, hexToBytes } from './static_dependencies/noble-curves/abstract/utils.js';
 
 // ---------------------------------------------------------------------------
 
@@ -695,7 +695,7 @@ export default class cube extends Exchange {
             'bids': rawBids,
             'asks': rawAsks,
         };
-        const timestamp = this.safeTimestamp (this.safeDict (response, 'result'), 'timestamp');
+        const timestamp = this.safeInteger (this.safeDict (response, 'result'), 'timestamp'); // Don't use this.safeTimestamp()
         return this.parseOrderBook (rawOrderbook, symbol, timestamp, 'bids', 'asks');
     }
 
@@ -879,7 +879,7 @@ export default class cube extends Exchange {
         //       }
         //
         return [
-            this.safeTimestamp (ohlcv, 'timestamp'),
+            this.safeInteger (ohlcv, 'timestamp'), // Don't use this.safeTimestamp()
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
