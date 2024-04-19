@@ -657,7 +657,7 @@ class cube(Exchange, ImplicitAPI):
             'bids': rawBids,
             'asks': rawAsks,
         }
-        timestamp = self.safe_timestamp(self.safe_dict(response, 'result'), 'timestamp')
+        timestamp = self.safe_timestamp(self.safe_dict(response, 'result'), 'timestamp') / 1000000
         return self.parse_order_book(rawOrderbook, symbol, timestamp, 'bids', 'asks')
 
     def parse_bids_asks(self, bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) -> List[Any]:
