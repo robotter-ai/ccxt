@@ -273,9 +273,8 @@ class cube(Exchange, ImplicitAPI):
         import hashlib
         import hmac
         import struct
-        import time
 
-        timestamp = int(time.time())
+        timestamp = int(self.milliseconds() / 1000)
         timestamp_bytes = struct.pack('<Q', timestamp)
         fixed_string = b'cube.xyz'
         payload = fixed_string + timestamp_bytes
@@ -906,7 +905,7 @@ class cube(Exchange, ImplicitAPI):
             else:
                 used[targetToken] += orderLockedAmount
             free[targetToken] = total[targetToken] - used[targetToken]
-        timestamp = Date.now()
+        timestamp = self.milliseconds()
         result = {
             'info': response,
             'timestamp': timestamp,
@@ -960,7 +959,7 @@ class cube(Exchange, ImplicitAPI):
             exchangeOrderSide = 1
         else:
             raise InvalidOrder('OrderSide was not recognized: ' + side)
-        timestamp = self.now()
+        timestamp = self.milliseconds()
         clientOrderIdFromParams = self.safe_integer(params, 'clientOrderId')
         clientOrderId = timestamp if (clientOrderIdFromParams is None) else clientOrderIdFromParams
         request = {
