@@ -554,12 +554,14 @@ class cube(Exchange, ImplicitAPI):
     def parse_market(self, market: dict) -> Market:
         id = self.safe_string_lower(market, 'symbol')
         symbol = id.upper()
-        rawBaseAsset = self.currencies[self.safe_integer(market, 'baseAssetId')]
-        rawQuoteAsset = self.currencies[self.safe_integer(market, 'quoteAssetId')]
-        baseId = self.safe_string_upper(rawBaseAsset, 'symbol')
-        quoteId = self.safe_string_upper(rawQuoteAsset, 'symbol')
-        base = self.safe_currency_code(baseId)
-        quote = self.safe_currency_code(quoteId)
+        baseAssetId = self.safe_string(market, 'baseAssetId')
+        baseAsset = self.safe_dict(self.currencies, baseAssetId)
+        quoteAssetId = self.safe_string(market, 'quoteAssetId')
+        quoteAsset = self.safe_dict(self.currencies, quoteAssetId)
+        base = self.safe_string_upper(baseAsset, 'id')
+        quote = self.safe_string_upper(quoteAsset, 'id')
+        baseId = base.lower()
+        quoteId = quote.lower()
         return self.safe_market_structure({
             'id': id,
             'lowercaseId': id.lower(),
