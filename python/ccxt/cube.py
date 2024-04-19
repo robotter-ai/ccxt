@@ -434,7 +434,7 @@ class cube(Exchange, ImplicitAPI):
             rawCurrency = assets[i]
             symbol = self.safe_string_upper(rawCurrency, 'symbol')
             # code = self.safe_currency_code(id)
-            code = self.safe_integer(rawCurrency, 'assetId')
+            code = self.safe_string(rawCurrency, 'assetId')
             name = self.safe_string(self.safe_dict(rawCurrency, 'metadata'), 'currencyName')
             networkId = self.safe_string(rawCurrency, 'sourceId')
             networks = {}

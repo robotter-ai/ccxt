@@ -256,7 +256,7 @@ export default class cube extends Exchange {
         });
     }
     generateSignature() {
-        const timestamp = Math.floor(Date.now() / 1000);
+        const timestamp = Math.floor(this.milliseconds() / 1000);
         const timestampBuffer = Buffer.alloc(8);
         timestampBuffer.writeUInt32LE(timestamp, 0);
         const fixedString = 'cube.xyz';
@@ -284,7 +284,7 @@ export default class cube extends Exchange {
         const apiString = api.join(',');
         const environment = this.options['environment'];
         let baseUrl = undefined;
-        if (apiString.indexOf('iridium')) {
+        if (apiString.indexOf('iridium') > -1) {
             baseUrl = this.urls['api']['rest'][environment]['iridium'];
         }
         else if (apiString.indexOf('mendelev') > -1) {
@@ -304,7 +304,7 @@ export default class cube extends Exchange {
         else {
             body = JSON.stringify(params);
         }
-        if (apiString.indexOf('private')) {
+        if (apiString.indexOf('private') > -1) {
             let request = {
                 'headers': {
                     'Content-Type': 'application/json',
@@ -437,7 +437,7 @@ export default class cube extends Exchange {
             const rawCurrency = assets[i];
             const symbol = this.safeStringUpper(rawCurrency, 'symbol');
             // const code = this.safeCurrencyCode (id);
-            const code = this.safeInteger(rawCurrency, 'assetId');
+            const code = this.safeString(rawCurrency, 'assetId');
             const name = this.safeString(this.safeDict(rawCurrency, 'metadata'), 'currencyName');
             const networkId = this.safeString(rawCurrency, 'sourceId');
             const networks = {};
@@ -561,10 +561,10 @@ export default class cube extends Exchange {
     parseMarket(market) {
         const id = this.safeStringLower(market, 'symbol');
         const symbol = id.toUpperCase();
-        const baseAssetId = this.safeString (market, 'baseAssetId');
-        const baseAsset = this.safeDict (this.currencies, baseAssetId);
-        const quoteAssetId = this.safeString (market, 'quoteAssetId');
-        const quoteAsset = this.safeDict (this.currencies, quoteAssetId);
+        const baseAssetId = this.safeString(market, 'baseAssetId');
+        const baseAsset = this.safeDict(this.currencies, baseAssetId);
+        const quoteAssetId = this.safeString(market, 'quoteAssetId');
+        const quoteAsset = this.safeDict(this.currencies, quoteAssetId);
         const base = this.safeStringUpper(baseAsset, 'id');
         const quote = this.safeStringUpper(quoteAsset, 'id');
         const baseId = base.toLowerCase();
@@ -942,7 +942,7 @@ export default class cube extends Exchange {
             }
             free[targetToken] = total[targetToken] - used[targetToken];
         }
-        const timestamp = Date.now();
+        const timestamp = this.milliseconds();
         const result = {
             'info': response,
             'timestamp': timestamp,
@@ -1006,7 +1006,7 @@ export default class cube extends Exchange {
         else {
             throw new InvalidOrder('OrderSide was not recognized: ' + side);
         }
-        const timestamp = this.now();
+        const timestamp = this.milliseconds();
         const clientOrderIdFromParams = this.safeInteger(params, 'clientOrderId');
         const clientOrderId = (clientOrderIdFromParams === undefined) ? timestamp : clientOrderIdFromParams;
         const request = {

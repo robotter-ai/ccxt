@@ -465,7 +465,7 @@ export default class cube extends Exchange {
             const rawCurrency = assets[i];
             const symbol = this.safeStringUpper (rawCurrency, 'symbol');
             // const code = this.safeCurrencyCode (id);
-            const code = this.safeInteger (rawCurrency, 'assetId');
+            const code = this.safeString (rawCurrency, 'assetId');
             const name = this.safeString (this.safeDict (rawCurrency, 'metadata'), 'currencyName');
             const networkId = this.safeString (rawCurrency, 'sourceId');
             const networks = {};
