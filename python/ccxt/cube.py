@@ -943,8 +943,8 @@ class cube(Exchange, ImplicitAPI):
         marketId = self.safe_string(meta, 'marketId')
         market = self.safe_dict(meta, 'market')
         rawMarketId = self.safe_integer(self.safe_dict(market, 'info'), 'marketId')
-        exchangePrice = price * 100
-        exchangeAmount = amount * 100
+        exchangePrice = int(price * 100)
+        exchangeAmount = int(amount * 100)
         exchangeOrderType = None
         if type == 'limit':
             exchangeOrderType = 0
