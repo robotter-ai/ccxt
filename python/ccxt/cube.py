@@ -902,7 +902,7 @@ class cube(Exchange, ImplicitAPI):
                 orderLockedAmount = orderAmount * lotSize / 10 ** targetCurrencyPrecision
             elif orderSide == 'Bid':
                 orderLockedAmount = orderAmount * orderPrice * lotSize / 10 ** targetCurrencyPrecision
-            if used[targetToken] is None:
+            if used.get(targetToken) is None:
                 used[targetToken] = orderLockedAmount
             else:
                 used[targetToken] += orderLockedAmount
