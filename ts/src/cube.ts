@@ -285,7 +285,7 @@ export default class cube extends Exchange {
     }
 
     generateSignature (): any {
-        const timestamp = Math.floor (Date.now () / 1000);
+        const timestamp = Math.floor (this.milliseconds () / 1000);
         const timestampBuffer = Buffer.alloc (8);
         timestampBuffer.writeUInt32LE (timestamp, 0);
         const fixedString = 'cube.xyz';
@@ -316,7 +316,7 @@ export default class cube extends Exchange {
         const apiString = (api as any).join (',');
         const environment = this.options['environment'];
         let baseUrl: string = undefined;
-        if (apiString.indexOf ('iridium')) {
+        if (apiString.indexOf ('iridium')  > -1) {
             baseUrl = this.urls['api']['rest'][environment]['iridium'];
         } else if (apiString.indexOf ('mendelev') > -1) {
             baseUrl = this.urls['api']['rest'][environment]['mendelev'];
@@ -333,7 +333,7 @@ export default class cube extends Exchange {
         } else {
             body = JSON.stringify (params);
         }
-        if (apiString.indexOf ('private')) {
+        if (apiString.indexOf ('private') > -1) {
             let request = {
                 'headers': {
                     'Content-Type': 'application/json',
@@ -977,7 +977,7 @@ export default class cube extends Exchange {
             }
             free[targetToken] = total[targetToken] - used[targetToken];
         }
-        const timestamp = Date.now ();
+        const timestamp = this.milliseconds ();
         const result = {
             'info': response,
             'timestamp': timestamp,
@@ -1037,7 +1037,7 @@ export default class cube extends Exchange {
         } else {
             throw new InvalidOrder ('OrderSide was not recognized: ' + side);
         }
-        const timestamp = this.now ();
+        const timestamp = this.milliseconds ();
         const clientOrderIdFromParams = this.safeInteger (params, 'clientOrderId');
         const clientOrderId = (clientOrderIdFromParams === undefined) ? timestamp : clientOrderIdFromParams;
         const request = {
