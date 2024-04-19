@@ -21,7 +21,6 @@ travis-keys.sh
 exchanges.json
 ccxt.sublime-workspace
 .idea
-*.iml
 yarn.lock
 keys.local.json
 nbproject/
@@ -41,3 +40,4 @@ __pycache__
 *.pyc
 bin/
 obj/
+
