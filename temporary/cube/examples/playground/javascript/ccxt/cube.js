@@ -316,7 +316,7 @@ async function test() {
     // await cancelOrder()
     // await fetchBalance()
     // await fetchRawOrder()
-    // await fetchOrder() // TODO improve!!!
+    await fetchOrder() // TODO improve!!!
     // await fetchOpenOrders()
     // await fetchOrders() // Broken
     // await fetchOrdersAllMarkets()
