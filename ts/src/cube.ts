@@ -11,9 +11,12 @@ import {
 } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import {
-    Balances, Currencies, Dictionary,
+    Balances,
+    Currencies,
+    Dictionary,
     IndexType,
     Int,
+    List,
     Market,
     Num,
     OHLCV,
@@ -30,7 +33,7 @@ import {
 } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { NotSupported } from '../../js/src/base/errors.js';
-import { utf8ToBytes, hexToBytes } from './static_dependencies/noble-curves/abstract/utils';
+import { utf8ToBytes, hexToBytes } from './static_dependencies/noble-curves/abstract/utils.js';
 
 // ---------------------------------------------------------------------------
 
@@ -45,7 +48,7 @@ export default class cube extends Exchange {
             'name': 'cube',
             'countries': [],
             'urls': {
-                'referral': '',
+                'referral': 'https://cube.exchange/refer/yEUAbF',
                 'logo': 'https://github.com/ccxt/ccxt/assets/43336371/3aa748b7-ea44-45e9-a9e7-b1d207a2578a',
                 'api': {
                     'rest': {
@@ -225,7 +228,7 @@ export default class cube extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
-                '1m': '1minute',
+                '1m': '1minute',  // TODO: Update this to be the same as Cube UI
                 '1h': '1hour',
                 '1d': '1day',
                 '1M': '1month',
@@ -279,14 +282,14 @@ export default class cube extends Exchange {
                     'Must be authorized': AuthenticationError,
                     'Market not found': BadRequest,
                     'Insufficient funds': InsufficientFunds,
-                    'Order not found': BadRequest,
+                    'Order not found': BadRequest,  // TODO: Add missing errors
                 },
             },
         });
     }
 
     generateSignature (): any {
-        const timestamp = Math.floor (this.now () / 1000);
+        const timestamp = Math.floor (this.seconds ());
         const timestampBuffer = this.numberToLE (timestamp, 4);
         const fixedString = utf8ToBytes ('cube.xyz');
         const payload = this.binaryConcatArray ([ fixedString, timestampBuffer ]);
@@ -305,35 +308,32 @@ export default class cube extends Exchange {
         };
     }
 
-    authenticateRequest (request: any): any {
+    authenticateRequest (request: Dictionary<any>): any {
         const headers = this.safeDict (request, 'headers', {});
         request['headers'] = this.extend (headers, this.generateAuthenticationHeaders ());
         return request;
     }
 
-    sign (path: string, api: string = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        // TODO This is a workaround to fix transpilation issues for Python!!!
-        const apiString = (api as any).join (',');
+    sign (path: string, api: Str[] = [], method: Str = 'GET', params: any = {}, headers: any = undefined, body: any = undefined) {
         const environment = this.options['environment'];
-        let baseUrl: string = undefined;
-        if (apiString.indexOf ('iridium') > -1) {
+        let baseUrl: string = this.urls['www'];
+        if (this.inArray ('iridium', api)) {
             baseUrl = this.urls['api']['rest'][environment]['iridium'];
-        } else if (apiString.indexOf ('mendelev') > -1) {
+        } else if (this.inArray ('mendelev', api)) {
             baseUrl = this.urls['api']['rest'][environment]['mendelev'];
-        } else if (apiString.indexOf ('osmium') > -1) {
+        } else if (this.inArray ('osmium', api)) {
             baseUrl = this.urls['api']['rest'][environment]['osmium'];
         }
         let url = baseUrl + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
-        // TODO This is a workaround to fix transpilation issues for Python!!!
-        if ([ 'GET', 'HEAD' ].join (',').indexOf (method) > -1) {
-            if (Object.keys (params).length) {  // TODO: Replace Object
+        if (this.inArray (method, [ 'GET', 'HEAD' ])) {
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
         } else {
             body = JSON.stringify (params);
         }
-        if (apiString.indexOf ('private') > -1) {
+        if (this.inArray ('private', api)) {
             let request = {
                 'headers': {
                     'Content-Type': 'application/json',
@@ -459,17 +459,16 @@ export default class cube extends Exchange {
         return this.parseCurrencies (assets);
     }
 
-    parseCurrencies (assets: Dictionary<any>): Currencies {
+    parseCurrencies (assets: List): Currencies {
         const result = {};
         for (let i = 0; i < assets.length; i++) {
             const rawCurrency = assets[i];
             const symbol = this.safeStringUpper (rawCurrency, 'symbol');
-            // const code = this.safeCurrencyCode (id);
-            const code = this.safeString (rawCurrency, 'assetId');
+            const assetId = this.safeString (rawCurrency, 'assetId');
             const name = this.safeString (this.safeDict (rawCurrency, 'metadata'), 'currencyName');
             const networkId = this.safeString (rawCurrency, 'sourceId');
             const networks = {};
-            networks[networkId] = networkId;
+            networks[networkId] = this.safeString (this.options['networks'], networkId);
             const currency = this.safeCurrencyStructure ({
                 'info': rawCurrency,
                 'id': symbol,
@@ -498,7 +497,7 @@ export default class cube extends Exchange {
                     },
                 },
             });
-            result[code] = currency;
+            result[assetId] = currency;
         }
         return result;
     }
@@ -574,8 +573,9 @@ export default class cube extends Exchange {
         //         ]
         //     }
         // }
-        const rawMarkets = this.safeList (this.safeDict (response, 'result'), 'markets');
-        const rawAssets = this.safeList (this.safeDict (response, 'result'), 'assets');
+        const result = this.safeDict (response, 'result');
+        const rawMarkets = this.safeList (result, 'markets');
+        const rawAssets = this.safeList (result, 'assets');
         this.currencies = this.parseCurrencies (rawAssets);
         return this.parseMarkets (rawMarkets);
     }
@@ -628,8 +628,8 @@ export default class cube extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber (this.safeString (market, 'quantityTickSize')),
-                'price': this.parseNumber (this.safeString (market, 'priceTickSize')),
+                'amount': this.safeNumber (market, 'quantityTickSize'),
+                'price': this.safeNumber (market, 'priceTickSize'),
             },
             'limits': {
                 'leverage': {
@@ -698,7 +698,7 @@ export default class cube extends Exchange {
             'bids': rawBids,
             'asks': rawAsks,
         };
-        const timestamp = this.safeTimestamp (this.safeDict (response, 'result'), 'timestamp');
+        const timestamp = this.safeTimestamp (this.safeDict (response, 'result'), 'timestamp') / 1000000;
         return this.parseOrderBook (rawOrderbook, symbol, timestamp, 'bids', 'asks');
     }
 
@@ -900,15 +900,20 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        await this.fetchMarketMeta ();
+        await this.loadMarkets ();
         const response = await this.restIridiumPrivateGetUsersPositions (params);
-        const subaccountId = this.safeInteger (this.options, 'subaccountId');
-        const allOrders = await this.fetchOrdersAllMarkets ();
-        const result = this.safeList (this.safeDict (this.safeDict (response, 'result'), subaccountId), 'inner');
-        return this.parseBalance (result, allOrders);
+        const subaccountId = this.safeString (this.options, 'subaccountId');
+        const balances = this.safeList (this.safeDict (this.safeDict (response, 'result'), subaccountId), 'inner');
+        const orders = await this.fetchOrdersAllMarkets ();
+        return this.parseBalance ({
+            'orders': orders,
+            'balances': balances,
+        });
     }
 
-    parseBalance (response: any, allOrders: any = undefined): Balances {
+    parseBalance (response) {
+        const orders = this.safeList (response, 'orders');
+        const balances = this.safeList (response, 'balances');
         const openOrders = [];
         const filledUnsettledOrders = [];
         const allMarketsByNumericId = {};
@@ -922,8 +927,8 @@ export default class cube extends Exchange {
         const free = {};
         const used = {};
         const total = {};
-        for (let i = 0; i < response.length; i++) {
-            const asset = response[i];
+        for (let i = 0; i < balances.length; i++) {
+            const asset = balances[i];
             const assetAmount = parseInt (this.safeString (asset, 'amount'));
             if (assetAmount > 0) {
                 const assetNumericId = this.safeString (asset, 'assetId');
@@ -933,8 +938,8 @@ export default class cube extends Exchange {
                 total[assetSymbol] = assetAmount / 10 ** currencyPrecision;
             }
         }
-        for (let i = 0; i < allOrders.length; i++) {
-            const order = allOrders[i];
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
             const orderStatus = this.safeString (order, 'status');
             if (orderStatus === 'open') {
                 openOrders.push (order);
@@ -1264,10 +1269,6 @@ export default class cube extends Exchange {
         //         ...
         //     ]
         //
-        for (let i = 0; i < Object.keys (orders).length; i++) {
-            const order = this.safeDict (orders, i);
-            order['id'] = this.safeString (order, 'exchangeOrderId');
-        }
         let results = [];
         if (Array.isArray (orders)) {
             for (let i = 0; i < orders.length; i++) {
@@ -1275,10 +1276,11 @@ export default class cube extends Exchange {
                 results.push (order);
             }
         } else {
-            const ids = Object.keys (orders);
-            for (let i = 0; i < ids.length; i++) {
-                const id = ids[i];
-                const order = this.extend (this.parseOrder (this.extend ({ 'id': id }, orders[id]), market), params);
+            const entries = Object.entries (orders);
+            for (let i = 0; i < entries.length; i++) {
+                const id = entries[i][0];
+                const value = entries[i][1];
+                const order = this.extend (this.parseOrder (this.extend ({ 'id': id }, value), market), params);
                 results.push (order);
             }
         }

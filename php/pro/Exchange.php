@@ -49,6 +49,7 @@ Exchange::$exchanges = array(
     'coinex',
     'coinone',
     'cryptocom',
+    'cube',
     'currencycom',
     'deribit',
     'exmo',

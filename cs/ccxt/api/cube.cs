@@ -46,14 +46,19 @@ public partial class cube : Exchange
         return await this.callAsync ("restIridiumPrivateGetUsersWithdrawals",parameters);
     }
 
-    public async Task<object> restIridiumPrivateGetUsersOrders (object parameters = null)
+    public async Task<object> restIridiumPrivateGetUsersSubaccountSubaccountIdOrders (object parameters = null)
     {
-        return await this.callAsync ("restIridiumPrivateGetUsersOrders",parameters);
+        return await this.callAsync ("restIridiumPrivateGetUsersSubaccountSubaccountIdOrders",parameters);
     }
 
-    public async Task<object> restIridiumPrivateGetUsersFills (object parameters = null)
+    public async Task<object> restIridiumPrivateGetUsersSubaccountSubaccountIdFills (object parameters = null)
     {
-        return await this.callAsync ("restIridiumPrivateGetUsersFills",parameters);
+        return await this.callAsync ("restIridiumPrivateGetUsersSubaccountSubaccountIdFills",parameters);
+    }
+
+    public async Task<object> restIridiumPrivateGetUsersFeeEstimateMarketId (object parameters = null)
+    {
+        return await this.callAsync ("restIridiumPrivateGetUsersFeeEstimateMarketId",parameters);
     }
 
     public async Task<object> restIridiumPrivatePostUsersSubaccounts (object parameters = null)
@@ -64,6 +69,11 @@ public partial class cube : Exchange
     public async Task<object> restIridiumPrivatePostUsersSubaccountsSubaccountId (object parameters = null)
     {
         return await this.callAsync ("restIridiumPrivatePostUsersSubaccountsSubaccountId",parameters);
+    }
+
+    public async Task<object> restIridiumPrivatePostUsersSubaccountsSubaccountIdWithdrawals (object parameters = null)
+    {
+        return await this.callAsync ("restIridiumPrivatePostUsersSubaccountsSubaccountIdWithdrawals",parameters);
     }
 
     public async Task<object> restMendelevPublicGetBookMarketIdSnapshot (object parameters = null)

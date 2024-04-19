@@ -21,6 +21,7 @@ interface Exchange {
     restIridiumPrivateGetUsersFeeEstimateMarketId (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivatePostUsersSubaccounts (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivatePostUsersSubaccountsSubaccountId (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivatePostUsersSubaccountsSubaccountIdWithdrawals (params?: {}): Promise<implicitReturnType>;
     restMendelevPublicGetBookMarketIdSnapshot (params?: {}): Promise<implicitReturnType>;
     restMendelevPublicGetParsedBookMarketSymbolSnapshot (params?: {}): Promise<implicitReturnType>;
     restMendelevPublicGetBookMarketIdRecentTrades (params?: {}): Promise<implicitReturnType>;

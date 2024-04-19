@@ -74,15 +74,6 @@ export default class cube extends cubeRest {
             },
         });
     }
-
-    setSandboxMode(enable) {
-        if (enable === true) {
-            this.options['environment'] = 'staging';
-        } else {
-            this.options['environment'] = 'production';
-        }
-    }
-
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
          * @method
@@ -97,9 +88,9 @@ export default class cube extends cubeRest {
         await this.loadMarkets();
         const environment = this.options['environment'];
         const marketId = symbol.toLowerCase();
-        const market = this.market (marketId);
-        symbol = this.safeSymbol (marketId, market);
-        const url = this.urls['api']['ws'][environment]['mendelev'] + this.options['api']['ws']['mendelev']['public']['orderbook'].replace(':market_id', marketId);
+        const market = this.market(marketId);
+        symbol = this.safeSymbol(marketId, market);
+        const url = this.urls['api']['ws'][environment]['mendelev'] + this.options['api']['ws']['mendelev']['public']['orderbook'];
         const requestId = '';
         const subParams = [];
         const request = {

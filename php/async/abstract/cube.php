@@ -28,17 +28,23 @@ abstract class cube extends \ccxt\async\Exchange {
     public function rest_iridium_private_get_users_withdrawals($params = array()) {
         return $this->request('/users/withdrawals', array('rest', 'iridium', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function rest_iridium_private_get_users_orders($params = array()) {
-        return $this->request('/users/orders', array('rest', 'iridium', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    public function rest_iridium_private_get_users_subaccount_subaccountid_orders($params = array()) {
+        return $this->request('/users/subaccount/{subaccountId}/orders', array('rest', 'iridium', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function rest_iridium_private_get_users_fills($params = array()) {
-        return $this->request('/users/fills', array('rest', 'iridium', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    public function rest_iridium_private_get_users_subaccount_subaccountid_fills($params = array()) {
+        return $this->request('/users/subaccount/{subaccountId}/fills', array('rest', 'iridium', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function rest_iridium_private_get_users_fee_estimate_market_id($params = array()) {
+        return $this->request('/users/fee-estimate/{market_id}', array('rest', 'iridium', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function rest_iridium_private_post_users_subaccounts($params = array()) {
         return $this->request('/users/subaccounts', array('rest', 'iridium', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function rest_iridium_private_post_users_subaccounts_subaccount_id($params = array()) {
         return $this->request('/users/subaccounts/{subaccount_id}', array('rest', 'iridium', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function rest_iridium_private_post_users_subaccounts_subaccount_id_withdrawals($params = array()) {
+        return $this->request('/users/subaccounts/{subaccount_id}/withdrawals', array('rest', 'iridium', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function rest_mendelev_public_get_book_market_id_snapshot($params = array()) {
         return $this->request('/book/{market_id}/snapshot', array('rest', 'mendelev', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -94,17 +100,23 @@ abstract class cube extends \ccxt\async\Exchange {
     public function restIridiumPrivateGetUsersWithdrawals($params = array()) {
         return $this->request('/users/withdrawals', array('rest', 'iridium', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function restIridiumPrivateGetUsersOrders($params = array()) {
-        return $this->request('/users/orders', array('rest', 'iridium', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    public function restIridiumPrivateGetUsersSubaccountSubaccountIdOrders($params = array()) {
+        return $this->request('/users/subaccount/{subaccountId}/orders', array('rest', 'iridium', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function restIridiumPrivateGetUsersFills($params = array()) {
-        return $this->request('/users/fills', array('rest', 'iridium', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    public function restIridiumPrivateGetUsersSubaccountSubaccountIdFills($params = array()) {
+        return $this->request('/users/subaccount/{subaccountId}/fills', array('rest', 'iridium', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function restIridiumPrivateGetUsersFeeEstimateMarketId($params = array()) {
+        return $this->request('/users/fee-estimate/{market_id}', array('rest', 'iridium', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function restIridiumPrivatePostUsersSubaccounts($params = array()) {
         return $this->request('/users/subaccounts', array('rest', 'iridium', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function restIridiumPrivatePostUsersSubaccountsSubaccountId($params = array()) {
         return $this->request('/users/subaccounts/{subaccount_id}', array('rest', 'iridium', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function restIridiumPrivatePostUsersSubaccountsSubaccountIdWithdrawals($params = array()) {
+        return $this->request('/users/subaccounts/{subaccount_id}/withdrawals', array('rest', 'iridium', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function restMendelevPublicGetBookMarketIdSnapshot($params = array()) {
         return $this->request('/book/{market_id}/snapshot', array('rest', 'mendelev', 'public'), 'GET', $params, null, null, array("cost" => 1));
