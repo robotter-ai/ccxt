@@ -302,7 +302,7 @@ class cube(Exchange, ImplicitAPI):
         apiString = ','.join(api)
         environment = self.options['environment']
         baseUrl: str = None
-        if apiString.find('iridium'):
+        if apiString.find('iridium')  > -1:
             baseUrl = self.urls['api']['rest'][environment]['iridium']
         elif apiString.find('mendelev') > -1:
             baseUrl = self.urls['api']['rest'][environment]['mendelev']
@@ -316,7 +316,7 @@ class cube(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(params)
         else:
             body = json.dumps(params)
-        if apiString.find('private'):
+        if apiString.find('private') > -1:
             request = {
                 'headers': {
                     'Content-Type': 'application/json',
