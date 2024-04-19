@@ -943,7 +943,7 @@ class cube(Exchange, ImplicitAPI):
         marketId = self.safe_string(meta, 'marketId')
         market = self.safe_dict(meta, 'market')
         rawMarketId = self.safe_integer(self.safe_dict(market, 'info'), 'marketId')
-        exchangePrice = int(price * 100)
+        exchangePrice = int(price * 100) if price else None
         exchangeAmount = int(amount * 100)
         exchangeOrderType = None
         if type == 'limit':
@@ -968,7 +968,6 @@ class cube(Exchange, ImplicitAPI):
             'clientOrderId': clientOrderId,
             'requestId': self.safe_integer(params, 'requestId', 1),
             'marketId': rawMarketId,
-            'price': exchangePrice,
             'quantity': exchangeAmount,
             'side': exchangeOrderSide,
             'timeInForce': self.safe_integer(params, 'timeInForce', 1),
@@ -977,6 +976,8 @@ class cube(Exchange, ImplicitAPI):
             'postOnly': self.safe_integer(params, 'postOnly', 0),
             'cancelOnDisconnect': self.safe_bool(params, 'cancelOnDisconnect', False),
         }
+        if price:
+            request['price'] = exchangeOrderSide
         self.inject_sub_account_id(request, params)
         response = self.restOsmiumPrivatePostOrder(self.extend(request, params))
         order = self.safe_dict(self.safe_dict(response, 'result'), 'Ack')
