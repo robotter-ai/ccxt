@@ -592,12 +592,14 @@ export default class cube extends Exchange {
     parseMarket (market: Dictionary<any>): Market {
         const id = this.safeStringLower (market, 'symbol');
         const symbol = id.toUpperCase ();
-        const rawBaseAsset = this.currencies[this.safeInteger (market, 'baseAssetId')];
-        const rawQuoteAsset = this.currencies[this.safeInteger (market, 'quoteAssetId')];
-        const baseId = this.safeStringUpper (rawBaseAsset, 'symbol');
-        const quoteId = this.safeStringUpper (rawQuoteAsset, 'symbol');
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
+        const baseAssetId = this.safeString (market, 'baseAssetId');
+        const baseAsset = this.safeDict (this.currencies, baseAssetId);
+        const quoteAssetId = this.safeString (market, 'quoteAssetId');
+        const quoteAsset = this.safeDict (this.currencies, quoteAssetId);
+        const base = this.safeStringUpper (baseAsset, 'id');
+        const quote = this.safeStringUpper (quoteAsset, 'id');
+        const baseId = base.toLowerCase ();
+        const quoteId = quote.toLowerCase ();
         return this.safeMarketStructure ({
             'id': id,
             'lowercaseId': id.toLowerCase (),
