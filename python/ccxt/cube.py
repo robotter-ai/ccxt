@@ -1190,7 +1190,7 @@ class cube(Exchange, ImplicitAPI):
         # transactionType = ''
         fetchedOrder = self.safe_dict(order, 'fetchedOrder')
         mainOrderObject = {}
-        if order['cancellationResponse'] is not None:
+        if order.get('cancellationResponse') is not None:
             # transactionType = 'cancellation'
             mainOrderObject = self.safe_dict(order, 'cancellationResponse')
         else:
