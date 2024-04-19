@@ -844,14 +844,14 @@ class cube(Exchange, ImplicitAPI):
         response = self.restIridiumPrivateGetUsersPositions(params)
         subaccountId = self.safe_integer(self.options, 'subaccountId')
         allOrders = self.fetch_orders_all_markets()
-        result = self.safe_list(self.safe_dict(self.safe_dict(response, 'result'), subaccountId), 'inner')
+        result = self.safe_list(self.safe_dict(self.safe_dict(response, 'result'), str(subaccountId)), 'inner')
         return self.parse_balance(result, allOrders)
 
     def parse_balance(self, response: Any, allOrders: Any = None) -> Balances:
         openOrders = []
         filledUnsettledOrders = []
         allMarketsByNumericId = {}
-        for i in range(0, self.markets_by_id):
+        for i in range(0, len(self.markets_by_id)):
             marketArrayItem = list(self.markets_by_id.values())[i]
             market = marketArrayItem[0]
             marketInfo = self.safe_dict(market, 'info')
@@ -916,12 +916,12 @@ class cube(Exchange, ImplicitAPI):
             'used': used,
             'total': total,
         }
-        for i in range(0, total):
+        for i in range(0, len(total)):
             assetSymbol = list(total.keys())[i]
             assetBalances = {
-                'free': free[assetSymbol],
-                'used': used[assetSymbol],
-                'total': total[assetSymbol],
+                'free': free.get(assetSymbol),
+                'used': used.get(assetSymbol),
+                'total': total.get(assetSymbol),
             }
             result[assetSymbol] = assetBalances
         return self.safe_balance(result)
