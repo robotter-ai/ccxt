@@ -265,9 +265,9 @@ class cube extends Exchange {
     public function generate_signature(): mixed {
         $timestamp = (int) floor($this->now() / 1000);
         $timestampBuffer = $this->number_to_le($timestamp, 4);
-        $fixedString = 'cube.xyz';
+        $fixedString = utf8ToBytes ('cube.xyz');
         $payload = $this->binary_concat_array(array( $fixedString, $timestampBuffer ));
-        $secretKeyBytes = base64_decode(base64_encode($this->secret));
+        $secretKeyBytes = hexToBytes ($this->secret);
         $hmac = $this->hmac($payload, $secretKeyBytes, 'sha256', 'binary');
         $signatureB64 = $this->binary_to_base64($hmac);
         return array( $signatureB64, $timestamp );
@@ -339,7 +339,7 @@ class cube extends Exchange {
             Async\await($this->load_markets());
             if ($symbolOrSymbols !== null) {
                 if (gettype($symbolOrSymbols) === 'string') {
-                    $marketId = str_replace('/', '', strtolower($symbolOrSymbols));
+                    $marketId = str_replace('/', '', strtoupper($symbolOrSymbols));
                     $market = $this->market($marketId);
                     $marketId = $market->id;
                     $symbolOrSymbols = $this->safe_symbol($marketId, $market);
@@ -356,7 +356,7 @@ class cube extends Exchange {
                     $marketIds = array();
                     $markets = array();
                     for ($i = 0; $i < count($symbolOrSymbols); $i++) {
-                        $marketId = str_replace('/', '', strtolower($symbolOrSymbols[$i]));
+                        $marketId = str_replace('/', '', strtoupper($symbolOrSymbols[$i]));
                         $market = $this->market($marketId);
                         $marketId = $market->id;
                         $symbolOrSymbols[$i] = $this->safe_symbol($marketId, $market);
@@ -567,6 +567,7 @@ class cube extends Exchange {
 
     public function parse_market(array $market): array {
         $id = $this->safe_string_lower($market, 'symbol');
+        $symbol = strtoupper($id);
         $rawBaseAsset = $this->currencies[$this->safe_integer($market, 'baseAssetId')];
         $rawQuoteAsset = $this->currencies[$this->safe_integer($market, 'quoteAssetId')];
         $baseId = $this->safe_string_upper($rawBaseAsset, 'symbol');
@@ -575,8 +576,8 @@ class cube extends Exchange {
         $quote = $this->safe_currency_code($quoteId);
         return $this->safe_market_structure(array(
             'id' => $id,
-            'lowercaseId' => $id,
-            'symbol' => $base . '/' . $quote,
+            'lowercaseId' => strtolower($id),
+            'symbol' => $symbol,
             'base' => $base,
             'quote' => $quote,
             'settle' => null,
@@ -751,7 +752,7 @@ class cube extends Exchange {
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
             $meta = Async\await($this->fetch_market_meta($symbols));
-            $symbols = $this->safe_string($meta, 'symbols');
+            $symbols = $this->safe_list($meta, 'symbols');
             $response = Async\await($this->restMendelevPublicGetParsedTickers ($params));
             //
             //  {
@@ -777,7 +778,7 @@ class cube extends Exchange {
             $result = array();
             for ($i = 0; $i < count($rawTickers); $i++) {
                 $rawTicker = $rawTickers[$i];
-                $marketId = strtolower($this->market_id($this->safe_string($rawTicker, 'ticker_id')));
+                $marketId = str_replace('/', '', strtoupper($this->market_id($this->safe_string($rawTicker, 'ticker_id'))));
                 $market = $this->market($marketId);
                 $symbol = $this->safe_string($market, 'symbol');
                 $ticker = $this->parse_ticker($rawTicker, $market);
@@ -787,7 +788,7 @@ class cube extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -1086,7 +1087,7 @@ class cube extends Exchange {
         }) ();
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
@@ -1379,7 +1380,7 @@ class cube extends Exchange {
         }) ();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -1517,7 +1518,7 @@ class cube extends Exchange {
         ), $market);
     }
 
-    public function fetch_trading_fee($symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -1556,7 +1557,7 @@ class cube extends Exchange {
         throw new NotSupported($this->id . ' fetchMyTrades() is not supported yet');
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             if ($this->has['fetchOrders']) {
                 $orders = Async\await($this->fetch_orders($symbol, $since, $limit, $params));
