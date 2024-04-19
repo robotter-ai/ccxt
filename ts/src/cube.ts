@@ -30,6 +30,7 @@ import {
 } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { NotSupported } from '../../js/src/base/errors.js';
+import { utf8ToBytes, hexToBytes } from './static_dependencies/noble-curves/abstract/utils';
 
 // ---------------------------------------------------------------------------
 
@@ -287,9 +288,9 @@ export default class cube extends Exchange {
     generateSignature (): any {
         const timestamp = Math.floor (this.now () / 1000);
         const timestampBuffer = this.numberToLE (timestamp, 4);
-        const fixedString = 'cube.xyz';
+        const fixedString = utf8ToBytes ('cube.xyz');
         const payload = this.binaryConcatArray ([ fixedString, timestampBuffer ]);
-        const secretKeyBytes = this.base64ToBinary (this.stringToBase64 (this.secret));
+        const secretKeyBytes = hexToBytes (this.secret);
         const hmac = this.hmac (payload, secretKeyBytes, sha256, 'binary');
         const signatureB64 = this.binaryToBase64 (hmac);
         return [ signatureB64, timestamp ];

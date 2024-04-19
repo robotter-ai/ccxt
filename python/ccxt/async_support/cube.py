@@ -8,7 +8,7 @@ from ccxt.abstract.cube import ImplicitAPI
 import hashlib
 import math
 import json
-from ccxt.base.types import Balances, Currencies, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, TradingFeeInterface, Transaction
 from typing import List
 from typing import Any
 from ccxt.base.errors import BadRequest
@@ -271,9 +271,9 @@ class cube(Exchange, ImplicitAPI):
     def generate_signature(self) -> Any:
         timestamp = int(math.floor(self.now()) / 1000)
         timestampBuffer = self.number_to_le(timestamp, 4)
-        fixedString = 'cube.xyz'
+        fixedString = utf8ToBytes('cube.xyz')
         payload = self.binary_concat_array([fixedString, timestampBuffer])
-        secretKeyBytes = self.base64_to_binary(self.string_to_base64(self.secret))
+        secretKeyBytes = hexToBytes(self.secret)
         hmac = self.hmac(payload, secretKeyBytes, hashlib.sha256, 'binary')
         signatureB64 = self.binary_to_base64(hmac)
         return [signatureB64, timestamp]
@@ -334,7 +334,7 @@ class cube(Exchange, ImplicitAPI):
         await self.load_markets()
         if symbolOrSymbols is not None:
             if isinstance(symbolOrSymbols, str):
-                marketId = symbolOrSymbols.lower().replace('/', '')
+                marketId = symbolOrSymbols.upper().replace('/', '')
                 market = self.market(marketId)
                 marketId = market.id
                 symbolOrSymbols = self.safe_symbol(marketId, market)
@@ -351,7 +351,7 @@ class cube(Exchange, ImplicitAPI):
                 marketIds = []
                 markets = []
                 for i in range(0, len(symbolOrSymbols)):
-                    marketId = symbolOrSymbols[i].lower().replace('/', '')
+                    marketId = symbolOrSymbols[i].upper().replace('/', '')
                     market = self.market(marketId)
                     marketId = market.id
                     symbolOrSymbols[i] = self.safe_symbol(marketId, market)
@@ -545,6 +545,7 @@ class cube(Exchange, ImplicitAPI):
 
     def parse_market(self, market: dict) -> Market:
         id = self.safe_string_lower(market, 'symbol')
+        symbol = id.upper()
         rawBaseAsset = self.currencies[self.safe_integer(market, 'baseAssetId')]
         rawQuoteAsset = self.currencies[self.safe_integer(market, 'quoteAssetId')]
         baseId = self.safe_string_upper(rawBaseAsset, 'symbol')
@@ -553,8 +554,8 @@ class cube(Exchange, ImplicitAPI):
         quote = self.safe_currency_code(quoteId)
         return self.safe_market_structure({
             'id': id,
-            'lowercaseId': id,
-            'symbol': base + '/' + quote,
+            'lowercaseId': id.lower(),
+            'symbol': symbol,
             'base': base,
             'quote': quote,
             'settle': None,
@@ -718,7 +719,7 @@ class cube(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         meta = await self.fetch_market_meta(symbols)
-        symbols = self.safe_string(meta, 'symbols')
+        symbols = self.safe_list(meta, 'symbols')
         response = await self.restMendelevPublicGetParsedTickers(params)
         #
         #  {
@@ -744,14 +745,14 @@ class cube(Exchange, ImplicitAPI):
         result = {}
         for i in range(0, len(rawTickers)):
             rawTicker = rawTickers[i]
-            marketId = self.market_id(self.safe_string(rawTicker, 'ticker_id').lower())
+            marketId = self.market_id(self.safe_string(rawTicker, 'ticker_id').upper().replace('/', ''))
             market = self.market(marketId)
             symbol = self.safe_string(market, 'symbol')
             ticker = self.parse_ticker(rawTicker, market)
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://cubexch.gitbook.io/cube-api/rest-mendelev-api#parsed-tickers
@@ -1018,7 +1019,7 @@ class cube(Exchange, ImplicitAPI):
         # TODO wrong response, it is needed to return the cancelled ordersnot !!
         return await self.restOsmiumPrivateDeleteOrders(self.extend(request, params))
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetches information on an order made by the user
         :see: https://cubexch.gitbook.io/cube-api/rest-osmium-api#orders
@@ -1284,7 +1285,7 @@ class cube(Exchange, ImplicitAPI):
         rawOrders = self.safe_list(self.safe_dict(response, 'result'), 'orders')
         return rawOrders
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://cubexch.gitbook.io/cube-api/rest-mendelev-api#book-market_id-recent-trades
@@ -1414,7 +1415,7 @@ class cube(Exchange, ImplicitAPI):
             ],
         }, market)
 
-    async def fetch_trading_fee(self, symbol, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
         :see: https://cubexch.gitbook.io/cube-api/rest-iridium-api#users-fee-estimate-market-id
@@ -1449,7 +1450,7 @@ class cube(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         raise NotSupported(self.id + ' fetchMyTrades() is not supported yet')
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         if self.has['fetchOrders']:
             orders = await self.fetch_orders(symbol, since, limit, params)
             return self.filter_by(orders, 'status', 'closed')
