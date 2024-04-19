@@ -256,15 +256,12 @@ export default class cube extends Exchange {
         });
     }
     generateSignature() {
-        const timestamp = Math.floor(this.milliseconds() / 1000);
-        const timestampBuffer = Buffer.alloc(8);
-        timestampBuffer.writeUInt32LE(timestamp, 0);
-        const fixedString = 'cube.xyz';
-        const payload = Buffer.concat([Buffer.from(fixedString, 'utf-8'), timestampBuffer]);
-        const secretKeyBytes = Buffer.from(this.secret, 'hex');
-        const hmac = this.hmac(payload, secretKeyBytes, sha256, 'binary');
-        const signatureB64 = Buffer.from(hmac).toString('base64');
-        return [signatureB64, timestamp];
+        const timestamp = this.seconds();
+        const timestampBytes = this.numberToLE(timestamp, 8);
+        const secretKeyBytes = this.base16ToBinary(this.secret);
+        const message = this.binaryConcat(this.encode('cube.xyz'), timestampBytes);
+        const signature = this.hmac(message, secretKeyBytes, sha256, 'base64');
+        return [signature, timestamp];
     }
     generateAuthenticationHeaders() {
         const [signature, timestamp] = this.generateSignature();

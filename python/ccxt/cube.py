@@ -270,9 +270,10 @@ class cube(Exchange, ImplicitAPI):
 
     def generate_signature(self) -> Any:
         timestamp = self.seconds()
-        timestamp_bytes = self.number_to_le(timestamp, 8)
-        secret_key_bytes = self.base16_to_binary(self.secret)
-        signature = self.hmac(self.binaryConcat(self.encode("cube.xyz"), timestamp_bytes), secret_key_bytes, hashlib.sha256, 'base64')
+        timestampBytes = self.number_to_le(timestamp, 8)
+        secretKeyBytes = self.base16_to_binary(self.secret)
+        message = self.binary_concat(self.encode('cube.xyz'), timestampBytes)
+        signature = self.hmac(message, secretKeyBytes, hashlib.sha256, 'base64')
         return [signature, timestamp]
 
     def generate_authentication_headers(self):
