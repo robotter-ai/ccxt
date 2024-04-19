@@ -30,6 +30,7 @@ import {
 } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { NotSupported } from '../../js/src/base/errors.js';
+import { utf8ToBytes, hexToBytes } from './static_dependencies/noble-curves/abstract/utils';
 
 // ---------------------------------------------------------------------------
 
@@ -285,14 +286,13 @@ export default class cube extends Exchange {
     }
 
     generateSignature (): any {
-        const timestamp = Math.floor (this.milliseconds () / 1000);
-        const timestampBuffer = Buffer.alloc (8);
-        timestampBuffer.writeUInt32LE (timestamp, 0);
-        const fixedString = 'cube.xyz';
-        const payload = Buffer.concat ([ Buffer.from (fixedString, 'utf-8'), timestampBuffer ]);
-        const secretKeyBytes = Buffer.from (this.secret, 'hex');
+        const timestamp = Math.floor (this.now () / 1000);
+        const timestampBuffer = this.numberToLE (timestamp, 4);
+        const fixedString = utf8ToBytes ('cube.xyz');
+        const payload = this.binaryConcatArray ([ fixedString, timestampBuffer ]);
+        const secretKeyBytes = hexToBytes (this.secret);
         const hmac = this.hmac (payload, secretKeyBytes, sha256, 'binary');
-        const signatureB64 = Buffer.from (hmac).toString ('base64');
+        const signatureB64 = this.binaryToBase64 (hmac);
         return [ signatureB64, timestamp ];
     }
 
@@ -311,29 +311,26 @@ export default class cube extends Exchange {
         return request;
     }
 
-    sign (path: string, api: string = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        // TODO This is a workaround to fix transpilation issues for Python!!!
-        const apiString = (api as any).join (',');
+    sign (path: string, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const environment = this.options['environment'];
         let baseUrl: string = undefined;
-        if (apiString.indexOf ('iridium') > -1) {
+        if (api.indexOf ('iridium') >= 0) {
             baseUrl = this.urls['api']['rest'][environment]['iridium'];
-        } else if (apiString.indexOf ('mendelev') > -1) {
+        } else if (api.indexOf ('mendelev') >= 0) {
             baseUrl = this.urls['api']['rest'][environment]['mendelev'];
-        } else if (apiString.indexOf ('osmium') > -1) {
+        } else if (api.indexOf ('osmium') >= 0) {
             baseUrl = this.urls['api']['rest'][environment]['osmium'];
         }
         let url = baseUrl + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
-        // TODO This is a workaround to fix transpilation issues for Python!!!
-        if ([ 'GET', 'HEAD' ].join (',').indexOf (method) > -1) {
+        if ([ 'GET', 'HEAD' ].indexOf (method) >= 0) {
             if (Object.keys (params).length) {  // TODO: Replace Object
                 url += '?' + this.urlencode (params);
             }
         } else {
             body = JSON.stringify (params);
         }
-        if (apiString.indexOf ('private') > -1) {
+        if (api.indexOf ('private') >= 0) {
             let request = {
                 'headers': {
                     'Content-Type': 'application/json',
