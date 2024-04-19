@@ -314,9 +314,9 @@ async function test() {
     // await fetchTradingFee()
     // await createOrder() 
     // await cancelOrder()
-    // await fetchBalance() // TODO fix!!!
+    // await fetchBalance()
     // await fetchRawOrder()
-     await fetchOrder() // TODO improve!!!
+    // await fetchOrder() // TODO improve!!!
     // await fetchOpenOrders()
     // await fetchOrders() // Broken
     // await fetchOrdersAllMarkets()
