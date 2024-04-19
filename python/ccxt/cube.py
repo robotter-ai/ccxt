@@ -1197,6 +1197,10 @@ class cube(Exchange, ImplicitAPI):
             # transactionType = 'creation'
             mainOrderObject = self.safe_dict(order, 'order')
         timestampInNanoseconds = self.safe_number(self.safe_dict(self.safe_dict(mainOrderObject, 'result'), 'Ack'), 'transactTime')
+        if timestampInNanoseconds is None:
+            timestampInNanoseconds = self.safe_number(mainOrderObject, 'transactTime')
+        if timestampInNanoseconds is None:
+            timestampInNanoseconds = self.safe_number(fetchedOrder, 'restTime')
         timestampInMilliseconds = timestampInNanoseconds / 1000000
         # orderStatus = ''  # TODO fix not !!
         # if list(fetchedOrder).'length == 0.keys():
