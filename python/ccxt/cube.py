@@ -1126,7 +1126,13 @@ class cube(Exchange, ImplicitAPI):
         # }
         #
         result = self.safe_list(self.safe_dict(rawResponse, 'result'), 'orders')
-        return self.safe_value(result, 0)
+        order = None
+        for i in range(0, len(result)):
+            order_oxchange_id = self.safe_string(result[i], 'exchangeOrderId')
+            if id == order_oxchange_id:
+                order = result[i]
+                break
+        return order
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
