@@ -2188,6 +2188,20 @@ public partial class Exchange
         return result;
     }
 
+    public virtual object marketsForSymbols(object symbols = null)
+    {
+        if (isTrue(isEqual(symbols, null)))
+        {
+            return symbols;
+        }
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            ((IList<object>)result).Add(this.market(getValue(symbols, i)));
+        }
+        return result;
+    }
+
     public virtual object marketSymbols(object symbols = null, object type = null, object allowEmpty = null, object sameTypeOnly = null, object sameSubTypeOnly = null)
     {
         allowEmpty ??= true;
@@ -3381,12 +3395,28 @@ public partial class Exchange
         return result;
     }
 
-    public virtual object handleMarketTypeAndParams(object methodName, object market = null, object parameters = null)
+    public virtual object handleMarketTypeAndParams(object methodName, object market = null, object parameters = null, object defaultValue = null)
     {
+        /**
+        * @ignore
+        * @method
+        * @name exchange#handleMarketTypeAndParams
+        * @param methodName the method calling handleMarketTypeAndParams
+        * @param {Market} market
+        * @param {object} params
+        * @param {string} [params.type] type assigned by user
+        * @param {string} [params.defaultType] same as params.type
+        * @param {string} [defaultValue] assigned programatically in the method calling handleMarketTypeAndParams
+        * @returns {[string, object]} the market type and params with type and defaultType omitted
+        */
         parameters ??= new Dictionary<string, object>();
         object defaultType = this.safeString2(this.options, "defaultType", "type", "spot");
+        if (isTrue(isEqual(defaultValue, null)))
+        {
+            defaultValue = defaultType;
+        }
         object methodOptions = this.safeDict(this.options, methodName);
-        object methodType = defaultType;
+        object methodType = defaultValue;
         if (isTrue(!isEqual(methodOptions, null)))
         {
             if (isTrue((methodOptions is string)))
@@ -3920,6 +3950,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " cancelAllOrders() is not supported yet")) ;
     }
 
+    public async virtual Task<object> cancelOrdersForSymbols(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " cancelOrdersForSymbols() is not supported yet")) ;
+    }
+
     public async virtual Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -4056,6 +4092,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchOption() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchConvertQuote() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
@@ -4823,6 +4865,12 @@ public partial class Exchange
         }
         object fees = await this.fetchTradingFees(parameters);
         return this.safeDict(fees, symbol);
+    }
+
+    public async virtual Task<object> fetchConvertCurrencies(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchConvertCurrencies() is not supported yet")) ;
     }
 
     public virtual object parseOpenInterest(object interest, object market = null)
@@ -5732,7 +5780,12 @@ public partial class Exchange
 
     public virtual object parseLeverage(object leverage, object market = null)
     {
-        throw new NotSupported ((string)add(this.id, " parseLeverage() is not supported yet")) ;
+        throw new NotSupported ((string)add(this.id, " parseLeverage () is not supported yet")) ;
+    }
+
+    public virtual object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    {
+        throw new NotSupported ((string)add(this.id, " parseConversion () is not supported yet")) ;
     }
 
     public virtual object convertExpireDate(object date)

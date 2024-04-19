@@ -3,8 +3,8 @@ import { // eslint-disable-line object-curly-newline
 ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotAvailable, RateLimitExceeded } from "./errors.js";
 import WsClient from './ws/WsClient.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest } from './types.js';
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion } from './types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { OrderBook as Ob } from './ws/OrderBook.js';
 /**
@@ -348,6 +348,8 @@ export default class Exchange {
             fetchClosedOrder: any;
             fetchClosedOrders: any;
             fetchClosedOrdersWs: any;
+            fetchConvertCurrencies: any;
+            fetchConvertQuote: any;
             fetchCrossBorrowRate: any;
             fetchCrossBorrowRates: any;
             fetchCurrencies: string;
@@ -776,6 +778,7 @@ export default class Exchange {
     convertOHLCVToTradingView(ohlcvs: number[][], timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): {};
     fetchWebEndpoint(method: any, endpointMethod: any, returnAsJson: any, startRegex?: any, endRegex?: any): Promise<any>;
     marketIds(symbols?: Strings): any[];
+    marketsForSymbols(symbols?: Strings): any[];
     marketSymbols(symbols?: Strings, type?: Str, allowEmpty?: boolean, sameTypeOnly?: boolean, sameSubTypeOnly?: boolean): any[];
     marketCodes(codes?: Strings): any[];
     parseBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): any[];
@@ -857,7 +860,7 @@ export default class Exchange {
     handleOptionAndParams(params: object, methodName: string, optionName: string, defaultValue?: any): any[];
     handleOptionAndParams2(params: object, methodName: string, methodName2: string, optionName: string, defaultValue?: any): any[];
     handleOption(methodName: string, optionName: string, defaultValue?: any): any;
-    handleMarketTypeAndParams(methodName: string, market?: Market, params?: {}): any;
+    handleMarketTypeAndParams(methodName: string, market?: Market, params?: {}, defaultValue?: any): any;
     handleSubTypeAndParams(methodName: string, market?: any, params?: {}, defaultValue?: any): any[];
     handleMarginModeAndParams(methodName: string, params?: {}, defaultValue?: any): any[];
     throwExactlyMatchedException(exact: any, string: any, message: any): void;
@@ -891,6 +894,7 @@ export default class Exchange {
     cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<{}>;
     cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<{}>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<{}>;
+    cancelOrdersForSymbols(orders: CancellationRequest[], params?: {}): Promise<{}>;
     cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<{}>;
     cancelUnifiedOrder(order: any, params?: {}): Promise<{}>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -910,6 +914,7 @@ export default class Exchange {
     fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
     fetchOptionChain(code: string, params?: {}): Promise<OptionChain>;
     fetchOption(symbol: string, params?: {}): Promise<Option>;
+    fetchConvertQuote(fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposits(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
@@ -974,6 +979,7 @@ export default class Exchange {
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     fetchTradingFeesWs(params?: {}): Promise<TradingFees>;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
+    fetchConvertCurrencies(params?: {}): Promise<Currencies>;
     parseOpenInterest(interest: any, market?: Market): OpenInterest;
     parseOpenInterests(response: any, market?: any, since?: Int, limit?: Int): OpenInterest[];
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
@@ -1015,6 +1021,7 @@ export default class Exchange {
     parseMarginMode(marginMode: any, market?: Market): MarginMode;
     parseLeverages(response: object[], symbols?: string[], symbolKey?: Str, marketType?: MarketType): Leverages;
     parseLeverage(leverage: any, market?: Market): Leverage;
+    parseConversion(conversion: any, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
     convertExpireDate(date: string): string;
     convertExpireDateToMarketIdDate(date: string): string;
     convertMarketIdExpireDate(date: string): string;

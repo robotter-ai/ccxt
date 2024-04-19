@@ -29,6 +29,7 @@ public partial class binance : Exchange
                 { "cancelOrders", true },
                 { "closeAllPositions", false },
                 { "closePosition", false },
+                { "createConvertTrade", true },
                 { "createDepositAddress", false },
                 { "createLimitBuyOrder", true },
                 { "createLimitSellOrder", true },
@@ -60,6 +61,8 @@ public partial class binance : Exchange
                 { "fetchCanceledOrders", "emulated" },
                 { "fetchClosedOrder", false },
                 { "fetchClosedOrders", "emulated" },
+                { "fetchConvertCurrencies", true },
+                { "fetchConvertQuote", false },
                 { "fetchCrossBorrowRate", true },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
@@ -1017,6 +1020,7 @@ public partial class binance : Exchange
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "order/oco", 0.2 },
+                        { "orderList/oco", 0.2 },
                         { "sor/order", 0.2 },
                         { "sor/order/test", 0.2 },
                         { "order", 0.2 },
@@ -4246,12 +4250,15 @@ public partial class binance : Exchange
             { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
             { "limit", limit },
         };
+        object marketId = getValue(market, "id");
         if (isTrue(isEqual(price, "index")))
         {
-            ((IDictionary<string,object>)request)["pair"] = getValue(market, "id"); // Index price takes this argument instead of symbol
+            object parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            object pair = this.safeString(parts, 0);
+            ((IDictionary<string,object>)request)["pair"] = pair; // Index price takes this argument instead of symbol
         } else
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = marketId;
         }
         // const duration = this.parseTimeframe (timeframe);
         if (isTrue(!isEqual(since, null)))
@@ -5898,7 +5905,7 @@ public partial class binance : Exchange
             {
                 response = await this.dapiPrivatePostOrder(request);
             }
-        } else if (isTrue(isTrue(isEqual(marketType, "margin")) || isTrue(!isEqual(marginMode, null))))
+        } else if (isTrue(isTrue(isTrue(isEqual(marketType, "margin")) || isTrue(!isEqual(marginMode, null))) || isTrue(isPortfolioMargin)))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -6017,17 +6024,6 @@ public partial class binance : Exchange
                 uppercaseType = ((bool) isTrue(getValue(market, "contract"))) ? "TAKE_PROFIT" : "TAKE_PROFIT_LIMIT";
             }
         }
-        if (isTrue(isTrue((isEqual(marketType, "spot"))) || isTrue((isEqual(marketType, "margin")))))
-        {
-            ((IDictionary<string,object>)request)["newOrderRespType"] = this.safeString(getValue(this.options, "newOrderRespType"), type, "RESULT"); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-        } else
-        {
-            // swap, futures and options
-            if (!isTrue(isPortfolioMargin))
-            {
-                ((IDictionary<string,object>)request)["newOrderRespType"] = "RESULT"; // "ACK", "RESULT", default "ACK"
-            }
-        }
         if (isTrue(getValue(market, "option")))
         {
             if (isTrue(isEqual(type, "market")))
@@ -6075,6 +6071,15 @@ public partial class binance : Exchange
                     ((IDictionary<string,object>)request)["isIsolated"] = true;
                 }
             }
+        }
+        // handle newOrderRespType response type
+        if (isTrue(isTrue((isTrue((isEqual(marketType, "spot"))) || isTrue((isEqual(marketType, "margin"))))) && !isTrue(isPortfolioMargin)))
+        {
+            ((IDictionary<string,object>)request)["newOrderRespType"] = this.safeString(getValue(this.options, "newOrderRespType"), type, "FULL"); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        } else
+        {
+            // swap, futures and options
+            ((IDictionary<string,object>)request)["newOrderRespType"] = "RESULT"; // "ACK", "RESULT", default "ACK"
         }
         object typeRequest = ((bool) isTrue(isPortfolioMarginConditional)) ? "strategyType" : "type";
         ((IDictionary<string,object>)request)[(string)typeRequest] = uppercaseType;
@@ -6813,7 +6818,7 @@ public partial class binance : Exchange
             {
                 response = await this.dapiPrivateGetOpenOrders(this.extend(request, parameters));
             }
-        } else if (isTrue(isTrue(isEqual(type, "margin")) || isTrue(!isEqual(marginMode, null))))
+        } else if (isTrue(isTrue(isTrue(isEqual(type, "margin")) || isTrue(!isEqual(marginMode, null))) || isTrue(isPortfolioMargin)))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -7373,7 +7378,7 @@ public partial class binance : Exchange
             {
                 response = await this.dapiPrivateDeleteAllOpenOrders(this.extend(request, parameters));
             }
-        } else if (isTrue(isTrue((isEqual(type, "margin"))) || isTrue((!isEqual(marginMode, null)))))
+        } else if (isTrue(isTrue(isTrue((isEqual(type, "margin"))) || isTrue((!isEqual(marginMode, null)))) || isTrue(isPortfolioMargin)))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -13307,5 +13312,124 @@ public partial class binance : Exchange
         //
         object modifications = this.parseMarginModifications(response);
         return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
+    }
+
+    public async override Task<object> fetchConvertCurrencies(object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchConvertCurrencies
+        * @description fetches all available currencies that can be converted
+        * @see https://binance-docs.github.io/apidocs/spot/en/#query-order-quantity-precision-per-asset-user_data
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an associative dictionary of currencies
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.sapiGetConvertAssetInfo(parameters);
+        //
+        //     [
+        //         {
+        //             "asset": "BTC",
+        //             "fraction": 8
+        //         },
+        //     ]
+        //
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object entry = getValue(response, i);
+            object id = this.safeString(entry, "asset");
+            object code = this.safeCurrencyCode(id);
+            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                { "info", entry },
+                { "id", id },
+                { "code", code },
+                { "networks", null },
+                { "type", null },
+                { "name", null },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
+                { "fee", null },
+                { "precision", this.safeInteger(entry, "fraction") },
+                { "limits", new Dictionary<string, object>() {
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "created", null },
+            };
+        }
+        return result;
+    }
+
+    public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#createConvertTrade
+        * @description convert from one currency to another
+        * @see https://binance-docs.github.io/apidocs/spot/en/#busd-convert-trade
+        * @param {string} id the id of the trade that you want to make
+        * @param {string} fromCode the currency that you want to sell and convert from
+        * @param {string} toCode the currency that you want to buy and convert into
+        * @param {float} [amount] how much you want to trade in units of the from currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "clientTranId", id },
+            { "asset", fromCode },
+            { "targetAsset", toCode },
+            { "amount", amount },
+        };
+        object response = await this.sapiPostAssetConvertTransfer(this.extend(request, parameters));
+        //
+        //     {
+        //         "tranId": 118263407119,
+        //         "status": "S"
+        //     }
+        //
+        object fromCurrency = this.currency(fromCode);
+        object toCurrency = this.currency(toCode);
+        return this.parseConversion(response, fromCurrency, toCurrency);
+    }
+
+    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    {
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "tranId": 118263407119,
+        //         "status": "S"
+        //     }
+        //
+        object fromCode = this.safeCurrencyCode(null, fromCurrency);
+        object toCode = this.safeCurrencyCode(null, toCurrency);
+        return new Dictionary<string, object>() {
+            { "info", conversion },
+            { "timestamp", null },
+            { "datetime", null },
+            { "id", this.safeString(conversion, "tranId") },
+            { "fromCurrency", fromCode },
+            { "fromAmount", null },
+            { "toCurrency", toCode },
+            { "toAmount", null },
+            { "price", null },
+            { "fee", null },
+        };
     }
 }

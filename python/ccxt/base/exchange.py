@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.93'
+__version__ = '4.3.2'
 
 # -----------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings
+from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings, CancellationRequest
 
 # -----------------------------------------------------------------------------
 
@@ -1341,7 +1341,7 @@ class Exchange(object):
             signature = Exchange.base64_to_binary(Exchange.rsa(token, Exchange.decode(secret), algorithm))
         elif algoType == 'ES':
             rawSignature = Exchange.ecdsa(token, secret, 'p256', algorithm)
-            signature = Exchange.base16_to_binary(rawSignature['r'] + rawSignature['s'])
+            signature = Exchange.base16_to_binary(rawSignature['r'].rjust(64, "0") + rawSignature['s'].rjust(64, "0"))
         else:
             signature = Exchange.hmac(Exchange.encode(token), secret, algos[algorithm], 'binary')
         return token + '.' + Exchange.base64urlencode(signature)
@@ -3225,6 +3225,14 @@ class Exchange(object):
             result.append(self.market_id(symbols[i]))
         return result
 
+    def markets_for_symbols(self, symbols: Strings = None):
+        if symbols is None:
+            return symbols
+        result = []
+        for i in range(0, len(symbols)):
+            result.append(self.market(symbols[i]))
+        return result
+
     def market_symbols(self, symbols: Strings = None, type: Str = None, allowEmpty=True, sameTypeOnly=False, sameSubTypeOnly=False):
         if symbols is None:
             if not allowEmpty:
@@ -3963,11 +3971,23 @@ class Exchange(object):
         result, empty = self.handle_option_and_params({}, methodName, optionName, defaultValue)
         return result
 
-    def handle_market_type_and_params(self, methodName: str, market: Market = None, params={}):
+    def handle_market_type_and_params(self, methodName: str, market: Market = None, params={}, defaultValue=None):
+        """
+         * @ignore
+         * @param methodName the method calling handleMarketTypeAndParams
+        :param Market market:
+        :param dict params:
+        :param str [params.type]: type assigned by user
+        :param str [params.defaultType]: same.type
+        :param str [defaultValue]: assigned programatically in the method calling handleMarketTypeAndParams
+        :returns [str, dict]: the market type and params with type and defaultType omitted
+        """
         defaultType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
+        if defaultValue is None:  # defaultValue takes precendence over exchange wide defaultType
+            defaultValue = defaultType
         methodOptions = self.safe_dict(self.options, methodName)
-        methodType = defaultType
-        if methodOptions is not None:
+        methodType = defaultValue
+        if methodOptions is not None:  # user defined methodType takes precedence over defaultValue
             if isinstance(methodOptions, str):
                 methodType = methodOptions
             else:
@@ -4298,6 +4318,9 @@ class Exchange(object):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
 
+    def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
+        raise NotSupported(self.id + ' cancelOrdersForSymbols() is not supported yet')
+
     def cancel_all_orders_ws(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelAllOrdersWs() is not supported yet')
 
@@ -4368,6 +4391,9 @@ class Exchange(object):
 
     def fetch_option(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchOption() is not supported yet')
+
+    def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}):
+        raise NotSupported(self.id + ' fetchConvertQuote() is not supported yet')
 
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -4841,6 +4867,9 @@ class Exchange(object):
             raise NotSupported(self.id + ' fetchTradingFee() is not supported yet')
         fees = self.fetch_trading_fees(params)
         return self.safe_dict(fees, symbol)
+
+    def fetch_convert_currencies(self, params={}):
+        raise NotSupported(self.id + ' fetchConvertCurrencies() is not supported yet')
 
     def parse_open_interest(self, interest, market: Market = None):
         raise NotSupported(self.id + ' parseOpenInterest() is not supported yet')
@@ -5424,6 +5453,9 @@ class Exchange(object):
 
     def parse_leverage(self, leverage, market: Market = None):
         raise NotSupported(self.id + ' parseLeverage() is not supported yet')
+
+    def parse_conversion(self, conversion, fromCurrency: Currency = None, toCurrency: Currency = None):
+        raise NotSupported(self.id + ' parseConversion() is not supported yet')
 
     def convert_expire_date(self, date: str):
         # parse YYMMDD to datetime string

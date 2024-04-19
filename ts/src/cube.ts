@@ -307,7 +307,7 @@ export default class cube extends Exchange {
 
     authenticateRequest (request: any): any {
         const headers = this.safeDict (request, 'headers', {});
-        request.headers = this.extend (headers, this.generateAuthenticationHeaders ());
+        request['headers'] = this.extend (headers, this.generateAuthenticationHeaders ());
         return request;
     }
 
@@ -338,7 +338,7 @@ export default class cube extends Exchange {
                 },
             };
             request = this.authenticateRequest (request);
-            headers = request.headers;
+            headers = request['headers'];
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -351,7 +351,7 @@ export default class cube extends Exchange {
         }
     }
 
-    async fetchMarketMeta (symbolOrSymbols) {
+    async fetchMarketMeta (symbolOrSymbols: any = undefined) {
         let symbol = undefined;
         let marketId = undefined;
         let market = undefined;
@@ -363,7 +363,7 @@ export default class cube extends Exchange {
             if (typeof symbolOrSymbols === 'string') {
                 marketId = symbolOrSymbols.toUpperCase ().replace ('/', '');
                 market = this.market (marketId);
-                marketId = market.id;
+                marketId = market['id'];
                 symbolOrSymbols = this.safeSymbol (marketId, market);
                 symbol = symbolOrSymbols;
                 return {
@@ -380,7 +380,7 @@ export default class cube extends Exchange {
                 for (let i = 0; i < symbolOrSymbols.length; i++) {
                     marketId = symbolOrSymbols[i].toUpperCase ().replace ('/', '');
                     market = this.market (marketId);
-                    marketId = market.id;
+                    marketId = market['id'];
                     symbolOrSymbols[i] = this.safeSymbol (marketId, market);
                     marketIds.push (marketId);
                     markets.push (market);
@@ -452,7 +452,7 @@ export default class cube extends Exchange {
         //         ...
         //     }
         // }
-        const assets = this.safeDict (this.safeDict (response, 'result'), 'assets');
+        const assets = this.safeList (this.safeDict (response, 'result'), 'assets');
         return this.parseCurrencies (assets);
     }
 
@@ -462,9 +462,11 @@ export default class cube extends Exchange {
             const rawCurrency = assets[i];
             const symbol = this.safeStringUpper (rawCurrency, 'symbol');
             // const code = this.safeCurrencyCode (id);
-            const code = this.safeInteger (rawCurrency, 'assetId');
+            const code = this.safeString (rawCurrency, 'assetId');
             const name = this.safeString (this.safeDict (rawCurrency, 'metadata'), 'currencyName');
             const networkId = this.safeString (rawCurrency, 'sourceId');
+            const networks = {};
+            networks[networkId] = networkId;
             const currency = this.safeCurrencyStructure ({
                 'info': rawCurrency,
                 'id': symbol,
@@ -481,9 +483,7 @@ export default class cube extends Exchange {
                 // TODO: What kind of fee is this?
                 'fee': undefined,
                 'fees': {},
-                'networks': {
-                    [networkId]: this.networkIdToCode (networkId),
-                },
+                'networks': networks,
                 'limits': {
                     'deposit': {
                         'min': undefined,
@@ -571,8 +571,8 @@ export default class cube extends Exchange {
         //         ]
         //     }
         // }
-        const rawMarkets = this.safeDict (this.safeDict (response, 'result'), 'markets');
-        const rawAssets = this.safeDict (this.safeDict (response, 'result'), 'assets');
+        const rawMarkets = this.safeList (this.safeDict (response, 'result'), 'markets');
+        const rawAssets = this.safeList (this.safeDict (response, 'result'), 'assets');
         this.currencies = this.parseCurrencies (rawAssets);
         return this.parseMarkets (rawMarkets);
     }
@@ -589,12 +589,14 @@ export default class cube extends Exchange {
     parseMarket (market: Dictionary<any>): Market {
         const id = this.safeStringLower (market, 'symbol');
         const symbol = id.toUpperCase ();
-        const rawBaseAsset = this.currencies[this.safeInteger (market, 'baseAssetId')];
-        const rawQuoteAsset = this.currencies[this.safeInteger (market, 'quoteAssetId')];
-        const baseId = this.safeStringUpper (rawBaseAsset, 'symbol');
-        const quoteId = this.safeStringUpper (rawQuoteAsset, 'symbol');
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
+        const baseAssetId = this.safeString (market, 'baseAssetId');
+        const baseAsset = this.safeDict (this.currencies, baseAssetId);
+        const quoteAssetId = this.safeString (market, 'quoteAssetId');
+        const quoteAsset = this.safeDict (this.currencies, quoteAssetId);
+        const base = this.safeStringUpper (baseAsset, 'id');
+        const quote = this.safeStringUpper (quoteAsset, 'id');
+        const baseId = base.toLowerCase ();
+        const quoteId = quote.toLowerCase ();
         return this.safeMarketStructure ({
             'id': id,
             'lowercaseId': id.toLowerCase (),
@@ -623,8 +625,8 @@ export default class cube extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityTickSize'))),
-                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'priceTickSize'))),
+                'amount': this.parseNumber (this.safeString (market, 'quantityTickSize')),
+                'price': this.parseNumber (this.safeString (market, 'priceTickSize')),
             },
             'limits': {
                 'leverage': {
@@ -893,30 +895,28 @@ export default class cube extends Exchange {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://cubexch.gitbook.io/cube-api/rest-iridium-api#users-positions
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
+        await this.fetchMarketMeta ();
         const response = await this.restIridiumPrivateGetUsersPositions (params);
         const subaccountId = this.safeInteger (this.options, 'subaccountId');
-        let result = this.safeList (this.safeDict (this.safeDict (response, 'result'), subaccountId), 'inner');
-        const allOrders = this.fetchOrdersAllMarkets ();
-        result = this.extend (result, { 'orders': allOrders });
-        return this.parseBalance (result);
+        const allOrders = await this.fetchOrdersAllMarkets ();
+        const result = this.safeList (this.safeDict (this.safeDict (response, 'result'), subaccountId), 'inner');
+        return this.parseBalance (result, allOrders);
     }
 
-    parseBalance (response) {
-        const allOrders = this.safeDict (response, 'orders');
+    parseBalance (response: any, allOrders: any = undefined): Balances {
         const openOrders = [];
         const filledUnsettledOrders = [];
-        const allMarkets = {};
+        const allMarketsByNumericId = {};
         for (let i = 0; i < Object.keys (this.markets_by_id).length; i++) {
-            const marketSymbol = this.markets_by_id[i];
-            const marketArrayItem = this.markets_by_id[marketSymbol];
+            const marketArrayItem = Object.values (this.markets_by_id)[i];
             const market = marketArrayItem[0];
             const marketInfo = this.safeDict (market, 'info');
             const marketNumericId = this.safeString (marketInfo, 'marketId');
-            allMarkets[marketNumericId] = market;
+            allMarketsByNumericId[marketNumericId] = market;
         }
-        // const free = {};
+        const free = {};
         const used = {};
         const total = {};
         for (let i = 0; i < response.length; i++) {
@@ -946,36 +946,55 @@ export default class cube extends Exchange {
         for (let i = 0; i < openOrders.length; i++) {
             const order = openOrders[i];
             const orderMarketId = this.safeString (order, 'marketId');
-            const orderMarket = this.safeDict (allMarkets, orderMarketId);
-            const orderMarketAmountPrecision = this.safeNumber (this.safeDict (orderMarket, 'precision'), 'amount');
+            const orderMarket = this.safeDict (allMarketsByNumericId, orderMarketId);
             const orderSide = this.safeString (order, 'side');
             const orderBaseToken = this.safeString (orderMarket, 'base');
             const orderQuoteToken = this.safeString (orderMarket, 'quote');
             const orderAmount = this.safeInteger (order, 'qty');
+            const orderPrice = this.safeInteger (order, 'price');
             let targetToken = '';
+            let lotSize = 0;
             if (orderSide === 'Ask') {
                 targetToken = orderBaseToken;
+                lotSize = this.safeInteger (this.safeDict (orderMarket, 'info'), 'baseLotSize');
             } else if (orderSide === 'Bid') {
                 targetToken = orderQuoteToken;
+                lotSize = this.safeInteger (this.safeDict (orderMarket, 'info'), 'quoteLotSize');
             }
-            // const targetCurrency = this.currencies_by_id[targetToken];
-            // const targetCurrencyPrecision = this.safeInteger (targetCurrency, 'precision');
-            // TODO - Try to find the conversion pattern for order amount values.!!!
+            const targetCurrency = this.currencies_by_id[targetToken];
+            const targetCurrencyPrecision = this.safeInteger (targetCurrency, 'precision');
+            let orderLockedAmount = 0;
+            if (orderSide === 'Ask') {
+                orderLockedAmount = orderAmount * lotSize / 10 ** targetCurrencyPrecision;
+            } else if (orderSide === 'Bid') {
+                orderLockedAmount = orderAmount * orderPrice * lotSize / 10 ** targetCurrencyPrecision;
+            }
             if (used[targetToken] === undefined) {
-                used[targetToken] = orderAmount * orderMarketAmountPrecision;
+                used[targetToken] = orderLockedAmount;
             } else {
-                used[targetToken] += orderAmount * orderMarketAmountPrecision;
+                used[targetToken] += orderLockedAmount;
             }
+            free[targetToken] = total[targetToken] - used[targetToken];
         }
-        const timestamp = this.now ();
-        return this.safeBalance ({
+        const timestamp = this.milliseconds ();
+        const result = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'free': {},
+            'free': free,
             'used': used,
             'total': total,
-        });
+        };
+        for (let i = 0; i < Object.keys (total).length; i++) {
+            const assetSymbol = Object.keys (total)[i];
+            const assetBalances = {
+                'free': free[assetSymbol],
+                'used': used[assetSymbol],
+                'total': total[assetSymbol],
+            };
+            result[assetSymbol] = assetBalances;
+        }
+        return this.safeBalance (result);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
@@ -1017,7 +1036,7 @@ export default class cube extends Exchange {
         } else {
             throw new InvalidOrder ('OrderSide was not recognized: ' + side);
         }
-        const timestamp = this.now ();
+        const timestamp = this.milliseconds ();
         const clientOrderIdFromParams = this.safeInteger (params, 'clientOrderId');
         const clientOrderId = (clientOrderIdFromParams === undefined) ? timestamp : clientOrderIdFromParams;
         const request = {
@@ -1486,12 +1505,14 @@ export default class cube extends Exchange {
     }
 
     parseTrades (rawTrades, market = undefined) {
-        // const nonParsedTrades = this.safeList (rawTrades, 'trades');
-        const parsedTrades = this.safeList (rawTrades, 'parsedTrades');
+        const parsedTradesObject = this.safeDict (rawTrades, 'parsedTrades');
         const finalTrades = [];
-        for (let i = 0; i < parsedTrades.length; i++) {
-            const trade = parsedTrades[i];
-            finalTrades.push (this.parseTrade (trade, market));
+        if (parsedTradesObject && typeof parsedTradesObject === 'object') {
+            const parsedTrades = Object.values (parsedTradesObject);
+            for (let i = 0; i < parsedTrades.length; i++) {
+                const trade = parsedTrades[i];
+                finalTrades.push (this.parseTrade (trade, market));
+            }
         }
         return finalTrades;
     }
