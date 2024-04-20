@@ -62,6 +62,7 @@ var coinone = require('./src/coinone.js');
 var coinsph = require('./src/coinsph.js');
 var coinspot = require('./src/coinspot.js');
 var cryptocom = require('./src/cryptocom.js');
+var cube = require('./src/cube.js');
 var currencycom = require('./src/currencycom.js');
 var delta = require('./src/delta.js');
 var deribit = require('./src/deribit.js');
@@ -145,6 +146,7 @@ var coincheck$1 = require('./src/pro/coincheck.js');
 var coinex$1 = require('./src/pro/coinex.js');
 var coinone$1 = require('./src/pro/coinone.js');
 var cryptocom$1 = require('./src/pro/cryptocom.js');
+var cube$1 = require('./src/pro/cube.js');
 var currencycom$1 = require('./src/pro/currencycom.js');
 var deribit$1 = require('./src/pro/deribit.js');
 var exmo$1 = require('./src/pro/exmo.js');
@@ -235,6 +237,7 @@ const exchanges = {
     'coinsph': coinsph,
     'coinspot': coinspot,
     'cryptocom': cryptocom,
+    'cube': cube,
     'currencycom': currencycom,
     'delta': delta,
     'deribit': deribit,
@@ -320,6 +323,7 @@ const pro = {
     'coinex': coinex$1,
     'coinone': coinone$1,
     'cryptocom': cryptocom$1,
+    'cube': cube$1,
     'currencycom': currencycom$1,
     'deribit': deribit$1,
     'exmo': exmo$1,
@@ -451,6 +455,7 @@ exports.coinone = coinone;
 exports.coinsph = coinsph;
 exports.coinspot = coinspot;
 exports.cryptocom = cryptocom;
+exports.cube = cube;
 exports.currencycom = currencycom;
 exports.delta = delta;
 exports.deribit = deribit;
