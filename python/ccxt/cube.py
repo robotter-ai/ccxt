@@ -877,6 +877,8 @@ class cube(Exchange, ImplicitAPI):
                 currencyPrecision = self.safe_integer(currency, 'precision')
                 assetSymbol = self.safe_string(currency, 'id')
                 total[assetSymbol] = assetAmount / 10 ** currencyPrecision
+                used[assetSymbol] = 0 # To prevent the 'parser' from adding 'null' when there are no orders holding an asset.
+                free[assetSymbol] = 0 # To prevent the 'parser' from adding 'null' when there are no orders holding an asset.
         for i in range(0, self.count_items(allOrders)):
             order = allOrders[i]
             orderStatus = self.safe_string(order, 'status')
@@ -910,11 +912,13 @@ class cube(Exchange, ImplicitAPI):
                 orderLockedAmount = orderAmount * lotSize / 10 ** targetCurrencyPrecision
             elif orderSide == 'Bid':
                 orderLockedAmount = orderAmount * orderPrice * lotSize / 10 ** targetCurrencyPrecision
-            if self.safe_string(used, targetToken) is None:
-                used[targetToken] = orderLockedAmount
-            else:
-                used[targetToken] += orderLockedAmount
+            used[targetToken] += orderLockedAmount
             free[targetToken] = total[targetToken] - used[targetToken]
+        for i in range(0, self.count_items(total)): # For when an asset does not have any values locked in orders.
+            targetToken = list(total.keys())[i]
+            if self.safe_value(free, targetToken) == 0:
+                targetTokenTotalAmount = self.safe_value(total, targetToken)
+                free[targetToken] = targetTokenTotalAmount
         timestamp = self.milliseconds()
         result = {
             'info': response,
@@ -990,10 +994,13 @@ class cube(Exchange, ImplicitAPI):
         order = self.safe_dict(self.safe_dict(response, 'result'), 'Ack')
         exchangeOrderId = self.safe_string(order, 'exchangeOrderId')
         fetchedOrder = self.fetch_raw_order(exchangeOrderId, marketId)
+        if exchangeOrderId:
+            orderStatus = 'filled' if fetchedOrder == None else 'open'
         return self.parse_order(
             {
                 'order': order,
                 'fetchedOrder': fetchedOrder,
+                'orderStatus': orderStatus
             },
             market
         )
