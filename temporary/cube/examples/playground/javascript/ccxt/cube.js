@@ -136,7 +136,7 @@ async function cancelOrder() {
 async function cancelAllOrders() {
     // Not ready, it needs to be revisited.
     response = await communityExchange.cancelAllOrders(marketSymbols[0], {
-        'subaccountId': subAccountId,
+        'subaccountId': `${subAccountId}`,
         'requestId': 1,
         // 'side': 1, // 0: buy, 1: sell
     })
@@ -147,7 +147,7 @@ async function cancelAllOrders() {
 async function fetchRawOrder() {
     // ???
     response = await communityExchange.fetchRawOrder(exchangeOrderId, marketSymbols[0], {
-        subAccountId
+        'subaccountId': `${subAccountId}`,
     })
     log(response)
 }
@@ -156,7 +156,7 @@ async function fetchRawOrder() {
 async function fetchOrder() {
     // ???
     response = await communityExchange.fetchOrder(exchangeOrderId, marketSymbols[0], {
-        subAccountId
+        'subaccountId': `${subAccountId}`,
     })
     log(response)
 }
@@ -164,7 +164,7 @@ async function fetchOrder() {
 async function fetchOrders() {
     // ???
     response = await communityExchange.fetchOrders(marketSymbols[0], undefined, undefined, {
-        subAccountId
+        'subaccountId': `${subAccountId}`,
     })
     log(response)
 }
@@ -172,7 +172,7 @@ async function fetchOrders() {
 async function fetchOrdersAllMarkets() {
     // ???
     response = await communityExchange.fetchOrdersAllMarkets(undefined, undefined, {
-        subAccountId
+        'subaccountId': `${subAccountId}`,
     })
     log(response)
 }
@@ -181,7 +181,7 @@ async function fetchOrdersAllMarkets() {
 async function fetchOpenOrders() {
     // ???
     response = await communityExchange.fetchOpenOrders(marketSymbols[0], undefined, undefined, {
-        subAccountId
+        'subaccountId': `${subAccountId}`,
     })
     log(response)
 }
@@ -308,28 +308,27 @@ async function test() {
     // getAllExchanges()
     createCommunityExchange()
     // createProExchange()
-    // await loadMarkets()
-    // await fetchCurrencies() 
-    // await fetchMarkets() 
-    // await fetchTradingFee()
-    // await createOrder() 
-    // await cancelOrder()
-    // await fetchBalance()
-    // await fetchRawOrder()
-    await fetchOrder() // TODO improve!!!
-    // await fetchOpenOrders()
-    // await fetchOrders() // Broken
-    // await fetchOrdersAllMarkets()
-    // await fetchOrderBook()
-    // await fetchTicker()
-    // await fetchTickers()
-    // await cancelAllOrders() // TODO Wrong output (need to return the parsed orders but our response doesn't have it)!!!
-    // await fetchOrders()
-    // await fetchOHLCV()
-    // await fetchTrades()
-    // await fetchMyTrades()  // TODO Not implemented!!!
-    // await fetchClosedOrders() // TODO Not implemented!!!
-    // await fetchStatus() // TODO Not implemented!!!
+    // await loadMarkets()       //CHECKED
+    // await fetchCurrencies()   //CHECKED
+    // await fetchMarkets()      //CHECKED
+    // await fetchTradingFee()   //CHECKED
+    // await createOrder()       //CHECKED
+    // await cancelOrder()       //CHECKED
+    // await fetchBalance()      //CHECKED
+    // await fetchRawOrder()     //CHECKED
+    // await fetchOrder()        //(EMPTY ARRAYS, trades[], fees[]) 
+    // await fetchOpenOrders()   //EMPTY ARRAY
+    // await fetchOrders()       //EMPTY ARRAY
+    // await fetchOrdersAllMarkets()   //CHECKED
+    // await fetchOrderBook()    //CHECKED
+    // await fetchTicker()       //CHECKED
+    // await fetchTickers()      //CHECKED
+    // await cancelAllOrders()   // TODO Wrong output (need to return the parsed orders but our response doesn't have it)!!!
+    // await fetchOHLCV()     //CHECKED
+    // await fetchTrades()     //CHECKED
+    // await fetchMyTrades()    // TODO Not implemented!!!
+    // await fetchClosedOrders()   // TODO Not implemented!!!
+    // await fetchStatus()     // TODO Not implemented!!!
     // await deposit()
     // await withdraw()
     // await watchOrderBook()
