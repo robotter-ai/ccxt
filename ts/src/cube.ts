@@ -310,24 +310,50 @@ export default class cube extends Exchange {
 
     sign (path: string, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const environment = this.options['environment'];
-        let baseUrl: string = undefined;
-        if (api.indexOf ('iridium') >= 0) {
-            baseUrl = this.urls['api']['rest'][environment]['iridium'];
-        } else if (api.indexOf ('mendelev') >= 0) {
-            baseUrl = this.urls['api']['rest'][environment]['mendelev'];
-        } else if (api.indexOf ('osmium') >= 0) {
-            baseUrl = this.urls['api']['rest'][environment]['osmium'];
+        let endpoint = undefined;
+        let apiArray = undefined;
+        if (typeof api === 'string') {
+            apiArray = api.split (',');
+        } else {
+            apiArray = api;
         }
+        for (let i = 0; i < apiArray.length; i++) {
+            if (api[i] === 'iridium') {
+                endpoint = 'iridium';
+                break;
+            } else if (api[i] === 'mendelev') {
+                endpoint = 'mendelev';
+                break;
+            } else if (api[i] === 'osmium') {
+                endpoint = 'osmium';
+                break;
+            }
+        }
+        const baseUrl = this.urls['api']['rest'][environment][endpoint];
         let url = baseUrl + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
-        if ([ 'GET', 'HEAD' ].indexOf (method) >= 0) {
-            if (Object.keys (params).length) {  // TODO: Replace Object
-                url += '?' + this.urlencode (params);
+        const methods = [ 'GET', 'HEAD' ];
+        let found = false;
+        for (let i = 0; i < methods.length; i++) {
+            if (methods[i] === method) {
+                if (this.countItems (params) > 0) {
+                    url += '?' + this.urlencode (params);
+                }
+                found = true;
+                break;
             }
-        } else {
+        }
+        if (!found) {
             body = JSON.stringify (params);
         }
-        if (api.indexOf ('private') >= 0) {
+        found = false;
+        for (let i = 0; i < apiArray.length; i++) {
+            if (apiArray[i] === 'private') {
+                found = true;
+                break;
+            }
+        }
+        if (found) {
             let request = {
                 'headers': {
                     'Content-Type': 'application/json',
@@ -906,7 +932,7 @@ export default class cube extends Exchange {
         const openOrders = [];
         const filledUnsettledOrders = [];
         const allMarketsByNumericId = {};
-        for (let i = 0; i < Object.keys (this.markets_by_id).length; i++) {
+        for (let i = 0; i < this.countItems (this.markets_by_id); i++) {
             const marketArrayItem = Object.values (this.markets_by_id)[i];
             const market = marketArrayItem[0];
             const marketInfo = this.safeDict (market, 'info');
@@ -916,7 +942,7 @@ export default class cube extends Exchange {
         const free = {};
         const used = {};
         const total = {};
-        for (let i = 0; i < response.length; i++) {
+        for (let i = 0; i < this.countItems (response); i++) {
             const asset = response[i];
             const assetAmount = parseInt (this.safeString (asset, 'amount'));
             if (assetAmount > 0) {
@@ -927,7 +953,7 @@ export default class cube extends Exchange {
                 total[assetSymbol] = assetAmount / 10 ** currencyPrecision;
             }
         }
-        for (let i = 0; i < allOrders.length; i++) {
+        for (let i = 0; i < this.countItems (allOrders); i++) {
             const order = allOrders[i];
             const orderStatus = this.safeString (order, 'status');
             if (orderStatus === 'open') {
@@ -940,7 +966,7 @@ export default class cube extends Exchange {
                 }
             }
         }
-        for (let i = 0; i < openOrders.length; i++) {
+        for (let i = 0; i < this.countItems (openOrders); i++) {
             const order = openOrders[i];
             const orderMarketId = this.safeString (order, 'marketId');
             const orderMarket = this.safeDict (allMarketsByNumericId, orderMarketId);
@@ -982,7 +1008,7 @@ export default class cube extends Exchange {
             'used': used,
             'total': total,
         };
-        for (let i = 0; i < Object.keys (total).length; i++) {
+        for (let i = 0; i < this.countItems (total); i++) {
             const assetSymbol = Object.keys (total)[i];
             const assetBalances = {
                 'free': free[assetSymbol],
@@ -1622,5 +1648,24 @@ export default class cube extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         throw new NotSupported (this.id + ' withdraw() is not supported yet');
+    }
+
+    countWithLoop (items) {
+        let count = 0;
+        for (let i = 0; i < items.length; i++) {
+            count += 1;
+        }
+        return count;
+    }
+
+    countItems (input) {
+        let count = 0;
+        if (Array.isArray (input)) {
+            count = this.countWithLoop (input);
+        } else if (typeof input === 'object' && input !== null) {
+            const keys = Object.keys (input);
+            count = this.countWithLoop (keys);
+        }
+        return count;
     }
 }

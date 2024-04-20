@@ -289,26 +289,43 @@ class cube(Exchange, ImplicitAPI):
         request['headers'] = self.extend(headers, self.generate_authentication_headers())
         return request
 
-    def sign(self, path: str, api: str = 'public', method='GET', params={}, headers=None, body=None):
-        # TODO This is a workaround to fix transpilation issues for Pythonnot !!
-        apiString = ','.join(api)
+    def sign(self, path: str, api='public', method='GET', params={}, headers=None, body=None):
         environment = self.options['environment']
-        baseUrl: str = None
-        if apiString.find('iridium')  > -1:
-            baseUrl = self.urls['api']['rest'][environment]['iridium']
-        elif apiString.find('mendelev') > -1:
-            baseUrl = self.urls['api']['rest'][environment]['mendelev']
-        elif apiString.find('osmium') > -1:
-            baseUrl = self.urls['api']['rest'][environment]['osmium']
+        endpoint = None
+        apiArray = None
+        if isinstance(api, str):
+            apiArray = api.split(',')
+        else:
+            apiArray = api
+        for i in range(0, len(apiArray)):
+            if api[i] == 'iridium':
+                endpoint = 'iridium'
+                break
+            elif api[i] == 'mendelev':
+                endpoint = 'mendelev'
+                break
+            elif api[i] == 'osmium':
+                endpoint = 'osmium'
+                break
+        baseUrl = self.urls['api']['rest'][environment][endpoint]
         url = baseUrl + self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
-        # TODO This is a workaround to fix transpilation issues for Pythonnot !!
-        if ','.join(['GET', 'HEAD']).find(method) > -1:
-            if params:  # TODO: Replace Object
-                url += '?' + self.urlencode(params)
-        else:
+        methods = ['GET', 'HEAD']
+        found = False
+        for i in range(0, len(methods)):
+            if methods[i] == method:
+                if self.count_items(params) > 0:
+                    url += '?' + self.urlencode(params)
+                found = True
+                break
+        if not found:
             body = json.dumps(params)
-        if apiString.find('private') > -1:
+        found = False
+        for i in range(0, len(apiArray)):
+            if apiArray[i] == 'private':
+                found = True
+                break
+        if found:
             request = {
                 'headers': {
                     'Content-Type': 'application/json',
@@ -650,7 +667,7 @@ class cube(Exchange, ImplicitAPI):
             'bids': rawBids,
             'asks': rawAsks,
         }
-        timestamp = self.safe_timestamp(self.safe_dict(response, 'result'), 'timestamp') / 1000000
+        timestamp = self.safe_integer(self.safe_dict(response, 'result'), 'timestamp')  # Don't use self.safe_timestamp()
         return self.parse_order_book(rawOrderbook, symbol, timestamp, 'bids', 'asks')
 
     def parse_bids_asks(self, bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) -> List[Any]:
@@ -818,7 +835,7 @@ class cube(Exchange, ImplicitAPI):
         #       }
         #
         return [
-            self.safe_timestamp(ohlcv, 'timestamp'),
+            self.safe_integer(ohlcv, 'timestamp'),  # Don't use self.safe_timestamp()
             self.safe_number(ohlcv, 'open'),
             self.safe_number(ohlcv, 'high'),
             self.safe_number(ohlcv, 'low'),
@@ -844,7 +861,7 @@ class cube(Exchange, ImplicitAPI):
         openOrders = []
         filledUnsettledOrders = []
         allMarketsByNumericId = {}
-        for i in range(0, len(self.markets_by_id)):
+        for i in range(0, self.count_items(self.markets_by_id)):
             marketArrayItem = list(self.markets_by_id.values())[i]
             market = marketArrayItem[0]
             marketInfo = self.safe_dict(market, 'info')
@@ -853,7 +870,7 @@ class cube(Exchange, ImplicitAPI):
         free = {}
         used = {}
         total = {}
-        for i in range(0, len(response)):
+        for i in range(0, self.count_items(response)):
             asset = response[i]
             assetAmount = int(self.safe_string(asset, 'amount'))
             if assetAmount > 0:
@@ -862,7 +879,7 @@ class cube(Exchange, ImplicitAPI):
                 currencyPrecision = self.safe_integer(currency, 'precision')
                 assetSymbol = self.safe_string(currency, 'id')
                 total[assetSymbol] = assetAmount / 10 ** currencyPrecision
-        for i in range(0, len(allOrders)):
+        for i in range(0, self.count_items(allOrders)):
             order = allOrders[i]
             orderStatus = self.safe_string(order, 'status')
             if orderStatus == 'open':
@@ -871,7 +888,7 @@ class cube(Exchange, ImplicitAPI):
                 isSettled = self.safe_string(order, 'settled')
                 if not isSettled:
                     filledUnsettledOrders.append(order)
-        for i in range(0, len(openOrders)):
+        for i in range(0, self.count_items(openOrders)):
             order = openOrders[i]
             orderMarketId = self.safe_string(order, 'marketId')
             orderMarket = self.safe_dict(allMarketsByNumericId, orderMarketId)
@@ -909,7 +926,7 @@ class cube(Exchange, ImplicitAPI):
             'used': used,
             'total': total,
         }
-        for i in range(0, len(total)):
+        for i in range(0, self.count_items(total)):
             assetSymbol = list(total.keys())[i]
             assetBalances = {
                 'free': free.get(assetSymbol),
@@ -1505,3 +1522,18 @@ class cube(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         raise NotSupported(self.id + ' withdraw() is not supported yet')
+
+    def count_with_loop(self, items):
+        count = 0
+        for i in range(0, len(items)):
+            count += 1
+        return count
+
+    def count_items(self, input):
+        count = 0
+        if isinstance(input, list):
+            count = self.count_with_loop(input)
+        elif isinstance(input, dict) and input != None:
+            keys = list(input.keys())
+            count = self.count_with_loop(keys)
+        return count
