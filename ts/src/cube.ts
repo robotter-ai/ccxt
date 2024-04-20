@@ -922,7 +922,7 @@ export default class cube extends Exchange {
          */
         await this.fetchMarketMeta ();
         const response = await this.restIridiumPrivateGetUsersPositions (params);
-        const subaccountId = this.safeInteger (this.options, 'subaccountId');
+        const subaccountId = this.safeString (this.options, 'subaccountId');
         const allOrders = await this.fetchOrdersAllMarkets ();
         const result = this.safeList (this.safeDict (this.safeDict (response, 'result'), subaccountId), 'inner');
         return this.parseBalance (result, allOrders);
@@ -1039,8 +1039,7 @@ export default class cube extends Exchange {
         const marketId = this.safeString (meta, 'marketId');
         const market = this.safeDict (meta, 'market');
         const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
-        const exchangePrice = price * 100;
-        const exchangeAmount = amount * 100;
+        const exchangeAmount = this.parseToInt (amount * 100);
         let exchangeOrderType = undefined;
         if (type === 'limit') {
             exchangeOrderType = 0;
@@ -1066,7 +1065,6 @@ export default class cube extends Exchange {
             'clientOrderId': clientOrderId,
             'requestId': this.safeInteger (params, 'requestId', 1),
             'marketId': rawMarketId,
-            'price': exchangePrice,
             'quantity': exchangeAmount,
             'side': exchangeOrderSide,
             'timeInForce': this.safeInteger (params, 'timeInForce', 1),
@@ -1075,6 +1073,9 @@ export default class cube extends Exchange {
             'postOnly': this.safeInteger (params, 'postOnly', 0),
             'cancelOnDisconnect': this.safeBool (params, 'cancelOnDisconnect', false),
         };
+        if (price !== undefined) {
+            request['price'] = this.parseToInt (price * 100);
+        }
         this.injectSubAccountId (request, params);
         const response = await this.restOsmiumPrivatePostOrder (this.extend (request, params));
         const order = this.safeDict (this.safeDict (response, 'result'), 'Ack');
@@ -1238,7 +1239,15 @@ export default class cube extends Exchange {
         // }
         //
         const result = this.safeList (this.safeDict (rawResponse, 'result'), 'orders');
-        return this.safeValue (result, 0);
+        let order = undefined;
+        for (let i = 0; i < this.countItems (result); i++) {
+            const exchangeOrderId = this.safeString (result[i], 'exchangeOrderId');
+            if (id === exchangeOrderId) {
+                order = result[i];
+                break;
+            }
+        }
+        return order;
     }
 
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1284,7 +1293,7 @@ export default class cube extends Exchange {
         //         ...
         //     ]
         //
-        for (let i = 0; i < Object.keys (orders).length; i++) {
+        for (let i = 0; i < this.countItems (orders); i++) {
             const order = this.safeDict (orders, i);
             order['id'] = this.safeString (order, 'exchangeOrderId');
         }

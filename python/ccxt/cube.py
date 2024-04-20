@@ -6,18 +6,17 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.cube import ImplicitAPI
 import hashlib
-import math
 import json
 from ccxt.base.types import Any, Balances, Currencies, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, TradingFeeInterface, Transaction
 from typing import List
 from typing import Any
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
@@ -852,9 +851,9 @@ class cube(Exchange, ImplicitAPI):
         """
         self.fetch_market_meta()
         response = self.restIridiumPrivateGetUsersPositions(params)
-        subaccountId = self.safe_integer(self.options, 'subaccountId')
+        subaccountId = self.safe_string(self.options, 'subaccountId')
         allOrders = self.fetch_orders_all_markets()
-        result = self.safe_list(self.safe_dict(self.safe_dict(response, 'result'), str(subaccountId)), 'inner')
+        result = self.safe_list(self.safe_dict(self.safe_dict(response, 'result'), subaccountId), 'inner')
         return self.parse_balance(result, allOrders)
 
     def parse_balance(self, response: Any, allOrders: Any = None) -> Balances:
@@ -953,8 +952,7 @@ class cube(Exchange, ImplicitAPI):
         marketId = self.safe_string(meta, 'marketId')
         market = self.safe_dict(meta, 'market')
         rawMarketId = self.safe_integer(self.safe_dict(market, 'info'), 'marketId')
-        exchangePrice = int(price * 100) if price else None
-        exchangeAmount = int(amount * 100)
+        exchangeAmount = self.parse_to_int(amount * 100)
         exchangeOrderType = None
         if type == 'limit':
             exchangeOrderType = 0
@@ -986,8 +984,8 @@ class cube(Exchange, ImplicitAPI):
             'postOnly': self.safe_integer(params, 'postOnly', 0),
             'cancelOnDisconnect': self.safe_bool(params, 'cancelOnDisconnect', False),
         }
-        if price:
-            request['price'] = exchangeOrderSide
+        if price is not None:
+            request['price'] = self.parse_to_int(price * 100)
         self.inject_sub_account_id(request, params)
         response = self.restOsmiumPrivatePostOrder(self.extend(request, params))
         order = self.safe_dict(self.safe_dict(response, 'result'), 'Ack')
@@ -1138,9 +1136,9 @@ class cube(Exchange, ImplicitAPI):
         #
         result = self.safe_list(self.safe_dict(rawResponse, 'result'), 'orders')
         order = None
-        for i in range(0, len(result)):
-            order_oxchange_id = self.safe_string(result[i], 'exchangeOrderId')
-            if id == order_oxchange_id:
+        for i in range(0, self.count_items(result)):
+            exchangeOrderId = self.safe_string(result[i], 'exchangeOrderId')
+            if id == exchangeOrderId:
                 order = result[i]
                 break
         return order
@@ -1185,7 +1183,7 @@ class cube(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        for i in range(0, len(orders)):
+        for i in range(0, self.count_items(orders)):
             order = self.safe_dict(orders, i)
             order['id'] = self.safe_string(order, 'exchangeOrderId')
         results = []
