@@ -483,18 +483,17 @@ export default class cube extends Exchange {
         const result = {};
         for (let i = 0; i < assets.length; i++) {
             const rawCurrency = assets[i];
-            const symbol = this.safeStringUpper (rawCurrency, 'symbol');
             // const code = this.safeCurrencyCode (id);
-            const code = this.safeString (rawCurrency, 'assetId');
+            const id = this.safeString (rawCurrency, 'assetId');
             const name = this.safeString (this.safeDict (rawCurrency, 'metadata'), 'currencyName');
             const networkId = this.safeString (rawCurrency, 'sourceId');
             const networks = {};
             networks[networkId] = networkId;
             const currency = this.safeCurrencyStructure ({
                 'info': rawCurrency,
-                'id': symbol,
+                'id': id,
                 'numericId': this.safeInteger (rawCurrency, 'assetId'),
-                'code': symbol,
+                'code': this.safeStringUpper (rawCurrency, 'symbol'),
                 'precision': this.safeInteger (rawCurrency, 'decimals'),
                 'type': this.safeStringLower (rawCurrency, 'assetType'),
                 'name': name,
@@ -518,7 +517,7 @@ export default class cube extends Exchange {
                     },
                 },
             });
-            result[code] = currency;
+            result[id] = currency;
         }
         return result;
     }
@@ -610,8 +609,8 @@ export default class cube extends Exchange {
     }
 
     parseMarket (market: Dictionary<any>): Market {
-        const id = this.safeStringLower (market, 'symbol');
-        const symbol = id.toUpperCase ();
+        const id = this.safeString (market, 'marketId');
+        const symbol = this.safeString (market, 'symbol');
         const baseAssetId = this.safeString (market, 'baseAssetId');
         const baseAsset = this.safeDict (this.currencies, baseAssetId);
         const quoteAssetId = this.safeString (market, 'quoteAssetId');
@@ -622,7 +621,7 @@ export default class cube extends Exchange {
         const quoteId = quote.toLowerCase ();
         return this.safeMarketStructure ({
             'id': id,
-            'lowercaseId': id.toLowerCase (),
+            'lowercaseId': id,
             'symbol': symbol,
             'base': base,
             'quote': quote,
@@ -992,7 +991,7 @@ export default class cube extends Exchange {
             } else if (orderSide === 'Bid') {
                 orderLockedAmount = orderAmount * orderPrice * lotSize / 10 ** targetCurrencyPrecision;
             }
-            if (used[targetToken] === undefined) {
+            if (this.safeString (used, targetToken) === undefined) {
                 used[targetToken] = orderLockedAmount;
             } else {
                 used[targetToken] += orderLockedAmount;
@@ -1011,9 +1010,9 @@ export default class cube extends Exchange {
         for (let i = 0; i < this.countItems (total); i++) {
             const assetSymbol = Object.keys (total)[i];
             const assetBalances = {
-                'free': free[assetSymbol],
-                'used': used[assetSymbol],
-                'total': total[assetSymbol],
+                'free': this.safeNumber (free, assetSymbol),
+                'used': this.safeNumber (used, assetSymbol),
+                'total': this.safeNumber (total, assetSymbol),
             };
             result[assetSymbol] = assetBalances;
         }
@@ -1262,8 +1261,7 @@ export default class cube extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const meta = await this.fetchMarketMeta (symbol);
-        symbol = this.safeString (meta, 'symbol');
-        const market = this.safeMarket (this.safeString (meta, 'marketId'), this.safeDict (meta, 'market') as Market);
+        const market = this.safeMarket (this.safeString (meta, 'marketId'), this.safeDict (meta, 'market') as Market, '/');
         const request = {};
         this.injectSubAccountId (request, params);
         const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdOrders (this.extend (request, params));
@@ -1293,21 +1291,17 @@ export default class cube extends Exchange {
         //         ...
         //     ]
         //
-        for (let i = 0; i < this.countItems (orders); i++) {
-            const order = this.safeDict (orders, i);
-            order['id'] = this.safeString (order, 'exchangeOrderId');
-        }
         let results = [];
         if (Array.isArray (orders)) {
             for (let i = 0; i < orders.length; i++) {
-                const order = this.extend (this.parseOrder (orders[i], market), params);
+                const order = this.extend (this.parseOrder ({ 'fetchedOrder': orders[i] }, market), params);
                 results.push (order);
             }
         } else {
             const ids = Object.keys (orders);
             for (let i = 0; i < ids.length; i++) {
                 const id = ids[i];
-                const order = this.extend (this.parseOrder (this.extend ({ 'id': id }, orders[id]), market), params);
+                const order = this.extend (this.parseOrder ({ 'fetchedOrder': orders[id] }, market), params);
                 results.push (order);
             }
         }
@@ -1319,15 +1313,20 @@ export default class cube extends Exchange {
     parseOrder (order, market: Market = undefined) {
         // let transactionType = '';
         const fetchedOrder = this.safeDict (order, 'fetchedOrder');
-        let mainOrderObject = {};
-        if (order['cancellationResponse'] !== undefined) {
-            // transactionType = 'cancellation';
-            mainOrderObject = this.safeDict (order, 'cancellationResponse');
-        } else {
-            // transactionType = 'creation';
-            mainOrderObject = this.safeDict (order, 'order');
+        const mainOrderObject = this.safeDict (order, 'cancellationResponse', this.safeDict (order, 'order'));
+        let timestampInNanoseconds = this.safeNumber (this.safeDict (this.safeDict (mainOrderObject, 'result'), 'Ack'), 'transactTime');
+        if (timestampInNanoseconds === undefined) {
+            timestampInNanoseconds = this.safeNumber (mainOrderObject, 'transactTime');
         }
-        const timestampInNanoseconds = this.safeNumber (mainOrderObject, 'transactTime');
+        if (timestampInNanoseconds === undefined) {
+            timestampInNanoseconds = this.safeNumber (fetchedOrder, 'restTime');
+        }
+        if (timestampInNanoseconds === undefined) {
+            timestampInNanoseconds = this.safeNumber (order, 'restTime');
+        }
+        if (timestampInNanoseconds === undefined) {
+            timestampInNanoseconds = this.safeNumber (order, 'createdAt');
+        }
         const timestampInMilliseconds = timestampInNanoseconds / 1000000;
         // let orderStatus = ''; // TODO fix !!!
         // if (Object.keys (fetchedOrder).'length === 0) {
@@ -1342,7 +1341,7 @@ export default class cube extends Exchange {
             const clientOrderId = this.safeInteger (fetchedOrder, 'clientOrderId');
             const orderSide = this.safeInteger (fetchedOrder, 'side') === 0 ? 'buy' : 'sell';
             const price = this.safeInteger (fetchedOrder, 'price') / 100;
-            const symbol = this.safeString (market, 'base') + '/' + this.safeString (market, 'quote');
+            const symbol = this.safeString (market, 'symbol');
             const amount = this.safeInteger (fetchedOrder, 'orderQuantity');
             const remainingAmount = this.safeInteger (fetchedOrder, 'remainingQuantity');
             const filledAmount = amount - remainingAmount;
@@ -1425,7 +1424,6 @@ export default class cube extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const meta = await this.fetchMarketMeta (symbol);
-        symbol = this.safeString (meta, 'symbol');
         const market = this.safeDict (meta, 'market');
         const request = {};
         this.injectSubAccountId (request, params);

@@ -441,18 +441,17 @@ class cube(Exchange, ImplicitAPI):
         result = {}
         for i in range(0, len(assets)):
             rawCurrency = assets[i]
-            symbol = self.safe_string_upper(rawCurrency, 'symbol')
             # code = self.safe_currency_code(id)
-            code = self.safe_string(rawCurrency, 'assetId')
+            id = self.safe_string(rawCurrency, 'assetId')
             name = self.safe_string(self.safe_dict(rawCurrency, 'metadata'), 'currencyName')
             networkId = self.safe_string(rawCurrency, 'sourceId')
             networks = {}
             networks[networkId] = networkId
             currency = self.safe_currency_structure({
                 'info': rawCurrency,
-                'id': symbol,
+                'id': id,
                 'numericId': self.safe_integer(rawCurrency, 'assetId'),
-                'code': symbol,
+                'code': self.safe_string_upper(rawCurrency, 'symbol'),
                 'precision': self.safe_integer(rawCurrency, 'decimals'),
                 'type': self.safe_string_lower(rawCurrency, 'assetType'),
                 'name': name,
@@ -476,7 +475,7 @@ class cube(Exchange, ImplicitAPI):
                     },
                 },
             })
-            result[code] = currency
+            result[id] = currency
         return result
 
     def fetch_markets(self, params={}) -> List[Market]:
@@ -561,8 +560,8 @@ class cube(Exchange, ImplicitAPI):
         return result
 
     def parse_market(self, market: dict) -> Market:
-        id = self.safe_string_lower(market, 'symbol')
-        symbol = id.upper()
+        id = self.safe_string(market, 'marketId')
+        symbol = self.safe_string(market, 'symbol')
         baseAssetId = self.safe_string(market, 'baseAssetId')
         baseAsset = self.safe_dict(self.currencies, baseAssetId)
         quoteAssetId = self.safe_string(market, 'quoteAssetId')
@@ -573,7 +572,7 @@ class cube(Exchange, ImplicitAPI):
         quoteId = quote.lower()
         return self.safe_market_structure({
             'id': id,
-            'lowercaseId': id.lower(),
+            'lowercaseId': id,
             'symbol': symbol,
             'base': base,
             'quote': quote,
@@ -911,7 +910,7 @@ class cube(Exchange, ImplicitAPI):
                 orderLockedAmount = orderAmount * lotSize / 10 ** targetCurrencyPrecision
             elif orderSide == 'Bid':
                 orderLockedAmount = orderAmount * orderPrice * lotSize / 10 ** targetCurrencyPrecision
-            if used.get(targetToken) is None:
+            if self.safe_string(used, targetToken) is None:
                 used[targetToken] = orderLockedAmount
             else:
                 used[targetToken] += orderLockedAmount
@@ -928,9 +927,9 @@ class cube(Exchange, ImplicitAPI):
         for i in range(0, self.count_items(total)):
             assetSymbol = list(total.keys())[i]
             assetBalances = {
-                'free': free.get(assetSymbol),
-                'used': used.get(assetSymbol),
-                'total': total.get(assetSymbol),
+                'free': self.safe_number(free, assetSymbol),
+                'used': self.safe_number(used, assetSymbol),
+                'total': self.safe_number(total, assetSymbol),
             }
             result[assetSymbol] = assetBalances
         return self.safe_balance(result)
@@ -1153,8 +1152,7 @@ class cube(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         meta = self.fetch_market_meta(symbol)
-        symbol = self.safe_string(meta, 'symbol')
-        market = self.safe_market(self.safe_string(meta, 'marketId'), self.safe_dict(meta, 'market'))
+        market = self.safe_market(self.safe_string(meta, 'marketId'), self.safe_dict(meta, 'market'), '/')
         request = {}
         self.inject_sub_account_id(request, params)
         response = self.restIridiumPrivateGetUsersSubaccountSubaccountIdOrders(self.extend(request, params))
@@ -1183,19 +1181,16 @@ class cube(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        for i in range(0, self.count_items(orders)):
-            order = self.safe_dict(orders, i)
-            order['id'] = self.safe_string(order, 'exchangeOrderId')
         results = []
         if isinstance(orders, list):
             for i in range(0, len(orders)):
-                order = self.extend(self.parse_order(orders[i], market), params)
+                order = self.extend(self.parse_order({'fetchedOrder': orders[i]}, market), params)
                 results.append(order)
         else:
             ids = list(orders.keys())
             for i in range(0, len(ids)):
                 id = ids[i]
-                order = self.extend(self.parse_order(self.extend({'id': id}, orders[id]), market), params)
+                order = self.extend(self.parse_order({'fetchedOrder': orders[id]}, market), params)
                 results.append(order)
         results = self.sort_by(results, 'timestamp')
         symbol = market['symbol'] if (market is not None) else None
@@ -1204,21 +1199,15 @@ class cube(Exchange, ImplicitAPI):
     def parse_order(self, order, market: Market = None):
         # transactionType = ''
         fetchedOrder = self.safe_dict(order, 'fetchedOrder')
-        mainOrderObject = {}
-        if order.get('cancellationResponse') is not None:
-            # transactionType = 'cancellation'
-            mainOrderObject = self.safe_dict(order, 'cancellationResponse')
-        else:
-            # transactionType = 'creation'
-            mainOrderObject = self.safe_dict(order, 'order')
+        mainOrderObject = self.safe_dict(order, 'cancellationResponse', self.safe_dict(order, 'order'))
         timestampInNanoseconds = self.safe_number(self.safe_dict(self.safe_dict(mainOrderObject, 'result'), 'Ack'), 'transactTime')
         if timestampInNanoseconds is None:
             timestampInNanoseconds = self.safe_number(mainOrderObject, 'transactTime')
-        elif timestampInNanoseconds is None:
+        if timestampInNanoseconds is None:
             timestampInNanoseconds = self.safe_number(fetchedOrder, 'restTime')
-        elif timestampInNanoseconds is None:
+        if timestampInNanoseconds is None:
             timestampInNanoseconds = self.safe_number(order, 'restTime')
-        elif timestampInNanoseconds is None:
+        if timestampInNanoseconds is None:
             timestampInNanoseconds = self.safe_number(order, 'createdAt')
         timestampInMilliseconds = timestampInNanoseconds / 1000000
         # orderStatus = ''  # TODO fix not !!
@@ -1234,7 +1223,7 @@ class cube(Exchange, ImplicitAPI):
             clientOrderId = self.safe_integer(fetchedOrder, 'clientOrderId')
             orderSide = self.safe_integer(fetchedOrder, 'side') == 'buy' if 0 else 'sell'
             price = self.safe_integer(fetchedOrder, 'price') / 100
-            symbol = self.safe_string(market, 'base') + '/' + self.safe_string(market, 'quote')
+            symbol = self.safe_string(market, 'symbol')
             amount = self.safe_integer(fetchedOrder, 'orderQuantity')
             remainingAmount = self.safe_integer(fetchedOrder, 'remainingQuantity')
             filledAmount = amount - remainingAmount
