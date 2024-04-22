@@ -1122,6 +1122,7 @@ export default class cube extends Exchange {
                 'order': order,
                 'fetchedOrder': fetchedOrder,
                 'orderStatus': orderStatus,
+                'transactionType': 'creation',
             },
             market as Market
         );
@@ -1157,8 +1158,9 @@ export default class cube extends Exchange {
         const response = await this.restOsmiumPrivateDeleteOrder (this.extend (request, params));
         return this.parseOrder (
             {
-                'fetchedOrder': fetchedOrder,
                 'cancellationResponse': response,
+                'fetchedOrder': fetchedOrder,
+                'transactionType': 'cancellation',
             },
             market as Market
         );
@@ -1442,7 +1444,7 @@ export default class cube extends Exchange {
                     'rate': rate,
                 },
                 'info': {
-                    'mainOrderObjetc': mainOrderObject,
+                    'mainOrderObject': mainOrderObject,
                     'fetchedOrder': fetchedOrder,
                 },
             };
@@ -1572,12 +1574,11 @@ export default class cube extends Exchange {
         return this.parseTrades (rawTrades, market);
     }
 
-    parseTrades (rawTrades, market = undefined) {
-        const parsedTradesObject = this.safeDict (rawTrades, 'parsedTrades');
+    parseTrades (rawTrades: any, market = undefined) {
+        const parsedTrades = this.safeValue (rawTrades, 'parsedTrades');
         const finalTrades = [];
-        if (parsedTradesObject && typeof parsedTradesObject === 'object') {
-            const parsedTrades = Object.values (parsedTradesObject);
-            for (let i = 0; i < parsedTrades.length; i++) {
+        if (parsedTrades !== undefined && this.countItems (parsedTrades) > 0) {
+            for (let i = 0; i < this.countItems (parsedTrades); i++) {
                 const trade = parsedTrades[i];
                 finalTrades.push (this.parseTrade (trade, market));
             }

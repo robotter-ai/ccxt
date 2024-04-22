@@ -600,7 +600,7 @@ export default class cube extends Exchange {
         const marketSymbol = baseSymbol + quoteSymbol;
         return this.safeMarketStructure({
             'id': id,
-            'lowercaseId': id,
+            'lowercaseId': String(id).toLowerCase(),
             'symbol': marketSymbol,
             'base': this.safeString(baseAsset, 'code'),
             'quote': this.safeString(quoteAsset, 'code'),
@@ -1093,6 +1093,7 @@ export default class cube extends Exchange {
             'order': order,
             'fetchedOrder': fetchedOrder,
             'orderStatus': orderStatus,
+            'transactionType': 'creation',
         }, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -1124,8 +1125,9 @@ export default class cube extends Exchange {
         this.injectSubAccountId(request, params);
         const response = await this.restOsmiumPrivateDeleteOrder(this.extend(request, params));
         return this.parseOrder({
-            'fetchedOrder': fetchedOrder,
             'cancellationResponse': response,
+            'fetchedOrder': fetchedOrder,
+            'transactionType': 'cancellation',
         }, market);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -1409,7 +1411,7 @@ export default class cube extends Exchange {
                     'rate': rate,
                 },
                 'info': {
-                    'mainOrderObjetc': mainOrderObject,
+                    'mainOrderObject': mainOrderObject,
                     'fetchedOrder': fetchedOrder,
                 },
             };
@@ -1536,11 +1538,10 @@ export default class cube extends Exchange {
         return this.parseTrades(rawTrades, market);
     }
     parseTrades(rawTrades, market = undefined) {
-        const parsedTradesObject = this.safeDict(rawTrades, 'parsedTrades');
+        const parsedTrades = this.safeValue(rawTrades, 'parsedTrades');
         const finalTrades = [];
-        if (parsedTradesObject && typeof parsedTradesObject === 'object') {
-            const parsedTrades = Object.values(parsedTradesObject);
-            for (let i = 0; i < parsedTrades.length; i++) {
+        if (parsedTrades !== undefined && this.countItems(parsedTrades) > 0) {
+            for (let i = 0; i < this.countItems(parsedTrades); i++) {
                 const trade = parsedTrades[i];
                 finalTrades.push(this.parseTrade(trade, market));
             }

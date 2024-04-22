@@ -575,7 +575,7 @@ class cube(Exchange, ImplicitAPI):
         marketSymbol = baseSymbol + quoteSymbol
         return self.safe_market_structure({
             'id': id,
-            'lowercaseId': id,
+            'lowercaseId': str(id).lower(),
             'symbol': marketSymbol,
             'base': self.safe_string(baseAsset, 'code'),
             'quote': self.safe_string(quoteAsset, 'code'),
@@ -1024,6 +1024,7 @@ class cube(Exchange, ImplicitAPI):
                 'order': order,
                 'fetchedOrder': fetchedOrder,
                 'orderStatus': orderStatus,
+                'transactionType': 'creation',
             },
             market
         )
@@ -1055,8 +1056,9 @@ class cube(Exchange, ImplicitAPI):
         response = self.restOsmiumPrivateDeleteOrder(self.extend(request, params))
         return self.parse_order(
             {
-                'fetchedOrder': fetchedOrder,
                 'cancellationResponse': response,
+                'fetchedOrder': fetchedOrder,
+                'transactionType': 'cancellation',
             },
             market
         )
@@ -1313,7 +1315,7 @@ class cube(Exchange, ImplicitAPI):
                     'rate': rate,
                 },
                 'info': {
-                    'mainOrderObjetc': mainOrderObject,
+                    'mainOrderObject': mainOrderObject,
                     'fetchedOrder': fetchedOrder,
                 },
             }
@@ -1432,12 +1434,11 @@ class cube(Exchange, ImplicitAPI):
         }
         return self.parse_trades(rawTrades, market)
 
-    def parse_trades(self, rawTrades, market=None):
-        parsedTradesObject = self.safe_dict(rawTrades, 'parsedTrades')
+    def parse_trades(self, rawTrades: Any, market=None):
+        parsedTrades = self.safe_value(rawTrades, 'parsedTrades')
         finalTrades = []
-        if parsedTradesObject and isinstance(parsedTradesObject, dict):
-            parsedTrades = list(parsedTradesObject.values())
-            for i in range(0, len(parsedTrades)):
+        if parsedTrades is not None and self.count_items(parsedTrades) > 0:
+            for i in range(0, self.count_items(parsedTrades)):
                 trade = parsedTrades[i]
                 finalTrades.append(self.parse_trade(trade, market))
         return finalTrades
