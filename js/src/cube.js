@@ -1163,12 +1163,10 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const meta = await this.fetchMarketMeta(symbol);
-        symbol = this.safeString(meta, 'symbol');
-        const market = this.safeDict(meta, 'market');
-        const request = {};
-        this.injectSubAccountId(request, params);
-        const rawResponse = await this.restOsmiumPrivateGetOrders(this.extend(request, params));
+        const meta = await this.fetchMarketMeta (symbol);
+        symbol = this.safeString (meta, 'symbol');
+        const market = this.safeDict (meta, 'market');
+        const order = await this.fetchRawOrder (id, symbol, params);
         //
         //  {
         //      "result": {
@@ -1192,13 +1190,13 @@ export default class cube extends Exchange {
         //          ]
         //      }
         //  }
-        //
-        const result = this.safeList(this.safeDict(rawResponse, 'result'), 'orders');
-        const order = await this.parseOrder({ 'fetchedOrder': this.safeValue(result, 0) }, market);
-        if (order !== undefined) {
-            return order;
-        }
-        throw new OrderNotFound('Order "' + id + '" not found.');
+        return this.parseOrder (
+            {
+                'fetchedOrder': order,
+                'transactionType': 'fetching',
+            },
+            market
+        );
     }
     async fetchRawOrder(id, symbol = undefined, params = {}) {
         /**

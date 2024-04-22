@@ -1095,9 +1095,7 @@ class cube(Exchange, ImplicitAPI):
         meta = self.fetch_market_meta(symbol)
         symbol = self.safe_string(meta, 'symbol')
         market = self.safe_dict(meta, 'market')
-        request = {}
-        self.inject_sub_account_id(request, params)
-        rawResponse = self.restOsmiumPrivateGetOrders(self.extend(request, params))
+        order = self.fetch_raw_order(id, symbol, params)
         #
         #  {
         #      "result": {
@@ -1122,11 +1120,13 @@ class cube(Exchange, ImplicitAPI):
         #      }
         #  }
         #
-        result = self.safe_list(self.safe_dict(rawResponse, 'result'), 'orders')
-        order = self.parse_order({'fetchedOrder': self.safe_value(result, 0)}, market)
-        if order is not None:
-            return order
-        raise OrderNotFound('Order "' + id + '" not found.')
+        return self.parse_order(
+            {
+                'fetchedOrder': order,
+                'transactionType': 'fetching'
+            },
+            market
+        )
 
     def fetch_raw_order(self, id, symbol=None, params={}):
         """
@@ -1229,97 +1229,172 @@ class cube(Exchange, ImplicitAPI):
         return self.filter_by_symbol_since_limit(results, symbol, since, limit)
 
     def parse_order(self, order, market: Market = None):
-        # transactionType = ''
-        fetchedOrder = self.safe_dict(order, 'fetchedOrder')
-        mainOrderObject = self.safe_dict(order, 'cancellationResponse', self.safe_dict(order, 'order'))
-        timestampInNanoseconds = self.safe_number(self.safe_dict(self.safe_dict(mainOrderObject, 'result'), 'Ack'), 'transactTime')
-        if timestampInNanoseconds is None:
-            timestampInNanoseconds = self.safe_number(mainOrderObject, 'transactTime')
-        if timestampInNanoseconds is None:
-            timestampInNanoseconds = self.safe_number(fetchedOrder, 'restTime')
-        if timestampInNanoseconds is None:
-            timestampInNanoseconds = self.safe_number(order, 'restTime')
-        if timestampInNanoseconds is None:
-            timestampInNanoseconds = self.safe_number(order, 'createdAt')
-        timestampInMilliseconds = timestampInNanoseconds / 1000000
-        # orderStatus = ''  # TODO fix not !!
-        # if list(fetchedOrder).'length == 0.keys():
-        #     orderStatus = 'canceled'
-        # else:
-        #     orderStatus = 'open'
-        # }
-        result = {}
-        # TODO Improve self part to reuse the original response from create, cancel, instead of relying in the fetched ordernot !!
-        if fetchedOrder and not (len(fetchedOrder) == 0):
-            exchangeOrderId = self.safe_integer(fetchedOrder, 'exchangeOrderId')
-            clientOrderId = self.safe_integer(fetchedOrder, 'clientOrderId')
-            orderSide = self.safe_integer(fetchedOrder, 'side') == 'buy' if 0 else 'sell'
-            price = self.safe_integer(fetchedOrder, 'price') / 100
-            symbol = self.safe_string(market, 'symbol')
-            amount = self.safe_integer(fetchedOrder, 'orderQuantity')
-            remainingAmount = self.safe_integer(fetchedOrder, 'remainingQuantity')
-            filledAmount = amount - remainingAmount
-            currency = ''
-            if orderSide == 'buy':
-                currency = self.safe_string(market, 'base')
-            else:
-                currency = self.safe_string(market, 'quote')
-            orderType = ''
-            orderTypeRaw = self.safe_integer(fetchedOrder, 'orderType')
-            if orderTypeRaw == 0:
-                orderType = 'limit'
-            elif orderTypeRaw == 1:
-                orderType = 'market'
-            elif orderTypeRaw == 2:
-                orderType = 'MARKET_WITH_PROTECTION'
-            else:
-                raise InvalidOrder('OrderType was not recognized while parsing: ' + orderTypeRaw)
-            timeInForce = ''
-            timeInForceRaw = self.safe_integer(fetchedOrder, 'timeInForce')
-            if timeInForceRaw == 0:
-                timeInForce = 'IOC'
-            elif timeInForceRaw == 1:
-                timeInForce = 'GTC'
-            elif timeInForceRaw == 2:
-                timeInForce = 'FOK'
-            else:
-                raise InvalidOrder('TimeInForce was not recognized while parsing: ' + timeInForceRaw)
-            tradeFeeRatios = self.safe_string(self.fees, 'trading')
-            rate = orderSide == self.safe_string(tradeFeeRatios, 'maker') if 'buy' else self.safe_string(tradeFeeRatios, 'taker')
-            decimalAmount = amount / 100
-            decimalFilledAmount = filledAmount / 100
-            decimalRemainingAmount = remainingAmount / 100
-            cost = filledAmount * price
-            feeCost = decimalAmount * float(rate)
-            result = {
-                'id': exchangeOrderId,
-                'clientOrderId': clientOrderId,
-                'datetime': self.iso8601(timestampInMilliseconds),
-                'timestamp': timestampInMilliseconds,
-                'lastTradeTimestamp': timestampInMilliseconds,
-                'status': 'open',
-                'symbol': symbol,
-                'type': orderType,
-                'timeInForce': timeInForce,
-                'side': orderSide,
-                'price': price,
-                'average': 0.06917684,
-                'amount': decimalAmount,
-                'filled': decimalFilledAmount,
-                'remaining': decimalRemainingAmount,
-                'cost': cost,
-                'trades': [],  # TODO: Implement trades
-                'fee': {
-                    'currency': currency,  # a deduction from the asset hasattr(self, received) trade
-                    'cost': feeCost,
-                    'rate': rate,
-                },
-                'info': {
-                    'mainOrderObject': mainOrderObject,
-                    'fetchedOrder': fetchedOrder,
-                },
-            }
-        return self.safe_order(result)
+        transactionType = self.safe_string(order, 'transactionType')
+        if transactionType == 'fetching':
+            order = self.safe_dict(order, 'fetchedOrder')
+            if order is not None:
+                exchangeOrderId = self.safe_string(order, 'exchangeOrderId')
+                clientOrderId = self.safe_string(order, 'clientOrderId')
+                timestampInNanoseconds = self.safe_integer(order, 'restTime')
+                timestampInMilliseconds = self.parse_to_int(timestampInNanoseconds / 1000000)
+                symbol = self.safe_string(market, 'symbol')
+                orderSide = self.safe_string(order, 'side') == 'buy' if 0 else 'sell'
+                orderStatus = 'open' # If the order is fetched, it is open
+                currency = None
+                if orderSide == 'buy':
+                    currency = self.safe_string(market, 'base')
+                else:
+                    currency = self.safe_string(market, 'quote')
+                orderTypeRaw = self.safe_integer(order, 'orderType')
+                orderType = None
+                if orderTypeRaw == 0:
+                    orderType = 'limit'
+                elif orderTypeRaw == 1:
+                    orderType = 'market'
+                elif orderTypeRaw == 2:
+                    orderType = 'MARKET_WITH_PROTECTION'
+                timeInForce = None
+                timeInForceRaw = self.safe_integer(order, 'timeInForce')
+                if timeInForceRaw == 0:
+                    timeInForce = 'IOC'
+                elif timeInForceRaw == 1:
+                    timeInForce = 'GTC'
+                elif timeInForceRaw == 2:
+                    timeInForce = 'FOK'
+                price = self.safe_integer(order, 'price') / 100
+                amount = self.safe_integer(order, 'orderQuantity')
+                remainingAmount = self.safe_integer(order, 'remainingQuantity')
+                filledAmount = amount - remainingAmount
+                tradeFeeRatios = self.safe_dict(self.fees, 'trading')
+                rate = None
+                if orderSide == 'buy':
+                    rate = self.safe_number(tradeFeeRatios, 'maker')
+                elif orderSide == 'sell':
+                    rate = self.safe_number(tradeFeeRatios, 'taker')
+                decimalAmount = amount / 100
+                decimalFilledAmount = filledAmount / 100
+                decimalRemainingAmount = remainingAmount / 100
+                cost = decimalFilledAmount * price
+                feeCost = decimalAmount * rate
+                return self.safe_order({
+                    'id': exchangeOrderId,
+                    'clientOrderId': clientOrderId,
+                    'datetime': self.iso8601(timestampInMilliseconds),
+                    'timestamp': timestampInMilliseconds,
+                    'lastTradeTimestamp': timestampInMilliseconds,
+                    'status': orderStatus,
+                    'symbol': symbol,
+                    'type': orderType,
+                    'timeInForce': timeInForce,
+                    'side': orderSide,
+                    'price': price,
+                    'average': None,
+                    'amount': decimalAmount,
+                    'filled': decimalFilledAmount,
+                    'remaining': decimalRemainingAmount,
+                    'cost': cost,
+                    'trades': [],
+                    'fee': {
+                        'currency': currency,  # a deduction from the asset hasattr(self, received) trade
+                        'cost': feeCost,
+                        'rate': rate,
+                    },
+                    'info': {
+                        'fetchedOrder': order,
+                    },
+                })
+            return {}
+        #
+        # fetchedOrder = self.safe_dict(order, 'fetchedOrder')
+        # mainOrderObject = self.safe_dict(order, 'cancellationResponse', self.safe_dict(order, 'order'))
+        # timestampInNanoseconds = self.safe_number(self.safe_dict(self.safe_dict(mainOrderObject, 'result'), 'Ack'), 'transactTime')
+        # if timestampInNanoseconds is None:
+        #     timestampInNanoseconds = self.safe_number(mainOrderObject, 'transactTime')
+        # if timestampInNanoseconds is None:
+        #     timestampInNanoseconds = self.safe_number(fetchedOrder, 'restTime')
+        # if timestampInNanoseconds is None:
+        #     timestampInNanoseconds = self.safe_number(order, 'restTime')
+        # if timestampInNanoseconds is None:
+        #     timestampInNanoseconds = self.safe_number(order, 'createdAt')
+        # timestampInMilliseconds = timestampInNanoseconds / 1000000
+        # # orderStatus = ''  # TODO fix not !!
+        # # if list(fetchedOrder).'length == 0.keys():
+        # #     orderStatus = 'canceled'
+        # # else:
+        # #     orderStatus = 'open'
+        # # }
+        # result = {}
+        # # TODO Improve self part to reuse the original response from create, cancel, instead of relying in the fetched ordernot !!
+        # if fetchedOrder and not (len(fetchedOrder) == 0):
+        #     exchangeOrderId = self.safe_integer(fetchedOrder, 'exchangeOrderId')
+        #     clientOrderId = self.safe_integer(fetchedOrder, 'clientOrderId')
+        #     orderSide = self.safe_integer(fetchedOrder, 'side') == 'buy' if 0 else 'sell'
+        #     price = self.safe_integer(fetchedOrder, 'price') / 100
+        #     symbol = self.safe_string(market, 'symbol')
+        #     amount = self.safe_integer(fetchedOrder, 'orderQuantity')
+        #     remainingAmount = self.safe_integer(fetchedOrder, 'remainingQuantity')
+        #     filledAmount = amount - remainingAmount
+        #     currency = ''
+        #     if orderSide == 'buy':
+        #         currency = self.safe_string(market, 'base')
+        #     else:
+        #         currency = self.safe_string(market, 'quote')
+        #     orderType = ''
+        #     orderTypeRaw = self.safe_integer(fetchedOrder, 'orderType')
+        #     if orderTypeRaw == 0:
+        #         orderType = 'limit'
+        #     elif orderTypeRaw == 1:
+        #         orderType = 'market'
+        #     elif orderTypeRaw == 2:
+        #         orderType = 'MARKET_WITH_PROTECTION'
+        #     else:
+        #         raise InvalidOrder('OrderType was not recognized while parsing: ' + orderTypeRaw)
+        #     timeInForce = ''
+        #     timeInForceRaw = self.safe_integer(fetchedOrder, 'timeInForce')
+        #     if timeInForceRaw == 0:
+        #         timeInForce = 'IOC'
+        #     elif timeInForceRaw == 1:
+        #         timeInForce = 'GTC'
+        #     elif timeInForceRaw == 2:
+        #         timeInForce = 'FOK'
+        #     else:
+        #         raise InvalidOrder('TimeInForce was not recognized while parsing: ' + timeInForceRaw)
+        #     tradeFeeRatios = self.safe_string(self.fees, 'trading')
+        #     rate = orderSide == self.safe_string(tradeFeeRatios, 'maker') if 'buy' else self.safe_string(tradeFeeRatios, 'taker')
+        #     decimalAmount = amount / 100
+        #     decimalFilledAmount = filledAmount / 100
+        #     decimalRemainingAmount = remainingAmount / 100
+        #     cost = filledAmount * price
+        #     feeCost = decimalAmount * float(rate)
+        #     result = {
+        #         'id': exchangeOrderId,
+        #         'clientOrderId': clientOrderId,
+        #         'datetime': self.iso8601(timestampInMilliseconds),
+        #         'timestamp': timestampInMilliseconds,
+        #         'lastTradeTimestamp': timestampInMilliseconds,
+        #         'status': 'open',
+        #         'symbol': symbol,
+        #         'type': orderType,
+        #         'timeInForce': timeInForce,
+        #         'side': orderSide,
+        #         'price': price,
+        #         'average': 0.06917684,
+        #         'amount': decimalAmount,
+        #         'filled': decimalFilledAmount,
+        #         'remaining': decimalRemainingAmount,
+        #         'cost': cost,
+        #         'trades': [],  # TODO: Implement trades
+        #         'fee': {
+        #             'currency': currency,  # a deduction from the asset hasattr(self, received) trade
+        #             'cost': feeCost,
+        #             'rate': rate,
+        #         },
+        #         'info': {
+        #             'mainOrderObject': mainOrderObject,
+        #             'fetchedOrder': fetchedOrder,
+        #         },
+        #     }
+        # return self.safe_order(result)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
