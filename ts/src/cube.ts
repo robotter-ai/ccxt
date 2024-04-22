@@ -625,7 +625,7 @@ export default class cube extends Exchange {
         const marketSymbol = baseSymbol + quoteSymbol;
         return this.safeMarketStructure ({
             'id': id,
-            'lowercaseId': String(id).toLowerCase(),
+            'lowercaseId': String (id).toLowerCase (),
             'symbol': marketSymbol,
             'base': this.safeString (baseAsset, 'code'),
             'quote': this.safeString (quoteAsset, 'code'),
