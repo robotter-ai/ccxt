@@ -1221,13 +1221,13 @@ class cube(Exchange, ImplicitAPI):
         results = []
         if isinstance(orders, list):
             for i in range(0, len(orders)):
-                order = self.extend(self.parse_order({'fetchedOrder': orders[i]}, market), params)
+                order = self.extend(self.parse_order({'fetchedOrder': orders[i], 'transactionType': 'fetching_all'}, market), params)
                 results.append(order)
         else:
             ids = list(orders.keys())
             for i in range(0, len(ids)):
                 id = ids[i]
-                order = self.extend(self.parse_order({'fetchedOrder': orders[id]}, market), params)
+                order = self.extend(self.parse_order({'fetchedOrder': orders[id], 'transactionType': 'fetching_all'}, market), params)
                 results.append(order)
         results = self.sort_by(results, 'timestamp')
         symbol = market['symbol'] if (market is not None) else None
@@ -1249,14 +1249,21 @@ class cube(Exchange, ImplicitAPI):
             orderStatus = 'canceled'
         elif transactionType == 'fetching':
             orderStatus = 'open'  # If the order is fetched, it is open
+        elif transactionType == 'fetching_all':
+            orderStatus = self.safe_string(fetchedOrder, 'status')  # The order status is present in the order body when fetching the endpoint of all orders
         if fetchedOrder is not None:
             exchangeOrderId = self.safe_string(fetchedOrder, 'exchangeOrderId')
             clientOrderId = self.safe_string(fetchedOrder, 'clientOrderId')
             timestampInNanoseconds = None
-            if orderStatus == 'filled':
+            timestampInNanoseconds = self.safe_integer(fetchedOrder, 'restTime')
+            if timestampInNanoseconds is None:
                 timestampInNanoseconds = self.safe_integer(fetchedOrder, 'transactTime')
-            else:
-                timestampInNanoseconds = self.safe_integer(fetchedOrder, 'restTime')
+            if timestampInNanoseconds is None:
+                timestampInNanoseconds = self.safe_integer(fetchedOrder, 'createdAt')
+            if timestampInNanoseconds is None:
+                timestampInNanoseconds = self.safe_integer(fetchedOrder, 'filledAt')
+            if timestampInNanoseconds is None:
+                timestampInNanoseconds = self.safe_integer(fetchedOrder, 'canceledAt')
             timestampInMilliseconds = self.parse_to_int(timestampInNanoseconds / 1000000)
             symbol = self.safe_string(market, 'symbol')
             orderSide = self.safe_integer(fetchedOrder, 'side') == 'buy' if 0 else 'sell'
@@ -1288,13 +1295,17 @@ class cube(Exchange, ImplicitAPI):
             else:
                 price = rawPrice / 100
             amount = None
-            remainingAmount = None
-            if orderStatus == 'filled':
-                amount = self.safe_integer(fetchedOrder, 'quantity')
-                remainingAmount = 0
-            else:
+            amount = self.safe_integer(fetchedOrder, 'quantity')
+            if amount is None:
+                amount = self.safe_integer(fetchedOrder, 'qty')
+            if amount is None:
                 amount = self.safe_integer(fetchedOrder, 'orderQuantity')
-                remainingAmount = self.safe_integer(fetchedOrder, 'remainingQuantity')
+            remainingAmount = None
+            remainingAmount = self.safe_integer(fetchedOrder, 'remainingQuantity')
+            if remainingAmount is None and (orderStatus == 'canceled' or orderStatus == 'filled'):
+                remainingAmount = amount
+            if remainingAmount is None:
+                remainingAmount = 0
             filledAmount = amount - remainingAmount
             tradeFeeRatios = self.safe_dict(self.fees, 'trading')
             rate = None

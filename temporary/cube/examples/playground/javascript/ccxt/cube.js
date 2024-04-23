@@ -341,9 +341,9 @@ async function test() {
     // await cancelOrder()       //CHECKED
     // await fetchBalance()      //CHECKED
     // await fetchRawOrder()     //CHECKED
-    // await fetchOrder()        //(EMPTY ARRAYS, trades[], fees[]) 
-    // await fetchOpenOrders()   //EMPTY ARRAY
-    // await fetchOrders()       //EMPTY ARRAY
+    // await fetchOrder()
+    // await fetchOpenOrders()
+    // await fetchOrders()
     // await fetchOrdersAllMarkets()   //CHECKED
     // await fetchOrderBook()    //CHECKED
     // await fetchTicker()       //CHECKED
@@ -357,7 +357,6 @@ async function test() {
     // await deposit()
     // await withdraw()
     // await watchOrderBook()
-    // await parseOrder()
 }
 
 test()

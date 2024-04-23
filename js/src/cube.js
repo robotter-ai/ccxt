@@ -1299,7 +1299,7 @@ export default class cube extends Exchange {
         let results = [];
         if (Array.isArray(orders)) {
             for (let i = 0; i < orders.length; i++) {
-                const order = this.extend(this.parseOrder({ 'fetchedOrder': orders[i] }, market), params);
+                const order = this.extend(this.parseOrder({ 'fetchedOrder': orders[i], 'transactionType': 'fetching_all' }, market), params);
                 results.push(order);
             }
         }
@@ -1307,7 +1307,7 @@ export default class cube extends Exchange {
             const ids = Object.keys(orders);
             for (let i = 0; i < ids.length; i++) {
                 const id = ids[i];
-                const order = this.extend(this.parseOrder({ 'fetchedOrder': orders[id] }, market), params);
+                const order = this.extend(this.parseOrder({ 'fetchedOrder': orders[id], 'transactionType': 'fetching_all' }, market), params);
                 results.push(order);
             }
         }
@@ -1336,15 +1336,25 @@ export default class cube extends Exchange {
         else if (transactionType === 'fetching') {
             orderStatus = 'open'; // If the order is fetched, it is open
         }
+        else if (transactionType === 'fetching_all') {
+            orderStatus = this.safeString(fetchedOrder, 'status'); // The order status is present in the order body when fetching the endpoint of all orders
+        }
         if (fetchedOrder !== undefined) {
             const exchangeOrderId = this.safeString(fetchedOrder, 'exchangeOrderId');
             const clientOrderId = this.safeString(fetchedOrder, 'clientOrderId');
             let timestampInNanoseconds = undefined;
-            if (orderStatus === 'filled') {
+            timestampInNanoseconds = this.safeInteger(fetchedOrder, 'restTime');
+            if (timestampInNanoseconds === undefined) {
                 timestampInNanoseconds = this.safeInteger(fetchedOrder, 'transactTime');
             }
-            else {
-                timestampInNanoseconds = this.safeInteger(fetchedOrder, 'restTime');
+            if (timestampInNanoseconds === undefined) {
+                timestampInNanoseconds = this.safeInteger(fetchedOrder, 'createdAt');
+            }
+            if (timestampInNanoseconds === undefined) {
+                timestampInNanoseconds = this.safeInteger(fetchedOrder, 'filledAt');
+            }
+            if (timestampInNanoseconds === undefined) {
+                timestampInNanoseconds = this.safeInteger(fetchedOrder, 'canceledAt');
             }
             const timestampInMilliseconds = this.parseToInt(timestampInNanoseconds / 1000000);
             const symbol = this.safeString(market, 'symbol');
@@ -1387,14 +1397,20 @@ export default class cube extends Exchange {
                 price = rawPrice / 100;
             }
             let amount = undefined;
-            let remainingAmount = undefined;
-            if (orderStatus === 'filled') {
-                amount = this.safeInteger(fetchedOrder, 'quantity');
-                remainingAmount = 0;
+            amount = this.safeInteger(fetchedOrder, 'quantity');
+            if (amount === undefined) {
+                amount = this.safeInteger(fetchedOrder, 'qty');
             }
-            else {
+            if (amount === undefined) {
                 amount = this.safeInteger(fetchedOrder, 'orderQuantity');
-                remainingAmount = this.safeInteger(fetchedOrder, 'remainingQuantity');
+            }
+            let remainingAmount = undefined;
+            remainingAmount = this.safeInteger(fetchedOrder, 'remainingQuantity');
+            if (remainingAmount === undefined && (orderStatus === 'canceled' || orderStatus === 'filled')) {
+                remainingAmount = amount;
+            }
+            if (remainingAmount === undefined) {
+                remainingAmount = 0;
             }
             const filledAmount = amount - remainingAmount;
             const tradeFeeRatios = this.safeDict(this.fees, 'trading');
