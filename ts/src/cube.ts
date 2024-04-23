@@ -1412,7 +1412,13 @@ export default class cube extends Exchange {
             } else if (timeInForceRaw === 2) {
                 timeInForce = 'FOK';
             }
-            const price = this.safeInteger (fetchedOrder, 'price') / 100;
+            const rawPrice = this.safeInteger (fetchedOrder, 'price');
+            let price = undefined;
+            if (rawPrice === undefined || orderType === 'market') {
+                price = 0;
+            } else {
+                price = rawPrice / 100;
+            }
             let amount = undefined;
             let remainingAmount = undefined;
             if (orderStatus === 'filled') {

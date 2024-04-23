@@ -1281,7 +1281,12 @@ class cube(Exchange, ImplicitAPI):
                 timeInForce = 'GTC'
             elif timeInForceRaw == 2:
                 timeInForce = 'FOK'
-            price = self.safe_integer(fetchedOrder, 'price') / 100
+            rawPrice = self.safe_integer(fetchedOrder, 'price')
+            price = None
+            if rawPrice is None or orderType == 'market':
+                price = 0
+            else:
+                price = rawPrice / 100
             amount = None
             remainingAmount = None
             if orderStatus == 'filled':
