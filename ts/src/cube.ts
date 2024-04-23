@@ -1091,7 +1091,12 @@ export default class cube extends Exchange {
         }
         const timestamp = this.milliseconds ();
         const clientOrderIdFromParams = this.safeInteger (params, 'clientOrderId');
-        const clientOrderId = (clientOrderIdFromParams === undefined) ? timestamp : clientOrderIdFromParams;
+        let clientOrderId = undefined;
+        if (clientOrderIdFromParams === undefined) {
+            clientOrderId = timestamp;
+        } else {
+            clientOrderId = clientOrderIdFromParams;
+        }
         const request = {
             'clientOrderId': clientOrderId,
             'requestId': this.safeInteger (params, 'requestId', 1),
@@ -1356,7 +1361,10 @@ export default class cube extends Exchange {
             }
         }
         results = this.sortBy (results, 'timestamp');
-        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return this.filterBySymbolSinceLimit (results, symbol, since, limit);
     }
 
@@ -1400,7 +1408,13 @@ export default class cube extends Exchange {
             }
             const timestampInMilliseconds = this.parseToInt (timestampInNanoseconds / 1000000);
             const symbol = this.safeString (market, 'symbol');
-            const orderSide = this.safeInteger (fetchedOrder, 'side') === 0 ? 'buy' : 'sell';
+            const orderSideRaw = this.safeInteger (fetchedOrder, 'side');
+            let orderSide = undefined;
+            if (orderSideRaw === 0) {
+                orderSide = 'buy';
+            } else {
+                orderSide = 'sell';
+            }
             let currency = undefined;
             if (orderSide === 'buy') {
                 currency = this.safeString (market, 'base');
@@ -1729,7 +1743,12 @@ export default class cube extends Exchange {
         const response = await this.restIridiumPublicGetMarkets (params);
         const keys = Object.keys (response);
         const keysLength = keys.length;
-        const formattedStatus = keysLength ? 'ok' : 'maintenance';
+        let formattedStatus = undefined;
+        if (keysLength) {
+            formattedStatus = 'ok';
+        } else {
+            formattedStatus = 'maintenance';
+        }
         return {
             'status': formattedStatus,
             'updated': undefined,

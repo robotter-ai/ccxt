@@ -222,9 +222,9 @@ class cube(Exchange, ImplicitAPI):
             'currencies': None,
             'markets_by_id': None,
             'currencies_by_id': None,
-            'apiKey': '',
-            'secret': '',
-            'password': '',
+            'apiKey': None,
+            'secret': None,
+            'password': None,
             'uid': '',
             'options': {
                 'environment': 'production',
@@ -247,7 +247,7 @@ class cube(Exchange, ImplicitAPI):
                     'USD': True,
                 },
             },
-            'pro': False,
+            'pro': True,
             'fees': {
                 'trading': {
                     'maker': self.parse_number('0.0004'),
@@ -995,7 +995,11 @@ class cube(Exchange, ImplicitAPI):
             raise InvalidOrder('OrderSide was not recognized: ' + side)
         timestamp = self.milliseconds()
         clientOrderIdFromParams = self.safe_integer(params, 'clientOrderId')
-        clientOrderId = timestamp if (clientOrderIdFromParams is None) else clientOrderIdFromParams
+        clientOrderId = None
+        if clientOrderIdFromParams is None:
+            clientOrderId = timestamp
+        else:
+            clientOrderId = clientOrderIdFromParams
         request = {
             'clientOrderId': clientOrderId,
             'requestId': self.safe_integer(params, 'requestId', 1),
@@ -1233,7 +1237,9 @@ class cube(Exchange, ImplicitAPI):
                 order = self.extend(self.parse_order({'fetchedOrder': orders[id], 'transactionType': 'fetching_all'}, market), params)
                 results.append(order)
         results = self.sort_by(results, 'timestamp')
-        symbol = market['symbol'] if (market is not None) else None
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return self.filter_by_symbol_since_limit(results, symbol, since, limit)
 
     def parse_order(self, order, market: Market = None):
@@ -1269,7 +1275,12 @@ class cube(Exchange, ImplicitAPI):
                 timestampInNanoseconds = self.safe_integer(fetchedOrder, 'canceledAt')
             timestampInMilliseconds = self.parse_to_int(timestampInNanoseconds / 1000000)
             symbol = self.safe_string(market, 'symbol')
-            orderSide = self.safe_integer(fetchedOrder, 'side') == 'buy' if 0 else 'sell'
+            orderSideRaw = self.safe_integer(fetchedOrder, 'side')
+            orderSide = None
+            if orderSideRaw == 0:
+                orderSide = 'buy'
+            else:
+                orderSide = 'sell'
             currency = None
             if orderSide == 'buy':
                 currency = self.safe_string(market, 'base')
@@ -1564,7 +1575,11 @@ class cube(Exchange, ImplicitAPI):
         response = self.restIridiumPublicGetMarkets(params)
         keys = list(response.keys())
         keysLength = len(keys)
-        formattedStatus = 'ok' if keysLength else 'maintenance'
+        formattedStatus = None
+        if keysLength:
+            formattedStatus = 'ok'
+        else:
+            formattedStatus = 'maintenance'
         return {
             'status': formattedStatus,
             'updated': None,
