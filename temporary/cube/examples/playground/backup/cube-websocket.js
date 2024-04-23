@@ -1,16 +1,17 @@
-const WebSocket = require('ws');
-const protoBuf = require('protobufjs');
-const fs = require('fs');
-const crypto = require('crypto');
+import * as crypto from 'crypto';
+import { Buffer } from 'buffer';
+import WebSocket from 'ws';
+import * as fs from 'fs';
+import protoBuf from 'protobufjs';
 
 // Tunables
 const pathToTradeProto = '/path/to/trade.proto';
-const apiKey = '00000000-0000-0000-0000-000000000000';
-const secretKey = 'cafecafecafecafecafecafecafecafecafecafecafecafecafecafecafecafe';
-const cubeApiHost = 'api.cube.exchange' // for production; change to 'staging.cube.exchange' for staging
+const apiKey = process.env.API_KEY;
+const secretKey = process.env.API_SECRET;
+const cubeApiHost = 'staging.cube.exchange';
 
 // Load the protoBuf schema
-const root = protoBuf.parse(fs.readFileSync('../../generated/')).root;
+const root = protoBuf.parse(fs.readFileSync('temporary/cube/examples/playground/backup/schema/trade.proto')).root;
 const Bootstrap = root.lookupType('trade.Bootstrap');
 const Credentials = root.lookupType('trade.Credentials');
 
