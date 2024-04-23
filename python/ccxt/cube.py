@@ -1086,8 +1086,11 @@ class cube(Exchange, ImplicitAPI):
             'side': self.safe_integer(params, 'side', None),
         }
         self.inject_sub_account_id(request, params)
-        # TODO wrong response, it is needed to return the cancelled ordersnot !!
-        return self.restOsmiumPrivateDeleteOrders(self.extend(request, params))
+        response = self.restOsmiumPrivateDeleteOrders(self.extend(request, params))
+        return {
+            'info': self.safe_dict(response, 'result'),
+            'market': market,
+        }
 
     def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
