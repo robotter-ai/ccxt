@@ -862,7 +862,7 @@ class cube(Exchange, ImplicitAPI):
         self.fetch_market_meta()
         response = self.restIridiumPrivateGetUsersPositions(params)
         subaccountId = self.safe_string(self.options, 'subaccountId')
-        allOrders = self.fetch_orders_all_markets()
+        allOrders = self.fetch_raw_orders()
         result = self.safe_list(self.safe_dict(self.safe_dict(response, 'result'), subaccountId), 'inner')
         return self.parse_balance(result, allOrders)
 
@@ -1379,7 +1379,7 @@ class cube(Exchange, ImplicitAPI):
         rawOrders = self.safe_list(self.safe_dict(response, 'result'), 'orders')
         return self.parse_orders(rawOrders, market, since, limit)
 
-    def fetch_orders_all_markets(self, since=None, limit=None):
+    def fetch_raw_orders(self, since=None, limit=None):
         """
         fetch all orders from all markets
         :param str symbol: unified market symbol of the market orders were made in

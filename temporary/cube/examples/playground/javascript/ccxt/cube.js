@@ -189,9 +189,9 @@ async function fetchOrders() {
     log(response)
 }
 
-async function fetchOrdersAllMarkets() {
+async function fetchRawOrders() {
     // ???
-    response = await communityExchange.fetchOrdersAllMarkets(undefined, undefined, {
+    response = await communityExchange.fetchRawOrders(undefined, undefined, {
         'subaccountId': `${subAccountId}`,
     })
     log(response)
@@ -344,7 +344,7 @@ async function test() {
     // await fetchOrder()
     // await fetchOpenOrders()
     // await fetchOrders()
-    // await fetchOrdersAllMarkets()   //CHECKED
+    // await fetchRawOrders()   //CHECKED
     // await fetchOrderBook()    //CHECKED
     // await fetchTicker()       //CHECKED
     // await fetchTickers()      //CHECKED

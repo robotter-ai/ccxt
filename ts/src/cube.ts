@@ -938,7 +938,7 @@ export default class cube extends Exchange {
         await this.fetchMarketMeta ();
         const response = await this.restIridiumPrivateGetUsersPositions (params);
         const subaccountId = this.safeString (this.options, 'subaccountId');
-        const allOrders = await this.fetchOrdersAllMarkets ();
+        const allOrders = await this.fetchRawOrders ();
         const result = this.safeList (this.safeDict (this.safeDict (response, 'result'), subaccountId), 'inner');
         return this.parseBalance (result, allOrders);
     }
@@ -1527,10 +1527,10 @@ export default class cube extends Exchange {
         return this.parseOrders (rawOrders, market as Market, since, limit);
     }
 
-    async fetchOrdersAllMarkets (since = undefined, limit = undefined) {
+    async fetchRawOrders (since = undefined, limit = undefined) {
         /**
          * @method
-         * @name cube#fetchOrdersAllMarkets
+         * @name cube#fetchRawOrders
          * @description fetch all orders from all markets
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
