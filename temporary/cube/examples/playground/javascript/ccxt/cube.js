@@ -152,16 +152,11 @@ async function cancelOrder() {
     log(response)
 }
 
-// DEVELOPMENT (incompleto)
 async function cancelAllOrders() {
-    // Not ready, it needs to be revisited.
     response = await communityExchange.cancelAllOrders(marketSymbols[0], {
-        'subaccountId': `${subAccountId}`,
         'requestId': 1,
-        // 'side': 1, // 0: buy, 1: sell
     })
     log(response)
-    // TODO response object is correct lasting only parse the answer!!!
 }
 
 async function fetchRawOrder() {
