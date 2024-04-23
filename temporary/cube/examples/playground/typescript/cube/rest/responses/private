@@ -431,3 +431,54 @@ result: {
         }
     }
 }
+
+// IRIDIUM GET USERS SUBACCOUNTS
+{
+    ids: [
+      164,
+      165,
+      161,
+    ],
+}
+
+// IRIDIUM PATCH SUBACCOUNT
+{
+    id: 164,
+}
+
+// IRIDIUM GET USERS FEE ESTIMATE
+{
+    marketId: 100001,
+    userKey: "69b57052-bca4-41d6-a4b5-6c6362d347c6",
+    makerFeeRatio: 0,
+    takerFeeRatio: 0,
+}
+
+// IRIDIUM GET USERS ADDRESS
+{
+    "result": {
+      "addresses": [
+        {
+          "id": "123e4567-e89b-12d3-a456-426614174000",
+          "name": "text",
+          "address": "text",
+          "status": "pending",
+          "createdAt": "2024-04-23T12:13:18.633Z",
+          "approvedAt": "2024-04-23T12:13:18.633Z",
+          "activeSince": "2024-04-23T12:13:18.633Z"
+        }
+      ],
+      "settings": {
+        "whitelisted": false,
+        "whitelistStatus": "pending"
+      }
+    }
+}
+
+// IRIDIUM GET USERS ADDRESS SETTINGS
+{
+    "result": {
+      "whitelisted": false,
+      "whitelistStatus": "pending"
+    }
+}

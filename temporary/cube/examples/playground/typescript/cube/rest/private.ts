@@ -127,7 +127,7 @@ async function iridiumGetUsersPositions() {
 
   const type = "ir";
   const baseUrl = `https://staging.cube.exchange/${type}/v0`;
-  const endpoint = "/users/positions";
+  const endpoint = "/users/subaccount/161/positions";
   const url = `${baseUrl}${endpoint}`;
 
   let request: any = {
@@ -335,8 +335,8 @@ async function iridiumPostUsersSubaccounts() {
   }
 }
 
-// IRIDIUM POST USERS SUBACCOUNTS ID
-async function iridiumPostUsersSubaccountsId() {
+// IRIDIUM GET USERS SUBACCOUNTS ID
+async function iridiumGetUsersSubaccountId() {
   const apiKey = Deno.env.get("API_KEY");
   const apiSecret = Deno.env.get("API_SECRET");
 
@@ -344,15 +344,13 @@ async function iridiumPostUsersSubaccountsId() {
 
   const type = "ir";
   const baseUrl = `https://staging.cube.exchange/${type}/v0`;
-  const endpoint = "/users/subaccounts/161";
+  const endpoint = "/users/subaccount/161";
   const url = `${baseUrl}${endpoint}`;
 
 
   let request: any = {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-    }),
+    method: "GET",
+    headers: {},
   };
 
   request = auth.authenticateRequest(request);
@@ -360,7 +358,6 @@ async function iridiumPostUsersSubaccountsId() {
   try {
     const response = await fetch(url, request);
 
-    console.log(JSON.stringify(response, null, 2))
     const data = await response.json();
 
     console.log(JSON.stringify(data, null, 2));
@@ -557,4 +554,183 @@ async function osmiumPatchOrder() {
   }
 }
 
-await iridiumGetUsersPositions();
+// ----------------------- NEW METHODS (APRIL 2024) ---------------------- //
+// IRIDIUM GET USERS SUBACCOUNTS
+async function iridiumGetUsersSubaccounts() {
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
+
+  const auth = new Auth(apiKey, apiSecret);
+
+  const type = "ir";
+  const baseUrl = `https://staging.cube.exchange/${type}/v0`;
+  const endpoint = "/users/subaccounts";
+  const url = `${baseUrl}${endpoint}`;
+
+  let request: any = {
+    method: "GET",
+    headers: {},
+  };
+
+  request = auth.authenticateRequest(request);
+
+  try {
+    const response = await fetch(url, request);
+
+    const data = await response.json();
+
+    console.log(data);
+  } catch (exception) {
+    console.error(exception);
+  }
+}
+
+// IRIDIUM PATCH SUBACCOUNT
+async function iridiumPatchSubaccount() {
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
+
+  const auth = new Auth(apiKey, apiSecret);
+
+  const type = "ir";
+  const baseUrl = `https://staging.cube.exchange/${type}/v0`;
+  const endpoint = "/users/subaccount/164";
+  const url = `${baseUrl}${endpoint}`;
+
+  let request: any = {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      "name": "hudson"
+    }),
+  };
+
+  request = auth.authenticateRequest(request);
+
+  try {
+    const response = await fetch(url, request);
+
+    const data = await response.json();
+
+    console.log(data);
+  } catch (exception) {
+    console.error(exception);
+  }
+}
+
+// IRIDIUM GET USERS FEE ESTIMATE
+async function iridiumGetUsersFeeEstimate() {
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
+
+  const auth = new Auth(apiKey, apiSecret);
+
+  const type = "ir";
+  const baseUrl = `https://staging.cube.exchange/${type}/v0`;
+  const endpoint = "/users/fee-estimate/100001";
+  const url = `${baseUrl}${endpoint}`;
+
+  let request: any = {
+    method: "GET",
+    headers: {},
+  };
+
+  request = auth.authenticateRequest(request);
+
+  try {
+    const response = await fetch(url, request);
+
+    const data = await response.json();
+
+    console.log(data);
+  } catch (exception) {
+    console.error(exception);
+  }
+}
+
+// IRIDIUM GET USERS ADDRESS
+async function iridiumGetUsersAddress() {
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
+
+  const auth = new Auth(apiKey, apiSecret);
+
+  const type = "ir";
+  const baseUrl = `https://staging.cube.exchange/${type}/v0`;
+  const endpoint = "/users/address";
+  const url = `${baseUrl}${endpoint}`;
+
+  let request: any = {
+    method: "GET",
+    headers: {},
+  };
+
+  request = auth.authenticateRequest(request);
+
+  try {
+    const response = await fetch(url, request);
+
+    const data = await response.json();
+
+    console.log(data);
+  } catch (exception) {
+    console.error(exception);
+  }
+}
+
+// IRIDIUM GET USERS ADDRESS SETTINGS
+async function iridiumGetUsersAddressSettings() {
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
+
+  const auth = new Auth(apiKey, apiSecret);
+
+  const type = "ir";
+  const baseUrl = `https://staging.cube.exchange/${type}/v0`;
+  const endpoint = "/users/address/settings";
+  const url = `${baseUrl}${endpoint}`;
+
+  let request: any = {
+    method: "GET",
+    headers: {},
+  };
+
+  request = auth.authenticateRequest(request);
+
+  try {
+    const response = await fetch(url, request);
+
+    const data = await response.json();
+
+    console.log(data);
+  } catch (exception) {
+    console.error(exception);
+  }
+}
+
+
+await iridiumGetUsersAddressSettings();
+
+async fetchStatus(params = {}) {
+  /**
+   * @method
+   * @name cube#fetchStatus
+   * @description the latest known information on the availability of the exchange API
+   * @see https://binance-docs.github.io/apidocs/spot/en/#system-status-system
+   * @param {object} [params] extra parameters specific to the exchange API endpoint
+   * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+   */
+  const response = await this.restIridiumPublicGetMarkets(params);
+  const keys = Object.keys(response);
+  const keysLength = keys.length;
+  const formattedStatus = keysLength ? 'ok' : 'maintenance';
+  return {
+    'status': formattedStatus,
+    'updated': undefined,
+    'eta': undefined,
+    'url': undefined,
+    'info': undefined,
+  };
+}

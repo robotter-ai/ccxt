@@ -86,4 +86,15 @@ async function mendelevGetMarketSymbolRecentTrades() {
     console.log(data);
 }
 
-await mendelevGetMarketSymbolRecentTrades()
+// -------------------- NEW METHODS (APRIL 2024) --------------------- //
+// IRIDIUM GET HISTORY KLINES
+async function iridiumGetHistoryKlines() {
+    const response = await fetch("https://staging.cube.exchange/ir/v0/history/klines?marketId=200047&interval=1m", {
+        method: "GET",
+        headers: {},
+    });
+    const data = await response.json();
+    console.log(data);
+}
+
+await iridiumGetHistoryKlines()

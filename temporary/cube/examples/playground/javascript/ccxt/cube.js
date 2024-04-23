@@ -92,9 +92,9 @@ async function fetchOHLCV() {
     log(response)
 }
 
-// BACKLOG?
 async function fetchStatus() {
-
+        response = await communityExchange.fetchStatus()
+        log(response)
 }
 
 // BACKLOG?
@@ -353,7 +353,7 @@ async function test() {
     // await fetchTrades()     //CHECKED
     // await fetchMyTrades()    // TODO Not implemented!!!
     // await fetchClosedOrders()   // TODO Not implemented!!!
-    // await fetchStatus()     // TODO Not implemented!!!
+    // await fetchStatus()   // CHECKED
     // await deposit()
     // await withdraw()
     // await watchOrderBook()
