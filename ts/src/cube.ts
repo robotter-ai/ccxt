@@ -238,9 +238,9 @@ export default class cube extends Exchange {
             'currencies': undefined,
             'markets_by_id': undefined,
             'currencies_by_id': undefined,
-            'apiKey': '',
-            'secret': '',
-            'password': '',
+            'apiKey': undefined,
+            'secret': undefined,
+            'password': undefined,
             'uid': '',
             'options': {
                 'environment': 'production',
@@ -263,7 +263,7 @@ export default class cube extends Exchange {
                     'USD': true,
                 },
             },
-            'pro': false,
+            'pro': true,
             'fees': {
                 'trading': {
                     'maker': this.parseNumber ('0.0004'),
