@@ -184,7 +184,7 @@ class cube(Exchange, ImplicitAPI):
                 'fetchPositionsForSymbol': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
-                'fetchStatus': False,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': False,
                 'fetchTrades': True,
@@ -1540,8 +1540,24 @@ class cube(Exchange, ImplicitAPI):
             return self.filter_by(orders, 'status', 'closed')
         raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
 
-    def fetch_status(self, params={}):
-        raise NotSupported(self.id + ' fetchStatus() is not supported yet')
+    def fetch_status(self, params={}) -> Any:
+        """
+        the latest known information on the availability of the exchange API
+        :see: https://binance-docs.github.io/apidocs/spot/en/#system-status-system
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+        """
+        response = self.restIridiumPublicGetMarkets(params)
+        keys = list(response.keys())
+        keysLength = len(keys)
+        formattedStatus = 'ok' if keysLength else 'maintenance'
+        return {
+            'status': formattedStatus,
+            'updated': None,
+            'eta': None,
+            'url': None,
+            'info': None,
+        }
 
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
