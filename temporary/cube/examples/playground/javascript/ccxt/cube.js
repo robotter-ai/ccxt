@@ -238,125 +238,39 @@ async function watchOrderBook() {
     log(response)
 }
 
-async function parseOrder() {
-    const fetchedOrder = {
-        'clientOrderId': '1713218283171',
-        'exchangeOrderId': '5286416927',
-        'marketId': '200047',
-        'price': '13000',
-        'orderQuantity': '10',
-        'side': '0',
-        'timeInForce': '1',
-        'orderType': '0',
-        'remainingQuantity': '10',
-        'restTime': '1713218283314283303',
-        'subaccountId': '163',
-        'cumulativeQuantity': '0',
-        'cancelOnDisconnect': false
-    }
-    const creationResultOrderExample = {
-        'msgSeqNum': '3614952',
-        'clientOrderId': '1713218738167',
-        'requestId': '1',
-        'exchangeOrderId': '5286527825',
-        'marketId': '200047',
-        'price': null,
-        'quantity': '10',
-        'side': '0',
-        'timeInForce': '1',
-        'orderType': '1',
-        'transactTime': '1713218807472551691',
-        'subaccountId': '163',
-        'cancelOnDisconnect': false
-    }
-    const marketExample = {
-        'id': 'tsoltusdc',
-        'lowercaseId': 'tsoltusdc',
-        'symbol': 'TSOL/TUSDC',
-        'base': 'TSOL',
-        'quote': 'TUSDC',
-        'baseId': 'TSOL',
-        'quoteId': 'TUSDC',
-        'type': 'spot',
-        'spot': true,
-        'margin': false,
-        'swap': false,
-        'future': false,
-        'option': false,
-        'index': false,
-        'active': true,
-        'contract': false,
-        'taker': 0.008,
-        'maker': 0.004,
-        'precision': {
-            'amount': 1,
-            'price': 1
-        },
-        'limits': {
-            'leverage': {},
-            'amount': {},
-            'price': {},
-            'cost': {}
-        },
-        'info': {
-            'marketId': '200047',
-            'symbol': 'tSOLtUSDC',
-            'baseAssetId': '80005',
-            'baseLotSize': '100000',
-            'quoteAssetId': '80007',
-            'quoteLotSize': '1',
-            'priceDisplayDecimals': '2',
-            'protectionPriceLevels': '1000',
-            'priceBandBidPct': '25',
-            'priceBandAskPct': '400',
-            'priceTickSize': '0.01',
-            'quantityTickSize': '0.0001',
-            'feeTableId': '2',
-            'status': '1',
-            'displayRank': '3',
-            'listedAt': '2023-10-29T00:00:00Z',
-            'isPrimary': true
-        }
-    }
-    const creationResult = {'order': creationResultOrderExample, 'fetchedOrder': fetchedOrder};
-    // const cancellationResult = {'order': cancellationResultOrderExample, 'fetchedOrder': fetchedOrder};
-    response = await communityExchange.parseOrder(creationResult, marketExample)
-    log(response)
-}
-
 async function test() {
     // getAllExchanges()
     createCommunityExchange()
     // createProExchange()
-    // await loadMarkets()       //CHECKED
-    // await fetchCurrencies()   //CHECKED
-    // await fetchMarkets()      //CHECKED
-    // await fetchTradingFee()   //CHECKED
+    // await loadMarkets()
+    // await fetchCurrencies()
+    // await fetchMarkets()
+    // await fetchTradingFee()
 
     // await createOrder({})
     // await createOrder({'side': orderSides[1]})
     // await createOrder({'orderType': orderTypes[1]})
     // await createOrder({'side': orderSides[1], 'orderType':orderTypes[1]})
 
-    // await cancelOrder()       //CHECKED
-    // await fetchBalance()      //CHECKED
-    // await fetchRawOrder()     //CHECKED
+    // await cancelOrder()
+    // await fetchBalance()
+    // await fetchRawOrder()
     // await fetchOrder()
     // await fetchOpenOrders()
     // await fetchOrders()
-    // await fetchRawOrders()   //CHECKED
-    // await fetchOrderBook()    //CHECKED
-    // await fetchTicker()       //CHECKED
-    // await fetchTickers()      //CHECKED
-    // await cancelAllOrders()   // TODO Wrong output (need to return the parsed orders but our response doesn't have it)!!!
-    // await fetchOHLCV()     //CHECKED
-    // await fetchTrades()     //CHECKED
+    // await fetchRawOrders()
+    // await fetchOrderBook()
+    // await fetchTicker()
+    // await fetchTickers()
+    // await cancelAllOrders()
+    // await fetchOHLCV()
+    // await fetchTrades()
+    // await fetchStatus()
     // await fetchMyTrades()    // TODO Not implemented!!!
     // await fetchClosedOrders()   // TODO Not implemented!!!
-    // await fetchStatus()   // CHECKED
-    // await deposit()
-    // await withdraw()
-    // await watchOrderBook()
+    // await deposit()   // TODO Not implemented!!!
+    // await withdraw()   // TODO Not implemented!!!
+    // await watchOrderBook()   // TODO Not implemented!!!
 }
 
 test()
