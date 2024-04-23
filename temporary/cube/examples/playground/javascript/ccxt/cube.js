@@ -6,6 +6,8 @@ const useSandBoxMode = true
 const subAccountId = Number(process.env['SUB_ACCOUNT_ID'])
 const marketSymbols = ['tsoltusdc','tbtctusdc']
 const marketIds = ['200047', '200005']
+const orderSides = ['buy', 'sell']
+const orderTypes = ['limit', 'market']
 const clientOrderId = 1712612349538
 const exchangeOrderId = '5328155590'
 
@@ -110,19 +112,37 @@ async function fetchBalance() {
 }
 
 // DEVELOPMENT (incompleto)
-async function createOrder() {
-    // Working, but the parse is not complete.
-    response = await communityExchange.createOrder(
-        'tSOLtUSDC', 'limit', 'buy', 0.1, 125.0,
-        {
-            'requestId': 1,
-            'subaccountId': subAccountId,
-            'selfTradePrevention': 0,
-            'postOnly': 0,
-            'timeInForce': 1,
-            'cancelOnDisconnect': false
+async function createOrder({side = 'buy', orderType = 'limit'}) {
+    let response = undefined
+    if (orderType === 'limit') {
+        let price = undefined
+        if (side === 'buy') {
+            price = 130.0
+        }  else {
+            price = 160.0
         }
-    )
+        response = await communityExchange.createOrder(
+            marketSymbols[0], orderType, side, 0.1, price,
+            {
+                'requestId': 1,
+                'selfTradePrevention': 0,
+                'postOnly': 0,
+                'timeInForce': 1,
+                'cancelOnDisconnect': false
+            }
+        )
+    } else if (orderType === 'market') {
+        response = await communityExchange.createOrder(
+            marketSymbols[0], orderType, side, 0.1, undefined,
+            {
+                'requestId': 1,
+                'selfTradePrevention': 0,
+                'postOnly': 0,
+                'timeInForce': 1,
+                'cancelOnDisconnect': false
+            }
+        )
+    }
     log(response)
 }
 
@@ -312,7 +332,12 @@ async function test() {
     // await fetchCurrencies()   //CHECKED
     // await fetchMarkets()      //CHECKED
     // await fetchTradingFee()   //CHECKED
-    // await createOrder()       //CHECKED
+
+    // await createOrder({})
+    // await createOrder({'side': orderSides[1]})
+    // await createOrder({'orderType': orderTypes[1]})
+    // await createOrder({'side': orderSides[1], 'orderType':orderTypes[1]})
+
     // await cancelOrder()       //CHECKED
     // await fetchBalance()      //CHECKED
     // await fetchRawOrder()     //CHECKED
