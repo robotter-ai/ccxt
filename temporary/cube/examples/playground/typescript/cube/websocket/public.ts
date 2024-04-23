@@ -2,14 +2,18 @@ import * as crypto from 'node:crypto';
 import { Buffer } from 'node:buffer';
 import WebSocket from 'ws';
 import * as fs from 'node:fs';
-// import protobuf from 'protobufjs';
+import { default as protobuf } from 'protobufjs';
 
-const root = protoBuf.parse(fs.readFileSync('../../generated/')).root;
+const root = protobuf.parse(
+    String(fs.readFileSync(
+        'temporary/cube/examples/playground/typescript/cube/websocket/schema/trade.proto'
+    ))
+).root;
 const Bootstrap = root.lookupType('trade.Bootstrap');
 const Credentials = root.lookupType('trade.Credentials');
 
-const apiKey = process.env.EXCHANGE_API_KEY;
-const secretKey = process.env.EXCHANGE_API_SECRET;
+const apiKey = process.env.API_KEY;
+const secretKey = process.env.API_SECRET;
 
 const watchOrderBook = async () => {
     const wsUrl = `wss://staging.cube.exchange/md/book/200047`;
@@ -52,4 +56,6 @@ const watchOrderBook = async () => {
     });
 }
 
-await watchOrderBook();
+(async function run () {
+    await watchOrderBook();
+})();

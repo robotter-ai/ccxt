@@ -11,7 +11,7 @@ const secretKey = process.env.API_SECRET;
 const cubeApiHost = 'staging.cube.exchange';
 
 // Load the protoBuf schema
-const root = protoBuf.parse(fs.readFileSync('temporary/cube/examples/playground/backup/schema/trade.proto')).root;
+const root = protoBuf.parse(fs.readFileSync('temporary/cube/examples/playground/typescript/cube/websocket/schema/trade.proto')).root;
 const Bootstrap = root.lookupType('trade.Bootstrap');
 const Credentials = root.lookupType('trade.Credentials');
 
