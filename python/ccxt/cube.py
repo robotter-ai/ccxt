@@ -15,7 +15,6 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
-from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
@@ -1014,10 +1013,11 @@ class cube(Exchange, ImplicitAPI):
         self.inject_sub_account_id(request, params)
         response = self.restOsmiumPrivatePostOrder(self.extend(request, params))
         order = self.safe_dict(self.safe_dict(response, 'result'), 'Ack')
-        if order == None:
+        if order is None:
             order = self.safe_dict(self.safe_dict(response, 'result'), 'Rej')
         exchangeOrderId = self.safe_string(order, 'exchangeOrderId')
         fetchedOrder = self.fetch_raw_order(exchangeOrderId, marketId)
+        orderStatus = None
         if fetchedOrder is not None and self.safe_string(fetchedOrder, 'exchangeOrderId') is not None:
             orderStatus = 'open'
         if fetchedOrder is None and self.safe_dict(self.safe_dict(response, 'result'), 'Ack') is not None:
@@ -1128,7 +1128,7 @@ class cube(Exchange, ImplicitAPI):
         return self.parse_order(
             {
                 'fetchedOrder': order,
-                'transactionType': 'fetching'
+                'transactionType': 'fetching',
             },
             market
         )
@@ -1240,15 +1240,15 @@ class cube(Exchange, ImplicitAPI):
         if transactionType == 'creation':
             orderStatus = self.safe_string(order, 'orderStatus')
             if orderStatus == 'rejected':
-                return {
-                    'orderStatus': orderStatus,
-                }
+                return self.safe_order({
+                    'status': orderStatus,
+                })
             if orderStatus == 'filled':
                 fetchedOrder = self.safe_dict(order, 'order')
         elif transactionType == 'cancellation':
             orderStatus = 'canceled'
         elif transactionType == 'fetching':
-            orderStatus = 'open' # If the order is fetched, it is open
+            orderStatus = 'open'  # If the order is fetched, it is open
         if fetchedOrder is not None:
             exchangeOrderId = self.safe_string(fetchedOrder, 'exchangeOrderId')
             clientOrderId = self.safe_string(fetchedOrder, 'clientOrderId')
@@ -1259,7 +1259,7 @@ class cube(Exchange, ImplicitAPI):
                 timestampInNanoseconds = self.safe_integer(fetchedOrder, 'restTime')
             timestampInMilliseconds = self.parse_to_int(timestampInNanoseconds / 1000000)
             symbol = self.safe_string(market, 'symbol')
-            orderSide = self.safe_string(fetchedOrder, 'side') == 'buy' if 0 else 'sell'
+            orderSide = self.safe_integer(fetchedOrder, 'side') == 'buy' if 0 else 'sell'
             currency = None
             if orderSide == 'buy':
                 currency = self.safe_string(market, 'base')
@@ -1330,7 +1330,7 @@ class cube(Exchange, ImplicitAPI):
                 },
             })
         else:
-            return {}
+            return self.safe_order({})
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

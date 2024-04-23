@@ -6,7 +6,7 @@
 
 // ---------------------------------------------------------------------------
 import Exchange from './abstract/cube.js';
-import { InsufficientFunds, OrderNotFound, AuthenticationError, BadRequest, BadSymbol, InvalidOrder, } from './base/errors.js';
+import { InsufficientFunds, AuthenticationError, BadRequest, BadSymbol, InvalidOrder, } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { NotSupported } from '../../js/src/base/errors.js';
@@ -1082,12 +1082,21 @@ export default class cube extends Exchange {
         }
         this.injectSubAccountId(request, params);
         const response = await this.restOsmiumPrivatePostOrder(this.extend(request, params));
-        const order = this.safeDict(this.safeDict(response, 'result'), 'Ack');
+        let order = this.safeDict(this.safeDict(response, 'result'), 'Ack');
+        if (order === undefined) {
+            order = this.safeDict(this.safeDict(response, 'result'), 'Rej');
+        }
         const exchangeOrderId = this.safeString(order, 'exchangeOrderId');
         const fetchedOrder = await this.fetchRawOrder(exchangeOrderId, marketId);
-        let orderStatus = 'filled';
+        let orderStatus = undefined;
         if (fetchedOrder !== undefined && this.safeString(fetchedOrder, 'exchangeOrderId') !== undefined) {
             orderStatus = 'open';
+        }
+        if (fetchedOrder === undefined && this.safeDict(this.safeDict(response, 'result'), 'Ack') !== undefined) {
+            orderStatus = 'filled';
+        }
+        if (fetchedOrder === undefined && this.safeDict(this.safeDict(response, 'result'), 'Rej') !== undefined) {
+            orderStatus = 'rejected';
         }
         return this.parseOrder({
             'order': order,
@@ -1163,10 +1172,10 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const meta = await this.fetchMarketMeta (symbol);
-        symbol = this.safeString (meta, 'symbol');
-        const market = this.safeDict (meta, 'market');
-        const order = await this.fetchRawOrder (id, symbol, params);
+        const meta = await this.fetchMarketMeta(symbol);
+        symbol = this.safeString(meta, 'symbol');
+        const market = this.safeDict(meta, 'market');
+        const order = await this.fetchRawOrder(id, symbol, params);
         //
         //  {
         //      "result": {
@@ -1190,13 +1199,11 @@ export default class cube extends Exchange {
         //          ]
         //      }
         //  }
-        return this.parseOrder (
-            {
-                'fetchedOrder': order,
-                'transactionType': 'fetching',
-            },
-            market
-        );
+        //
+        return this.parseOrder({
+            'fetchedOrder': order,
+            'transactionType': 'fetching',
+        }, market);
     }
     async fetchRawOrder(id, symbol = undefined, params = {}) {
         /**
@@ -1309,49 +1316,48 @@ export default class cube extends Exchange {
         return this.filterBySymbolSinceLimit(results, symbol, since, limit);
     }
     parseOrder(order, market = undefined) {
-        // let transactionType = '';
-        const fetchedOrder = this.safeDict(order, 'fetchedOrder');
-        const mainOrderObject = this.safeDict(order, 'cancellationResponse', this.safeDict(order, 'order'));
-        let timestampInNanoseconds = this.safeNumber(this.safeDict(this.safeDict(mainOrderObject, 'result'), 'Ack'), 'transactTime');
-        if (timestampInNanoseconds === undefined) {
-            timestampInNanoseconds = this.safeNumber(mainOrderObject, 'transactTime');
+        const transactionType = this.safeString(order, 'transactionType');
+        let fetchedOrder = this.safeDict(order, 'fetchedOrder');
+        let orderStatus = undefined;
+        if (transactionType === 'creation') {
+            orderStatus = this.safeString(order, 'orderStatus');
+            if (orderStatus === 'rejected') {
+                return this.safeOrder({
+                    'status': orderStatus,
+                });
+            }
+            if (orderStatus === 'filled') {
+                fetchedOrder = this.safeDict(order, 'order');
+            }
         }
-        if (timestampInNanoseconds === undefined) {
-            timestampInNanoseconds = this.safeNumber(fetchedOrder, 'restTime');
+        else if (transactionType === 'cancellation') {
+            orderStatus = 'canceled';
         }
-        if (timestampInNanoseconds === undefined) {
-            timestampInNanoseconds = this.safeNumber(order, 'restTime');
+        else if (transactionType === 'fetching') {
+            orderStatus = 'open'; // If the order is fetched, it is open
         }
-        if (timestampInNanoseconds === undefined) {
-            timestampInNanoseconds = this.safeNumber(order, 'createdAt');
-        }
-        const timestampInMilliseconds = timestampInNanoseconds / 1000000;
-        // let orderStatus = ''; // TODO fix !!!
-        // if (Object.keys (fetchedOrder).'length === 0) {
-        //     orderStatus = 'canceled'
-        // } else {
-        //     orderStatus = 'open'
-        // }
-        let result = {};
-        // TODO Improve this part to reuse the original response from create, cancel as much as possible, instead of relying in the fetched order!!!
-        if (fetchedOrder && !(fetchedOrder.length === 0)) {
-            const exchangeOrderId = this.safeInteger(fetchedOrder, 'exchangeOrderId');
-            const clientOrderId = this.safeInteger(fetchedOrder, 'clientOrderId');
-            const orderSide = this.safeInteger(fetchedOrder, 'side') === 0 ? 'buy' : 'sell';
-            const price = this.safeInteger(fetchedOrder, 'price') / 100;
+        if (fetchedOrder !== undefined) {
+            const exchangeOrderId = this.safeString(fetchedOrder, 'exchangeOrderId');
+            const clientOrderId = this.safeString(fetchedOrder, 'clientOrderId');
+            let timestampInNanoseconds = undefined;
+            if (orderStatus === 'filled') {
+                timestampInNanoseconds = this.safeInteger(fetchedOrder, 'transactTime');
+            }
+            else {
+                timestampInNanoseconds = this.safeInteger(fetchedOrder, 'restTime');
+            }
+            const timestampInMilliseconds = this.parseToInt(timestampInNanoseconds / 1000000);
             const symbol = this.safeString(market, 'symbol');
-            const amount = this.safeInteger(fetchedOrder, 'orderQuantity');
-            const remainingAmount = this.safeInteger(fetchedOrder, 'remainingQuantity');
-            const filledAmount = amount - remainingAmount;
-            let currency = '';
+            const orderSide = this.safeInteger(fetchedOrder, 'side') === 0 ? 'buy' : 'sell';
+            let currency = undefined;
             if (orderSide === 'buy') {
                 currency = this.safeString(market, 'base');
             }
             else {
                 currency = this.safeString(market, 'quote');
             }
-            let orderType = '';
             const orderTypeRaw = this.safeInteger(fetchedOrder, 'orderType');
+            let orderType = undefined;
             if (orderTypeRaw === 0) {
                 orderType = 'limit';
             }
@@ -1361,10 +1367,7 @@ export default class cube extends Exchange {
             else if (orderTypeRaw === 2) {
                 orderType = 'MARKET_WITH_PROTECTION';
             }
-            else {
-                throw new InvalidOrder('OrderType was not recognized while parsing: ' + orderTypeRaw);
-            }
-            let timeInForce = '';
+            let timeInForce = undefined;
             const timeInForceRaw = this.safeInteger(fetchedOrder, 'timeInForce');
             if (timeInForceRaw === 0) {
                 timeInForce = 'IOC';
@@ -1375,29 +1378,44 @@ export default class cube extends Exchange {
             else if (timeInForceRaw === 2) {
                 timeInForce = 'FOK';
             }
-            else {
-                throw new InvalidOrder('TimeInForce was not recognized while parsing: ' + timeInForceRaw);
+            const price = this.safeInteger(fetchedOrder, 'price') / 100;
+            let amount = undefined;
+            let remainingAmount = undefined;
+            if (orderStatus === 'filled') {
+                amount = this.safeInteger(fetchedOrder, 'quantity');
+                remainingAmount = 0;
             }
-            const tradeFeeRatios = this.safeString(this.fees, 'trading');
-            const rate = orderSide === 'buy' ? this.safeString(tradeFeeRatios, 'maker') : this.safeString(tradeFeeRatios, 'taker');
+            else {
+                amount = this.safeInteger(fetchedOrder, 'orderQuantity');
+                remainingAmount = this.safeInteger(fetchedOrder, 'remainingQuantity');
+            }
+            const filledAmount = amount - remainingAmount;
+            const tradeFeeRatios = this.safeDict(this.fees, 'trading');
+            let rate = undefined;
+            if (orderSide === 'buy') {
+                rate = this.safeNumber(tradeFeeRatios, 'maker');
+            }
+            else if (orderSide === 'sell') {
+                rate = this.safeNumber(tradeFeeRatios, 'taker');
+            }
             const decimalAmount = amount / 100;
             const decimalFilledAmount = filledAmount / 100;
             const decimalRemainingAmount = remainingAmount / 100;
-            const cost = filledAmount * price;
-            const feeCost = decimalAmount * parseFloat(rate);
-            result = {
+            const cost = decimalFilledAmount * price;
+            const feeCost = decimalAmount * rate;
+            return this.safeOrder({
                 'id': exchangeOrderId,
                 'clientOrderId': clientOrderId,
                 'datetime': this.iso8601(timestampInMilliseconds),
                 'timestamp': timestampInMilliseconds,
                 'lastTradeTimestamp': timestampInMilliseconds,
-                'status': 'open',
+                'status': orderStatus,
                 'symbol': symbol,
                 'type': orderType,
                 'timeInForce': timeInForce,
                 'side': orderSide,
                 'price': price,
-                'average': 0.06917684,
+                'average': undefined,
                 'amount': decimalAmount,
                 'filled': decimalFilledAmount,
                 'remaining': decimalRemainingAmount,
@@ -1409,12 +1427,13 @@ export default class cube extends Exchange {
                     'rate': rate,
                 },
                 'info': {
-                    'mainOrderObject': mainOrderObject,
                     'fetchedOrder': fetchedOrder,
                 },
-            };
+            });
         }
-        return this.safeOrder(result);
+        else {
+            return this.safeOrder({});
+        }
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
