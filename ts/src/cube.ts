@@ -1317,10 +1317,7 @@ export default class cube extends Exchange {
          */
         const meta = await this.fetchMarketMeta (symbol);
         const market = this.safeMarket (this.safeString (meta, 'marketId'), this.safeDict (meta, 'market') as Market, '/');
-        const request = {};
-        this.injectSubAccountId (request, params);
-        const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdOrders (this.extend (request, params));
-        const rawOrders = this.safeList (this.safeDict (response, 'result'), 'orders');
+        const rawOrders = await this.fetchRawOrders ();
         return this.parseOrders (rawOrders, market, since, limit);
     }
 
@@ -1527,7 +1524,7 @@ export default class cube extends Exchange {
         return this.parseOrders (rawOrders, market as Market, since, limit);
     }
 
-    async fetchRawOrders (since = undefined, limit = undefined) {
+    async fetchRawOrders () {
         /**
          * @method
          * @name cube#fetchRawOrders
