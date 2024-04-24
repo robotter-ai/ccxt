@@ -1078,7 +1078,8 @@ export default class cube extends Exchange {
         const marketId = this.safeString (meta, 'marketId');
         const market = this.safeDict (meta, 'market');
         const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
-        const exchangeAmount = this.parseToInt (amount * 100);
+        const quantityTickSize = this.safeNumber (this.safeDict (market, 'info'), 'quantityTickSize');
+        const exchangeAmount = this.parseToInt (amount * 1 / quantityTickSize);
         let exchangeOrderType = undefined;
         if (type === 'limit') {
             exchangeOrderType = 0;
@@ -1107,7 +1108,6 @@ export default class cube extends Exchange {
         }
         const request = {
             'clientOrderId': clientOrderId,
-            'requestId': this.safeInteger (params, 'requestId', 1),
             'marketId': rawMarketId,
             'quantity': exchangeAmount,
             'side': exchangeOrderSide,
@@ -1117,8 +1117,9 @@ export default class cube extends Exchange {
             'postOnly': this.safeInteger (params, 'postOnly', 0),
             'cancelOnDisconnect': this.safeBool (params, 'cancelOnDisconnect', false),
         };
+        const priceTickSize = this.safeNumber (this.safeDict (market, 'info'), 'priceTickSize');
         if (price !== undefined) {
-            request['price'] = this.parseToInt (price * 100);
+            request['price'] = this.parseToInt (price * 1 / priceTickSize);
         }
         this.injectSubAccountId (request, params);
         const response = await this.restOsmiumPrivatePostOrder (this.extend (request, params));
