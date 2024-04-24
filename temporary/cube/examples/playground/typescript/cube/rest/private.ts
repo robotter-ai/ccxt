@@ -712,25 +712,3 @@ async function iridiumGetUsersAddressSettings() {
 
 
 await iridiumGetUsersAddressSettings();
-
-async fetchStatus(params = {}) {
-  /**
-   * @method
-   * @name cube#fetchStatus
-   * @description the latest known information on the availability of the exchange API
-   * @see https://binance-docs.github.io/apidocs/spot/en/#system-status-system
-   * @param {object} [params] extra parameters specific to the exchange API endpoint
-   * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
-   */
-  const response = await this.restIridiumPublicGetMarkets(params);
-  const keys = Object.keys(response);
-  const keysLength = keys.length;
-  const formattedStatus = keysLength ? 'ok' : 'maintenance';
-  return {
-    'status': formattedStatus,
-    'updated': undefined,
-    'eta': undefined,
-    'url': undefined,
-    'info': undefined,
-  };
-}
