@@ -10,18 +10,21 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     restIridiumPublicGetMarkets (params?: {}): Promise<implicitReturnType>;
+    restIridiumPublicGetHistoryKlines (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersCheck (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersInfo (params?: {}): Promise<implicitReturnType>;
-    restIridiumPrivateGetUsersPositions (params?: {}): Promise<implicitReturnType>;
-    restIridiumPrivateGetUsersTransfers (params?: {}): Promise<implicitReturnType>;
-    restIridiumPrivateGetUsersDeposits (params?: {}): Promise<implicitReturnType>;
-    restIridiumPrivateGetUsersWithdrawals (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivateGetUsersSubaccountSubaccountIdPositions (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivateGetUsersSubaccountSubaccountIdTransfers (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivateGetUsersSubaccountSubaccountIdDeposits (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivateGetUsersSubaccountSubaccountIdWithdrawals (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersSubaccountSubaccountIdOrders (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersSubaccountSubaccountIdFills (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersFeeEstimateMarketId (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivateGetUsersAddress (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivateGetUsersAddressSettings (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivatePostUsersSubaccounts (params?: {}): Promise<implicitReturnType>;
-    restIridiumPrivatePostUsersSubaccountsSubaccountId (params?: {}): Promise<implicitReturnType>;
-    restIridiumPrivatePostUsersSubaccountsSubaccountIdWithdrawals (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivatePostUsersWithdraw (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivatePatchUsersSubaccountSubaccountId (params?: {}): Promise<implicitReturnType>;
     restMendelevPublicGetBookMarketIdSnapshot (params?: {}): Promise<implicitReturnType>;
     restMendelevPublicGetParsedBookMarketSymbolSnapshot (params?: {}): Promise<implicitReturnType>;
     restMendelevPublicGetBookMarketIdRecentTrades (params?: {}): Promise<implicitReturnType>;
@@ -29,11 +32,13 @@ interface Exchange {
     restMendelevPublicGetTickersSnapshot (params?: {}): Promise<implicitReturnType>;
     restMendelevPublicGetParsedTickers (params?: {}): Promise<implicitReturnType>;
     restOsmiumPrivateGetOrders (params?: {}): Promise<implicitReturnType>;
+    restOsmiumPrivateGetPositions (params?: {}): Promise<implicitReturnType>;
     restOsmiumPrivateDeleteOrders (params?: {}): Promise<implicitReturnType>;
     restOsmiumPrivateDeleteOrder (params?: {}): Promise<implicitReturnType>;
     restOsmiumPrivatePostOrder (params?: {}): Promise<implicitReturnType>;
     restOsmiumPrivatePatchOrder (params?: {}): Promise<implicitReturnType>;
 }
+
 abstract class Exchange extends _Exchange {}
 
 export default Exchange
