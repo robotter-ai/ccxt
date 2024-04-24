@@ -1108,6 +1108,7 @@ export default class cube extends Exchange {
         }
         const request = {
             'clientOrderId': clientOrderId,
+            'requestId': this.safeInteger (params, 'requestId', 1),
             'marketId': rawMarketId,
             'quantity': exchangeAmount,
             'side': exchangeOrderSide,

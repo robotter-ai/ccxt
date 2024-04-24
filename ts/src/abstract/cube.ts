@@ -13,6 +13,8 @@ interface Exchange {
     restIridiumPublicGetHistoryKlines (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersCheck (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersInfo (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivateGetUsersSubaccounts (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivateGetUsersSubaccountSubaccountId (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersSubaccountSubaccountIdPositions (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersSubaccountSubaccountIdTransfers (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersSubaccountSubaccountIdDeposits (params?: {}): Promise<implicitReturnType>;
@@ -22,8 +24,8 @@ interface Exchange {
     restIridiumPrivateGetUsersFeeEstimateMarketId (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersAddress (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersAddressSettings (params?: {}): Promise<implicitReturnType>;
-    restIridiumPrivatePostUsersSubaccounts (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivatePostUsersWithdraw (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivatePostUsersSubaccounts (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivatePatchUsersSubaccountSubaccountId (params?: {}): Promise<implicitReturnType>;
     restMendelevPublicGetBookMarketIdSnapshot (params?: {}): Promise<implicitReturnType>;
     restMendelevPublicGetParsedBookMarketSymbolSnapshot (params?: {}): Promise<implicitReturnType>;
@@ -38,7 +40,6 @@ interface Exchange {
     restOsmiumPrivatePostOrder (params?: {}): Promise<implicitReturnType>;
     restOsmiumPrivatePatchOrder (params?: {}): Promise<implicitReturnType>;
 }
-
 abstract class Exchange extends _Exchange {}
 
 export default Exchange
