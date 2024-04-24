@@ -1309,12 +1309,13 @@ class cube(Exchange, ImplicitAPI):
                 timeInForce = 'GTC'
             elif timeInForceRaw == 2:
                 timeInForce = 'FOK'
+            priceTickSize = self.safe_number(self.safe_dict(market, 'info'), 'priceTickSize')
             rawPrice = self.safe_integer(fetchedOrder, 'price')
             price = None
             if rawPrice is None or orderType == 'market':
                 price = 0
             else:
-                price = rawPrice / 100
+                price = rawPrice / (1 / priceTickSize)
             amount = None
             amount = self.safe_integer(fetchedOrder, 'quantity')
             if amount is None:
@@ -1334,9 +1335,10 @@ class cube(Exchange, ImplicitAPI):
                 rate = self.safe_number(tradeFeeRatios, 'maker')
             elif orderSide == 'sell':
                 rate = self.safe_number(tradeFeeRatios, 'taker')
-            decimalAmount = amount / 100
-            decimalFilledAmount = filledAmount / 100
-            decimalRemainingAmount = remainingAmount / 100
+            quantityTickSize = self.safe_number(self.safe_dict(market, 'info'), 'quantityTickSize')
+            decimalAmount = amount / (1 / quantityTickSize)
+            decimalFilledAmount = filledAmount / (1 / quantityTickSize)
+            decimalRemainingAmount = remainingAmount / (1 / quantityTickSize)
             cost = decimalFilledAmount * price
             feeCost = decimalAmount * rate
             return self.safe_order({

@@ -1414,13 +1414,14 @@ export default class cube extends Exchange {
             else if (timeInForceRaw === 2) {
                 timeInForce = 'FOK';
             }
+            const priceTickSize = this.safeNumber(this.safeDict(market, 'info'), 'priceTickSize');
             const rawPrice = this.safeInteger(fetchedOrder, 'price');
             let price = undefined;
             if (rawPrice === undefined || orderType === 'market') {
                 price = 0;
             }
             else {
-                price = rawPrice / 100;
+                price = rawPrice / (1 / priceTickSize);
             }
             let amount = undefined;
             amount = this.safeInteger(fetchedOrder, 'quantity');
@@ -1447,9 +1448,10 @@ export default class cube extends Exchange {
             else if (orderSide === 'sell') {
                 rate = this.safeNumber(tradeFeeRatios, 'taker');
             }
-            const decimalAmount = amount / 100;
-            const decimalFilledAmount = filledAmount / 100;
-            const decimalRemainingAmount = remainingAmount / 100;
+            const quantityTickSize = this.safeNumber(this.safeDict(market, 'info'), 'quantityTickSize');
+            const decimalAmount = amount / (1 / quantityTickSize);
+            const decimalFilledAmount = filledAmount / (1 / quantityTickSize);
+            const decimalRemainingAmount = remainingAmount / (1 / quantityTickSize);
             const cost = decimalFilledAmount * price;
             const feeCost = decimalAmount * rate;
             return this.safeOrder({
