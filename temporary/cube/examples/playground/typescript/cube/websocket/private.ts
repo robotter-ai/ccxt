@@ -12,7 +12,6 @@ const root = protobuf.loadSync(
 const Credentials = root.lookupType('trade.Credentials');
 const OrderRequest = root.lookupType('trade.OrderRequest');
 const NewOrder = root.lookupType('trade.NewOrder');
-const ClientMessage = root.lookupType('trade.OrderRequest'); // If such a type exists or adjust accordingly
 const Heartbeat = root.lookupType('trade.Heartbeat');
 
 const apiKey = Deno.env.get("API_KEY");
@@ -83,8 +82,10 @@ ws.on('error', (error) => {
 });
 
 function sendHeartbeat() {
+    const timestamp = Date.now();
     const heartbeat = Heartbeat.create({
-        request_id: Date.now()
+        request_id: timestamp,
+        timestamp: timestamp
     });
     const message = OrderRequest.create({
         heartbeat: heartbeat
@@ -118,8 +119,10 @@ function sendLimitOrder() {
         quantity: exchangeAmount, // quantity in lots
         side: exchangeOrderSide,
         time_in_force: 1, // GOOD_FOR_SESSION
-        order_type: exchangeOrderType, // LIMIT
-        subaccount_id: parseInt(subAccountId)
+        order_type: exchangeOrderType,
+        subaccount_id: parseInt(subAccountId),
+        post_only: 1, // Enabled,
+        cancel_on_disconnect: false
     });
 
     const orderRequest = OrderRequest.create({
