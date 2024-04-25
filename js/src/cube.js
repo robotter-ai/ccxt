@@ -69,14 +69,14 @@ export default class cube extends Exchange {
                                 '/users/check': 1,
                                 '/users/info': 1,
                                 '/users/subaccounts': 1,
-                                '/users/subaccount/{subaccount_id}': 1,
-                                '/users/subaccount/{subaccount_id}/positions': 1,
-                                '/users/subaccount/{subaccount_id}/transfers': 1,
-                                '/users/subaccount/{subaccount_id}/deposits': 1,
-                                '/users/subaccount/{subaccount_id}/withdrawals': 1,
-                                '/users/subaccount/{subaccount_id}/orders': 1,
-                                '/users/subaccount/{subaccount_id}/fills': 1,
-                                '/users/fee-estimate/{market-id}': 1,
+                                '/users/subaccount/{subaccountId}': 1,
+                                '/users/subaccount/{subaccountId}/positions': 1,
+                                '/users/subaccount/{subaccountId}/transfers': 1,
+                                '/users/subaccount/{subaccountId}/deposits': 1,
+                                '/users/subaccount/{subaccountId}/withdrawals': 1,
+                                '/users/subaccount/{subaccountId}/orders': 1,
+                                '/users/subaccount/{subaccountId}/fills': 1,
+                                '/users/fee-estimate/{market_id}': 1,
                                 '/users/address': 1,
                                 '/users/address/settings': 1,
                             },
@@ -85,7 +85,7 @@ export default class cube extends Exchange {
                                 '/users/subaccounts': 1,
                             },
                             'patch': {
-                                '/users/subaccount/{subaccount_id}': 1,
+                                '/users/subaccount/{subaccountId}': 1,
                             },
                         },
                     },
@@ -912,7 +912,9 @@ export default class cube extends Exchange {
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.fetchMarketMeta();
-        const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdPositions(params);
+        const request = {};
+        this.injectSubAccountId(request, params);
+        const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdPositions(this.extend(request, params));
         const subaccountId = this.safeString(this.options, 'subaccountId');
         const allOrders = await this.fetchRawOrders();
         const result = this.safeList(this.safeDict(this.safeDict(response, 'result'), subaccountId), 'inner');

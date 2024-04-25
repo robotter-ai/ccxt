@@ -74,14 +74,14 @@ class cube(Exchange, ImplicitAPI):
                                 '/users/check': 1,
                                 '/users/info': 1,
                                 '/users/subaccounts': 1,
-                                '/users/subaccount/{subaccount_id}': 1,
-                                '/users/subaccount/{subaccount_id}/positions': 1,
-                                '/users/subaccount/{subaccount_id}/transfers': 1,
-                                '/users/subaccount/{subaccount_id}/deposits': 1,
-                                '/users/subaccount/{subaccount_id}/withdrawals': 1,
-                                '/users/subaccount/{subaccount_id}/orders': 1,
-                                '/users/subaccount/{subaccount_id}/fills': 1,
-                                '/users/fee-estimate/{market-id}': 1,
+                                '/users/subaccount/{subaccountId}': 1,
+                                '/users/subaccount/{subaccountId}/positions': 1,
+                                '/users/subaccount/{subaccountId}/transfers': 1,
+                                '/users/subaccount/{subaccountId}/deposits': 1,
+                                '/users/subaccount/{subaccountId}/withdrawals': 1,
+                                '/users/subaccount/{subaccountId}/orders': 1,
+                                '/users/subaccount/{subaccountId}/fills': 1,
+                                '/users/fee-estimate/{market_id}': 1,
                                 '/users/address': 1,
                                 '/users/address/settings': 1,
                             },
@@ -90,7 +90,7 @@ class cube(Exchange, ImplicitAPI):
                                 '/users/subaccounts': 1,
                             },
                             'patch': {
-                                '/users/subaccount/{subaccount_id}': 1,
+                                '/users/subaccount/{subaccountId}': 1,
                             },
                         },
                     },
@@ -868,7 +868,9 @@ class cube(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.fetch_market_meta()
-        response = self.restIridiumPrivateGetUsersSubaccountSubaccountIdPositions(params)
+        request = {}
+        self.inject_sub_account_id(request, params)
+        response = self.restIridiumPrivateGetUsersSubaccountSubaccountIdPositions(self.extend(request, params))
         subaccountId = self.safe_string(self.options, 'subaccountId')
         allOrders = self.fetch_raw_orders()
         result = self.safe_list(self.safe_dict(self.safe_dict(response, 'result'), subaccountId), 'inner')
