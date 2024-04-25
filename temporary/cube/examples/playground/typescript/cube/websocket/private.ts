@@ -17,10 +17,28 @@ const Heartbeat = root.lookupType('trade.Heartbeat');
 
 const apiKey = Deno.env.get("API_KEY");
 const secretKey = Deno.env.get("API_SECRET");
+const subAccountId = Deno.env.get("SUB_ACCOUNT_ID");
 
 const wsUrl = `wss://staging.cube.exchange/os`;
 const ws = new WebSocket(wsUrl);
 let heartbeatInterval;
+
+enum TSOLTUDSC {
+    marketId = 200047,
+    quantityTickSize = 0.0001,
+    priceTickSize = 0.01
+}
+
+enum TBTCTUDSC {
+    marketId = 200005,
+    quantityTickSize = 1e-05,
+    priceTickSize = 0.1,
+}
+
+const MarketConstants = {
+    "tsoltusdc": TSOLTUDSC,
+    "tbtctusdc": TBTCTUDSC
+}
 
 ws.on('open', () => {
     console.log('WebSocket connection opened.');
@@ -36,7 +54,7 @@ ws.on('open', () => {
 
     const credentialsMessage = Credentials.create({
         access_key_id: apiKey,
-        signature,
+        signature: signature,
         timestamp: timestampSecs
     });
     const credentialsBuffer = Credentials.encode(credentialsMessage).finish();
@@ -77,16 +95,31 @@ function sendHeartbeat() {
 }
 
 function sendLimitOrder() {
+    const marketSymbol = 'tsoltusdc';
+    const marketConstants = MarketConstants[marketSymbol];
+    const marketId = marketConstants['marketId'];
+    const orderType = 'LIMIT'
+    const orderSide = 'BUY'
+    const decimalAmount = 0.1;
+    const decimalPrice = orderSide == 'BUY' ? 130 : 160;
+    const quantityTickSize = marketConstants['quantityTickSize'];
+    const priceTickSize = marketConstants['priceTickSize'];
+
+    const exchangeOrderType = orderType == 'LIMIT' ? 0 : 1;
+    const exchangeOrderSide = orderSide == 'BUY' ? 0 : 1;
+    const exchangeAmount = Math.floor(decimalAmount * (1 / quantityTickSize))
+    const exchangePrice = Math.floor(decimalPrice * (1 / priceTickSize))
+
     const newOrder = NewOrder.create({
-        client_order_id: 1,
+        client_order_id: Date.now(),
         request_id: 1,
-        market_id: 200047, // example market ID
-        price: 130, // example price in smallest unit
-        quantity: 0.001, // example quantity in lots
-        side: 0, // BID
+        market_id: marketId,
+        price: exchangePrice, // price in the smallest unit
+        quantity: exchangeAmount, // quantity in lots
+        side: exchangeOrderSide,
         time_in_force: 1, // GOOD_FOR_SESSION
-        order_type: 0, // LIMIT
-        subaccount_id: 163 // example subaccount ID
+        order_type: exchangeOrderType, // LIMIT
+        subaccount_id: parseInt(subAccountId)
     });
 
     const orderRequest = OrderRequest.create({
