@@ -30,34 +30,34 @@ const watchOrderBook = async () => {
         console.log('WebSocket connection opened. Setting up...');
 
         // Sending initial configuration message
-        // const configMessage = Config.create({
-        //     mbp: false,
-        //     mbo: true,
-        //     trades: true,
-        //     summary: true,
-        //     klines: [1],
-        //     markets_ids: [200047]
-        // });
-        //
-        // const clientMessage = ClientMessage.create({
-        //     config: configMessage
-        // });
-        //
-        // const buffer = ClientMessage.encode(clientMessage).finish();
-        // ws.send(buffer);
-        //
-        // // Setting up heartbeat message to be sent every 30 seconds
-        // heartbeatInterval = setInterval(() => {
-        //     const heartbeat = Heartbeat.create({
-        //         request_id: Date.now() // Using current timestamp as a unique request ID
-        //     });
-        //     const heartbeatMessage = ClientMessage.create({
-        //         heartbeat: heartbeat
-        //     });
-        //     const heartbeatBuffer = ClientMessage.encode(heartbeatMessage).finish();
-        //     ws.send(heartbeatBuffer);
-        //     console.log('Heartbeat sent.');
-        // }, 10000);
+        const configMessage = Config.create({
+            mbp: true,
+            mbo: false,
+            trades: true,
+            summary: true,
+            klines: [1],
+            markets_ids: [200047]
+        });
+
+        const clientMessage = ClientMessage.create({
+            config: configMessage
+        });
+
+        const buffer = ClientMessage.encode(clientMessage).finish();
+        ws.send(buffer);
+
+        // Setting up heartbeat message to be sent every 30 seconds
+        heartbeatInterval = setInterval(() => {
+            const heartbeat = Heartbeat.create({
+                request_id: Date.now() // Using current timestamp as a unique request ID
+            });
+            const heartbeatMessage = ClientMessage.create({
+                heartbeat: heartbeat
+            });
+            const heartbeatBuffer = ClientMessage.encode(heartbeatMessage).finish();
+            ws.send(heartbeatBuffer);
+            console.log('Heartbeat sent.');
+        }, 10000);
 
         console.log('Initial configuration and heartbeat setup complete.');
     });
