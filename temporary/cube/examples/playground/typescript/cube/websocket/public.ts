@@ -6,16 +6,13 @@ import * as path from 'node:path';
 // @ts-ignore
 import { default as protobuf } from 'protobufjs';
 
-const root = protobuf.parse(
-    String(fs.readFileSync(
-        // path.resolve('temporary', 'cube', 'examples', 'playground', 'typescript', 'cube', 'websocket', 'schema', 'codes.proto')
-        path.resolve('temporary', 'cube', 'examples', 'playground', 'typescript', 'cube', 'websocket', 'schema', 'market_data.proto')
-        // path.resolve('temporary', 'cube', 'examples', 'playground', 'typescript', 'cube', 'websocket', 'schema', 'trade.proto')
-    ))
-).root;
+const root = protobuf.loadSync(
+    path.resolve('temporary', 'cube', 'examples', 'playground', 'typescript', 'cube', 'websocket', 'schema', 'market_data.proto')
+);
 const MdMessage = root.lookupType('market_data.MdMessage');
-// const Bootstrap = root.lookupType('trade.Bootstrap');
-// const Credentials = root.lookupType('trade.Credentials');
+const ClientMessage = root.lookupType('market_data.ClientMessage');
+const Config = root.lookupType('market_data.Config');
+const Heartbeat = root.lookupType('market_data.Heartbeat');
 
 // @ts-ignore
 const apiKey = Deno.env.API_KEY;
@@ -23,46 +20,63 @@ const apiKey = Deno.env.API_KEY;
 const secretKey = Deno.env.API_SECRET;
 
 const watchOrderBook = async () => {
-    const wsUrl = `wss://staging.cube.exchange/md/book/200047`;
+    const wsUrl = `wss://staging.cube.exchange/md/book/200047?trades=true&summary=true&mbo=true`;
 
     const ws = new WebSocket(wsUrl);
 
+    let heartbeatInterval;
+
     ws.on('open', () => {
-        console.log ('Open - begin');
+        console.log('WebSocket connection opened. Setting up...');
 
-        // const timestampSecs = Math.floor(Date.now() / 1000);
-        // const timestampBytes = Buffer.alloc(8);
-        // timestampBytes.writeBigInt64LE(BigInt(timestampSecs));
-        // const secretKeyHex = Buffer.from(secretKey, 'hex')
-        // const signature = crypto.createHmac('sha256', secretKeyHex)
-        //     .update('cube.xyz')
-        //     .update(timestampBytes)
-        //     .digest('base64');
-        // const credentialsMessage = Credentials.create({
-        //     accessKeyId: apiKey,
-        //     signature,
-        //     timestamp: timestampSecs
+        // Sending initial configuration message
+        // const configMessage = Config.create({
+        //     mbp: false,
+        //     mbo: true,
+        //     trades: true,
+        //     summary: true,
+        //     klines: [1],
+        //     markets_ids: [200047]
         // });
-        // const buffer = Credentials.encode(credentialsMessage).finish();
+        //
+        // const clientMessage = ClientMessage.create({
+        //     config: configMessage
+        // });
+        //
+        // const buffer = ClientMessage.encode(clientMessage).finish();
         // ws.send(buffer);
+        //
+        // // Setting up heartbeat message to be sent every 30 seconds
+        // heartbeatInterval = setInterval(() => {
+        //     const heartbeat = Heartbeat.create({
+        //         request_id: Date.now() // Using current timestamp as a unique request ID
+        //     });
+        //     const heartbeatMessage = ClientMessage.create({
+        //         heartbeat: heartbeat
+        //     });
+        //     const heartbeatBuffer = ClientMessage.encode(heartbeatMessage).finish();
+        //     ws.send(heartbeatBuffer);
+        //     console.log('Heartbeat sent.');
+        // }, 10000);
 
-        console.log('Open - end');
+        console.log('Initial configuration and heartbeat setup complete.');
     });
 
     ws.on('message', (payload) => {
-        console.log('Message:', payload, MdMessage.decode(payload));
-        // console.log('Message:', payload, Bootstrap.decode(payload));
+        const message = MdMessage.decode(new Uint8Array(payload));
+        console.log('Received message:', JSON.stringify(message, null, 2));
     });
 
     ws.on('close', (code, reason) => {
-        console.log('Close:', code, reason, reason.toString());
+        console.log('WebSocket connection closed:', code, Buffer.from(reason).toString());
+        clearInterval(heartbeatInterval); // Clear the heartbeat interval on socket close
     });
 
     ws.on('error', (error) => {
-        console.error('Error:', error);
+        console.error('WebSocket error:', error);
     });
 }
 
-(async function run () {
+(async function run() {
     await watchOrderBook();
 })();
