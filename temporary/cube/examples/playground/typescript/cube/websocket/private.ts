@@ -9,10 +9,32 @@ import { default as protobuf } from 'protobufjs';
 const root = protobuf.loadSync(
     path.resolve('temporary', 'cube', 'examples', 'playground', 'typescript', 'cube', 'websocket', 'schema', 'trade.proto')
 );
+
+const AssetPosition = root.lookupType('trade.AssetPosition');
+const AssetPositions = root.lookupType('trade.AssetPositions');
+const Bootstrap = root.lookupType('trade.Bootstrap');
+const CancelOrder = root.lookupType('trade.CancelOrder');
+const CancelOrderAck = root.lookupType('trade.CancelOrderAck');
+const CancelOrderReject = root.lookupType('trade.CancelOrderReject');
 const Credentials = root.lookupType('trade.Credentials');
-const OrderRequest = root.lookupType('trade.OrderRequest');
-const NewOrder = root.lookupType('trade.NewOrder');
+const Done = root.lookupType('trade.Done');
+const Fill = root.lookupType('trade.Fill');
+const FixedPointDecimal = root.lookupType('trade.FixedPointDecimal');
 const Heartbeat = root.lookupType('trade.Heartbeat');
+const MassCancel = root.lookupType('trade.MassCancel');
+const MassCancelAck = root.lookupType('trade.MassCancelAck');
+const ModifyOrder = root.lookupType('trade.ModifyOrder');
+const ModifyOrderAck = root.lookupType('trade.ModifyOrderAck');
+const ModifyOrderReject = root.lookupType('trade.ModifyOrderReject');
+const NewOrder = root.lookupType('trade.NewOrder');
+const NewOrderAck = root.lookupType('trade.NewOrderAck');
+const NewOrderReject = root.lookupType('trade.NewOrderReject');
+const OrderRequest = root.lookupType('trade.OrderRequest');
+const OrderResponse = root.lookupType('trade.OrderResponse');
+const RawUnits = root.lookupType('trade.RawUnits');
+const RestingOrder = root.lookupType('trade.RestingOrder');
+const RestingOrders = root.lookupType('trade.RestingOrders');
+const TradingStatus = root.lookupType('trade.TradingStatus');
 
 const apiKey = Deno.env.get("API_KEY");
 const secretKey = Deno.env.get("API_SECRET");
@@ -21,6 +43,15 @@ const subAccountId = Deno.env.get("SUB_ACCOUNT_ID");
 const wsUrl = `wss://staging.cube.exchange/os`;
 const ws = new WebSocket(wsUrl);
 let heartbeatInterval;
+
+function uint8ArrayToHex(array: Uint8Array): string {
+    return Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function uint8ArrayToBase64(array: Uint8Array): string {
+    const binaryString = array.reduce((acc, byte) => acc + String.fromCharCode(byte), '');
+    return btoa(binaryString);
+}
 
 enum TSOLTUDSC {
     marketId = 200047,
@@ -52,7 +83,7 @@ ws.on('open', () => {
         .digest('base64');
 
     const credentialsMessage = Credentials.create({
-        access_key_id: apiKey,
+        accessKeyId: apiKey,
         signature: signature,
         timestamp: timestampSecs
     });
@@ -66,10 +97,44 @@ ws.on('open', () => {
     sendLimitOrder();
 });
 
-ws.on('message', (data) => {
-    // const message = OrderResponse.decode(new Uint8Array(data)); // Adjust the type as necessary
-    // console.log('Received message:', data, message);
-    console.log('Received message:', data);
+ws.on('message', (payload) => {
+    console.log('message - begin');
+
+    const uint8Array = new Uint8Array(payload);
+
+     // try { console.log('AssetPosition:', JSON.stringify(AssetPosition.decode(uint8Array)));} catch(error) {}
+     // try { console.log('AssetPositions:', JSON.stringify(AssetPositions.decode(uint8Array)));} catch(error) {}
+     try { console.log('Bootstrap:', JSON.stringify(Bootstrap.decode(uint8Array)));} catch(error) {}
+     // try { console.log('CancelOrder:', JSON.stringify(CancelOrder.decode(uint8Array)));} catch(error) {}
+     // try { console.log('CancelOrderAck:', JSON.stringify(CancelOrderAck.decode(uint8Array)));} catch(error) {}
+     // try { console.log('CancelOrderReject:', JSON.stringify(CancelOrderReject.decode(uint8Array)));} catch(error) {}
+     // try { console.log('ConnectionStatus:', JSON.stringify(ConnectionStatus.decode(uint8Array)));} catch(error) {}
+     // try { console.log('Credentials:', JSON.stringify(Credentials.decode(uint8Array)));} catch(error) {}
+     // try { console.log('Done:', JSON.stringify(Done.decode(uint8Array)));} catch(error) {}
+     // try { console.log('Fill:', JSON.stringify(Fill.decode(uint8Array)));} catch(error) {}
+     // try { console.log('FixedPointDecimal:', JSON.stringify(FixedPointDecimal.decode(uint8Array)));} catch(error) {}
+     try { console.log('Heartbeat:', JSON.stringify(Heartbeat.decode(uint8Array)));} catch(error) {}
+     // try { console.log('MassCancel:', JSON.stringify(MassCancel.decode(uint8Array)));} catch(error) {}
+     // try { console.log('MassCancelAck:', JSON.stringify(MassCancelAck.decode(uint8Array)));} catch(error) {}
+     // try { console.log('ModifyOrder:', JSON.stringify(ModifyOrder.decode(uint8Array)));} catch(error) {}
+     // try { console.log('ModifyOrderAck:', JSON.stringify(ModifyOrderAck.decode(uint8Array)));} catch(error) {}
+     // try { console.log('ModifyOrderReject:', JSON.stringify(ModifyOrderReject.decode(uint8Array)));} catch(error) {}
+     // try { console.log('NewOrder:', JSON.stringify(NewOrder.decode(uint8Array)));} catch(error) {}
+     // try { console.log('NewOrderAck:', JSON.stringify(NewOrderAck.decode(uint8Array)));} catch(error) {}
+     // try { console.log('NewOrderReject:', JSON.stringify(NewOrderReject.decode(uint8Array)));} catch(error) {}
+     // try { console.log('OrderRequest:', JSON.stringify(OrderRequest.decode(uint8Array)));} catch(error) {}
+     try { console.log('OrderResponse:', JSON.stringify(OrderResponse.decode(uint8Array)));} catch(error) {}
+     // try { console.log('OrderType:', JSON.stringify(OrderType.decode(uint8Array)));} catch(error) {}
+     // try { console.log('PostOnly:', JSON.stringify(PostOnly.decode(uint8Array)));} catch(error) {}
+     // try { console.log('RawUnits:', JSON.stringify(RawUnits.decode(uint8Array)));} catch(error) {}
+     // try { console.log('RestingOrder:', JSON.stringify(RestingOrder.decode(uint8Array)));} catch(error) {}
+     // try { console.log('RestingOrders:', JSON.stringify(RestingOrders.decode(uint8Array)));} catch(error) {}
+     // try { console.log('SelfTradePrevention:', JSON.stringify(SelfTradePrevention.decode(uint8Array)));} catch(error) {}
+     // try { console.log('Side:', JSON.stringify(Side.decode(uint8Array)));} catch(error) {}
+     // try { console.log('TimeInForce:', JSON.stringify(TimeInForce.decode(uint8Array)));} catch(error) {}
+     // try { console.log('TradingStatus:', JSON.stringify(TradingStatus.decode(uint8Array)));} catch(error) {}
+
+    console.log('message - end');
 });
 
 ws.on('close', (code, reason) => {
@@ -101,7 +166,7 @@ function sendLimitOrder() {
     const marketId = marketConstants['marketId'];
     const orderType = 'LIMIT'
     const orderSide = 'BUY'
-    const decimalAmount = 0.1;
+    const decimalAmount = 0.001;
     const decimalPrice = orderSide == 'BUY' ? 130 : 160;
     const quantityTickSize = marketConstants['quantityTickSize'];
     const priceTickSize = marketConstants['priceTickSize'];
@@ -112,17 +177,17 @@ function sendLimitOrder() {
     const exchangePrice = Math.floor(decimalPrice * (1 / priceTickSize))
 
     const newOrder = NewOrder.create({
-        client_order_id: Date.now(),
-        request_id: 1,
-        market_id: marketId,
+        clientOrderId: Date.now(),
+        requestId: 1,
+        marketId: marketId,
         price: exchangePrice, // price in the smallest unit
         quantity: exchangeAmount, // quantity in lots
         side: exchangeOrderSide,
-        time_in_force: 1, // GOOD_FOR_SESSION
-        order_type: exchangeOrderType,
-        subaccount_id: parseInt(subAccountId),
-        post_only: 1, // Enabled,
-        cancel_on_disconnect: false
+        timeInForce: 1, // GOOD_FOR_SESSION
+        orderType: exchangeOrderType,
+        subaccountId: parseInt(subAccountId),
+        postOnly: 1, // Enabled,
+        cancelOnDisconnect: false
     });
 
     const orderRequest = OrderRequest.create({
