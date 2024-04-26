@@ -97,10 +97,12 @@ ws.on('open', () => {
     sendLimitOrder();
 });
 
-ws.on('message', (payload) => {
+ws.on('message', (payload: any) => {
     console.log('message - begin');
 
     const uint8Array = new Uint8Array(payload);
+    const uint8ArrayHex = uint8ArrayToHex(uint8Array);
+    const uint8ArrayBase64 = uint8ArrayToBase64(uint8Array);
 
      // try { console.log('AssetPosition:', JSON.stringify(AssetPosition.decode(uint8Array)));} catch(error) {}
      // try { console.log('AssetPositions:', JSON.stringify(AssetPositions.decode(uint8Array)));} catch(error) {}
