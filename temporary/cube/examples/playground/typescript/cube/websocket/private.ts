@@ -5,6 +5,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 // @ts-ignore
 import { default as protobuf } from 'protobufjs';
+import { mod } from '../../../../../../../js/src/static_dependencies/noble-curves/abstract/modular.js';
 
 const root = protobuf.loadSync(
     path.resolve('temporary', 'cube', 'examples', 'playground', 'typescript', 'cube', 'websocket', 'schema', 'trade.proto')
@@ -192,8 +193,42 @@ function sendLimitOrder() {
         cancelOnDisconnect: false
     });
 
+    const cancelOrder = CancelOrder.create({
+        marketId: marketId,
+        clientOrderId: Date.now(),
+        requestId: 1,
+        subaccountId: parseInt(subAccountId),
+    });
+
+    const modifyOrder = ModifyOrder.create({
+        marketId: marketId,
+        clientOrderId: Date.now(),
+        requestId: 1,
+        newPrice: 1,
+        newQuantity: 1,
+        subAccountId: parseInt(subAccountId),
+        selfTradePrevention: 1,  //optional
+        postOnly: 1,
+    });
+
+    const heartbeat = Heartbeat.create({
+        requestId: 1,
+        timestamp: Date.now(),
+    });
+    
+    const massCancel = MassCancel.create({
+        subAccountId: parseInt(subAccountId),
+        requestId: 1,
+        marketId: marketId,   // optional (If specified, only orders on the corresponding market will be canceled.)
+        side: 0,   // optional (If specified, only orders with this side will be canceled.)
+    });
+    
     const orderRequest = OrderRequest.create({
-        new: newOrder
+        new: newOrder,
+        cancel: cancelOrder,
+        modify: modifyOrder,
+        heartbeat: heartbeat,
+        massCancel: massCancel,
     });
 
     const buffer = OrderRequest.encode(orderRequest).finish();
