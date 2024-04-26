@@ -48,8 +48,28 @@ function uint8ArrayToBase64(array: Uint8Array): string {
     return btoa(binaryString);
 }
 
+function hexToUint8Array(hexString: string): Uint8Array {
+    const length = hexString.length / 2;
+    const array = new Uint8Array(length);
+    for (let i = 0; i < length; i++) {
+        const hexByte = hexString.substr(i * 2, 2);
+        array[i] = parseInt(hexByte, 16);
+    }
+    return array;
+}
+
+function base64ToUint8Array(base64String: string): Uint8Array {
+    const binaryString = atob(base64String);
+    const length = binaryString.length;
+    const array = new Uint8Array(length);
+    for (let i = 0; i < length; i++) {
+        array[i] = binaryString.charCodeAt(i);
+    }
+    return array;
+}
+
 const watchOrderBook = async () => {
-    const wsUrl = `wss://api.cube.exchange/md/book/200047`;
+    const wsUrl = `wss://staging.cube.exchange/md/book/200047?trades=true&summary=true&mbo=true`;
 
     const ws = new WebSocket(wsUrl);
 
@@ -60,10 +80,11 @@ const watchOrderBook = async () => {
 
         // Sending initial configuration message
         const configMessage = Config.create({
+            klines: [0],
+            marketIds: [],
             mbo: true,
             trades: true,
-            summary: true,
-            klines: [0,1,2,3,4,5]
+            summary: true
         });
 
         const clientMessage = ClientMessage.create({
@@ -72,6 +93,10 @@ const watchOrderBook = async () => {
 
         const buffer = ClientMessage.encode(clientMessage).finish();
         ws.send(buffer);
+
+        // const uint8Array = base64ToUint8Array('EgsQARgBIAEqAQIyAA==');
+        // console.log(ClientMessage.decode(uint8Array));
+        // ws.send(uint8Array);
 
         // Setting up heartbeat message to be sent every 30 seconds
         heartbeatInterval = setInterval(() => {
@@ -104,7 +129,7 @@ const watchOrderBook = async () => {
         // try { console.log('MarketByPrice:', MarketByPrice.decode(uint8Array));} catch (error) {}
         // try { console.log('MarketByPriceDiff:', MarketByPriceDiff.decode(uint8Array));} catch (error) {}
         // try { console.log('MarketStatus:', MarketStatus.decode(uint8Array));} catch (error) {}
-        try { console.log('MdMessage:', JSON.stringify(MdMessage.decode(uint8Array)));} catch (error) {}
+        // try { console.log('MdMessage:', JSON.stringify(MdMessage.decode(uint8Array)));} catch (error) {}
         try { console.log('MdMessages:', JSON.stringify(MdMessages.decode(uint8Array)));} catch (error) {}
         // try { console.log('RateUpdate:', RateUpdate.decode(uint8Array));} catch (error) {}
         // try { console.log('RateUpdates:', RateUpdates.decode(uint8Array));} catch (error) {}
