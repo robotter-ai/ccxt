@@ -5,14 +5,31 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ----------------------------------------------------------------------------
-import cubeRest from '../cube.js';
+import cubeRest from '../../src/cube.js';
+import {InvalidOrder} from "../base/errors.js";
 // -----------------------------------------------------------------------------
+
 export default class cube extends cubeRest {
     describe() {
-        // TODO check all info!!!
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
+                'cancelOrderWs': false,
+                'cancelOrdersWs': false,
+                'cancelAllOrdersWs': false,
+                'createOrderWs': true,
+                'editOrderWs': false,
+                'fetchBalanceWs': false,
+                'fetchDepositsWs': false,
+                'fetchMarketsWs': false,
+                'fetchMyTradesWs': false,
+                'fetchOHLCVWs': false,
+                'fetchOpenOrdersWs': false,
+                'fetchOrderWs': false,
+                'fetchOrdersWs': false,
+                'fetchTradesWs': false,
+                'fetchTradingFeesWs': false,
+                'fetchWithdrawalsWs': false,
                 'watchBalance': false,
                 'watchMyTrades': false,
                 'watchOHLCV': false,
@@ -26,47 +43,21 @@ export default class cube extends cubeRest {
                 'watchTickers': false,
                 'watchTrades': false,
                 'watchTradesForSymbols': false,
-                'createOrderWs': false,
-                'editOrderWs': false,
-                'cancelOrderWs': false,
-                'cancelOrdersWs': false,
-                'cancelAllOrdersWs': false,
-                'fetchBalanceWs': false,
-                'fetchDepositsWs': false,
-                'fetchMarketsWs': false,
-                'fetchMyTradesWs': false,
-                'fetchOHLCVWs': false,
-                'fetchOpenOrdersWs': false,
-                'fetchOrderWs': false,
-                'fetchOrdersWs': false,
-                'fetchTradesWs': false,
-                'fetchTradingFeesWs': false,
-                'fetchWithdrawalsWs': false,
-            },
-            'urls': {
-                'api': {
-                    'ws': {
-                        'production': {
-                            'iridium': 'wss://api.cube.exchange/ir',
-                            'mendelev': 'wss://api.cube.exchange/md',
-                            'osmium': 'wss://api.cube.exchange/os',
-                        },
-                        'staging': {
-                            'iridium': 'wss://staging.cube.exchange/ir',
-                            'mendelev': 'wss://staging.cube.exchange/md',
-                            'osmium': 'wss://staging.cube.exchange/os',
-                        },
-                    },
-                },
             },
             'options': {
-                'environment': 'production',
                 'api': {
                     'ws': {
-                        'mendelev': {
-                            'public': {
-                                'orderbook': '/book/:market_id',
-                                'orderbookTops': '/tops',
+                        'staging': {
+                            'mendelev': {
+                                'public': {
+                                    'orderbook': '/book/{marketId}',
+                                    'orderbookTops': '/tops',
+                                },
+                            },
+                            'osmium': {
+                                'private': {
+                                    'root': '/',
+                                },
                             },
                         },
                     },
@@ -74,7 +65,14 @@ export default class cube extends cubeRest {
             },
         });
     }
-    async watchOrderBook(symbol, limit = undefined, params = {}) {
+
+    getWebsocketUrl (system, privacy, path, params = {}) {
+        const environment = this.options['environment'];
+        path = this.implodeParams (path, params);
+        return this.urls['api']['ws'][environment][system] + this.options['api']['ws'][environment][system][privacy][path];
+    }
+
+    async watchOrderBook (symbol, limit = undefined, params = {}) {
         /**
          * @method
          * @name cube#watchOrderBook
@@ -101,4 +99,71 @@ export default class cube extends cubeRest {
         const messageHash = '';
         return await this.watch(url, messageHash, request, messageHash);
     }
+
+    handleOrderBook (client, message) {}
+
+    async createOrderWs (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#createOrderWs
+         * @see https://cubexch.gitbook.io/cube-api/websocket-trade-api#orderrequest
+         * @description create an order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} params.test test order, default false
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const meta = await this.fetchMarketMeta (symbol);
+        symbol = this.safeString (meta, 'symbol');
+        const marketId = this.safeString (meta, 'marketId');
+        const market = this.safeDict(meta, 'market');
+        const quantityTickSize = this.safeNumber(this.safeDict(market, 'info'), 'quantityTickSize');
+        const priceTickSize = this.safeNumber(this.safeDict(market, 'info'), 'priceTickSize');
+        const exchangeAmount = this.parseToInt(amount / quantityTickSize);
+        let exchangePrice = undefined;
+        if (price !== undefined) {
+            exchangePrice = this.parseToInt(price / priceTickSize);
+        }
+        let exchangeOrderType = undefined;
+        if (type === 'limit') {
+            exchangeOrderType = 0;
+        }
+        else if (type === 'market') {
+            exchangeOrderType = 1;
+        }
+        else if (type === 'MARKET_WITH_PROTECTION') {
+            exchangeOrderType = 2;
+        }
+        else {
+            throw new InvalidOrder('OrderType was not recognized: ' + type);
+        }
+        let exchangeOrderSide = undefined;
+        if (side === 'buy') {
+            exchangeOrderSide = 0;
+        }
+        else if (side === 'sell') {
+            exchangeOrderSide = 1;
+        }
+        else {
+            throw new InvalidOrder('OrderSide was not recognized: ' + side);
+        }
+        const timestamp = this.milliseconds();
+        const clientOrderIdFromParams = this.safeInteger(params, 'clientOrderId');
+        let clientOrderId = undefined;
+        if (clientOrderIdFromParams === undefined) {
+            clientOrderId = timestamp;
+        }
+        else {
+            clientOrderId = clientOrderIdFromParams;
+        }
+        const url = this.getWebsocketUrl ('osmium', 'private', 'root', { 'marketId': marketId });
+        const signature = this.generateSignature()[0];
+        console.log(signature)
+    }
+
+    handleOrderWs (client, message) {}
 }
