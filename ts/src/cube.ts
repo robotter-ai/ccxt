@@ -1173,7 +1173,7 @@ export default class cube extends Exchange {
         if (fetchedOrder === undefined) {
             fetchedOrder = {};
         }
-        const clientOrderId = parseInt (this.safeString (fetchedOrder, 'clientOrderId'));
+        const clientOrderId = this.safeString (fetchedOrder, 'clientOrderId');
         const request = {
             'clientOrderId': clientOrderId,
             'requestId': this.safeInteger (params, 'requestId'),
