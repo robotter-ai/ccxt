@@ -11,35 +11,13 @@ export default class cube extends cubeRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'cancelOrderWs': false,
-                'cancelOrdersWs': false,
-                'cancelAllOrdersWs': false,
-                'createOrderWs': false,
-                'editOrderWs': false,
-                'fetchBalanceWs': false,
-                'fetchDepositsWs': false,
-                'fetchMarketsWs': false,
-                'fetchMyTradesWs': false,
-                'fetchOHLCVWs': false,
-                'fetchOpenOrdersWs': false,
-                'fetchOrderWs': false,
-                'fetchOrdersWs': false,
-                'fetchTradesWs': false,
-                'fetchTradingFeesWs': false,
-                'fetchWithdrawalsWs': false,
                 'watchBalance': false,
                 'watchMyTrades': false,
                 'watchOHLCV': false,
-                'watchOHLCVForSymbols': false,
                 'watchOrderBook': true,
-                'watchOrderBookForSymbols': false,
                 'watchOrders': false,
-                'watchOrdersForSymbols': false,
-                'watchPositions': false,
                 'watchTicker': false,
-                'watchTickers': false,
                 'watchTrades': false,
-                'watchTradesForSymbols': false,
             },
             'options': {
                 'api': {
@@ -158,4 +136,29 @@ export default class cube extends cubeRest {
     }
 
     handleOrder (client: Client, message) {}
+
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name cube#watchMyTrades
+         * @description watches information on multiple trades made by the user
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.unifiedMargin] use unified margin account
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         */
+    }
+
+    async watchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name cube#watchBalance
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to watch the balance of a portfolio margin account
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+    }
 }
