@@ -1307,8 +1307,9 @@ export default class cube extends Exchange {
         const result = this.safeList (this.safeDict (rawResponse, 'result'), 'orders');
         let order = undefined;
         for (let i = 0; i < this.countItems (result); i++) {
+            const clientOrderId = this.safeString (result[i], 'clientOrderId');
             const exchangeOrderId = this.safeString (result[i], 'exchangeOrderId');
-            if (id === exchangeOrderId) {
+            if (String(id) === clientOrderId || String(id) === exchangeOrderId) {
                 order = result[i];
                 break;
             }
