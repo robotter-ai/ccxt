@@ -7,6 +7,7 @@ import {
     BadRequest,
     BadSymbol,
     InvalidOrder,
+    NotSupported,
 } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import {
@@ -28,7 +29,6 @@ import {
     Transaction,
 } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { NotSupported } from '../../js/src/base/errors.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1309,7 +1309,7 @@ export default class cube extends Exchange {
         for (let i = 0; i < this.countItems (result); i++) {
             const clientOrderId = this.safeString (result[i], 'clientOrderId');
             const exchangeOrderId = this.safeString (result[i], 'exchangeOrderId');
-            if (String(id) === clientOrderId || String(id) === exchangeOrderId) {
+            if (String (id) === clientOrderId || String (id) === exchangeOrderId) {
                 order = result[i];
                 break;
             }
