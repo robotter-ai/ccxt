@@ -103,9 +103,33 @@ export default class cube extends cubeRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
+        const url = this.getWebsocketUrl ('mendelev', 'public', 'orderbook');
+        await this.authenticate (url);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const messageHash = 'ohlcv:' + symbol;   // ???
+        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message) {}
+    handleOHLCV (client: Client, message) {
+        //
+        //    {
+        //        "endtime": 1714423464,
+        //        "interval": "15m",
+        //        "limit": 1000,
+        //        "marketId": 200047,
+        //        "startTime": 1714122864,
+        //    }
+        //
+        const marketId = this.safeString (message, 'marketId');
+        const symbol = this.safeSymbol (marketId);
+        const interval = this.safeString (data, 'interval');
+    }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
