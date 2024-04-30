@@ -710,5 +710,40 @@ async function iridiumGetUsersAddressSettings() {
   }
 }
 
+async function iridiumPostUsersWithdraw() {
+  const apiKey = Deno.env.get("API_KEY");
+  const apiSecret = Deno.env.get("API_SECRET");
+
+  const auth = new Auth(apiKey, apiSecret);
+
+  const type = "ir";
+  const baseUrl = `https://staging.cube.exchange/${type}/v0`;
+  const endpoint = "/users/withdraw";
+  const url = `${baseUrl}${endpoint}`;
+
+  let request: any = {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      "subaccountId": 161,
+      "assetId": 1,
+      "amount": 1,
+      "destination": "text",
+    }),
+  };
+
+  request = auth.authenticateRequest(request);
+
+  try {
+    const response = await fetch(url, request);
+
+    const data = await response.json();
+
+    console.log(JSON.stringify(data, null, 2));
+  } catch (exception) {
+    console.error(exception);
+  }
+}
+
 
 await iridiumGetUsersAddressSettings();

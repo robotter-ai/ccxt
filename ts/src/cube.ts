@@ -1770,6 +1770,19 @@ export default class cube extends Exchange {
         };
     }
 
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        /**
+         * @method
+         * @name cube#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposits structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+    }
+
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
@@ -1783,7 +1796,24 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        throw new NotSupported (this.id + ' withdraw() is not supported yet');
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.fetchMarketMeta ();
+        const request = {
+            'subaccountId': this.safeInteger (params, 'subaccountId'),
+            'amount': amount,
+            'destination': address, // The destination address for the withdrawal.
+            'assetId': this.safeInteger (params, 'assetId'),
+        };
+        const response = await this.restIridiumPrivatePostUsersWithdraw (this.extend (request, params));
+        //
+        // {
+        //     "result": {
+        //       "status": "pending",
+        //       "approved": false,
+        //       "reason": "text"
+        //     }
+        // }
+        //
     }
 
     countWithLoop (items) {
