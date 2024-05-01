@@ -7,6 +7,7 @@
 // ----------------------------------------------------------------------------
 import cubeRest from '../../src/cube.js';
 import {InvalidOrder} from "../base/errors.js";
+import { default as protobuf } from './static_dependencies/protobufjs/protobuf.js';
 // -----------------------------------------------------------------------------
 
 export default class cube extends cubeRest {

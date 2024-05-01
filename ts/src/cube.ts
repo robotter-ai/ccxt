@@ -44,7 +44,7 @@ export default class cube extends Exchange {
             'countries': [],
             'urls': {
                 'referral': '',
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/3aa748b7-ea44-45e9-a9e7-b1d207a2578a',
+                'logo': '', // TODO Add Cube logo URL.
                 'api': {
                     'rest': {
                         'production': {
@@ -1781,6 +1781,7 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
+        return null;
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
@@ -1814,6 +1815,7 @@ export default class cube extends Exchange {
         //     }
         // }
         //
+        return response;
     }
 
     countWithLoop (items) {

@@ -1,9 +1,9 @@
 
 // ----------------------------------------------------------------------------
-// TODO revert imports to js!!!
-import cubeRest from '../cube.ts';
-import { Int, OrderBook } from '../base/types.ts';
-
+import cubeRest from '../cube.js';
+import { Balances, Int, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
+// import { default as protobuf } from './static_dependencies/protobufjs/protobuf.js';
+import Client from '../base/ws/Client.js';
 // -----------------------------------------------------------------------------
 
 export default class cube extends cubeRest {
@@ -67,7 +67,7 @@ export default class cube extends cubeRest {
             'mbo': false,
             'trades': true,
             'summary': true,
-            'klines': 1,
+            'klines': klines,
             'marketsIds': 200047,
         };
         const messageHash = '';
@@ -85,11 +85,14 @@ export default class cube extends cubeRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
+        return null;
     }
 
     handleTicker (client: Client, message) {}
 
-    parseTicker (ticker, market = undefined): Ticker {}
+    parseTicker (ticker, market = undefined): Ticker {
+        return null;
+    }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
@@ -104,11 +107,12 @@ export default class cube extends cubeRest {
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         const url = this.getWebsocketUrl ('mendelev', 'public', 'orderbook');
-        await this.authenticate (url);
+        // await this.authenticate (url);
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'ohlcv:' + symbol;   // ???
+        const request = {};
         const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
@@ -128,7 +132,13 @@ export default class cube extends cubeRest {
         //
         const marketId = this.safeString (message, 'marketId');
         const symbol = this.safeSymbol (marketId);
+        const data = {};
         const interval = this.safeString (data, 'interval');
+        const request = {
+            symbol,
+            interval,
+        };
+        return request;
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -142,6 +152,7 @@ export default class cube extends cubeRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
+        return null;
     }
 
     handleTrades (client: Client, message) {}
@@ -157,6 +168,7 @@ export default class cube extends cubeRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
+        return null;
     }
 
     handleOrder (client: Client, message) {}
@@ -173,6 +185,7 @@ export default class cube extends cubeRest {
          * @param {boolean} [params.unifiedMargin] use unified margin account
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
+        return null;
     }
 
     async watchBalance (params = {}): Promise<Balances> {
@@ -184,5 +197,6 @@ export default class cube extends cubeRest {
          * @param {boolean} [params.portfolioMargin] set to true if you would like to watch the balance of a portfolio margin account
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
+        return null;
     }
 }
