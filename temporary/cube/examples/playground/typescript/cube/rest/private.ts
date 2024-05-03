@@ -217,7 +217,7 @@ async function iridiumGetUsersWithdrawals() {
 
   const type = "ir";
   const baseUrl = `https://staging.cube.exchange/${type}/v0`;
-  const endpoint = "/users/withdrawals";
+  const endpoint = "/users/subaccount/161/withdrawals";
   const url = `${baseUrl}${endpoint}`;
 
   let request: any = {
@@ -726,9 +726,9 @@ async function iridiumPostUsersWithdraw() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       "subaccountId": 161,
-      "assetId": 1,
-      "amount": 1,
-      "destination": "text",
+      "assetId": 80005,   //tsol
+      "amount": "1",
+      "destination": "6khUqefutr3xA6fEUnZfRMRGwER8BBTZZFFgBPhuUyyp",
     }),
   };
 
@@ -746,4 +746,4 @@ async function iridiumPostUsersWithdraw() {
 }
 
 
-await iridiumGetUsersAddressSettings();
+await iridiumGetUsersWithdrawals();

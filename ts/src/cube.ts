@@ -228,7 +228,7 @@ export default class cube extends Exchange {
                 'setPositionMode': false,
                 'signIn': false,
                 'transfer': false,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1minute',
@@ -1789,7 +1789,7 @@ export default class cube extends Exchange {
          * @method
          * @name cube#withdraw
          * @description make a withdrawal
-         * @see https://binance-docs.github.io/apidocs/spot/en/#withdraw-user_data
+         * @see https://cubexch.gitbook.io/cube-api/rest-iridium-api#users-withdraw
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -1800,11 +1800,11 @@ export default class cube extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.fetchMarketMeta ();
         const request = {
-            'subaccountId': this.safeInteger (params, 'subaccountId'),
-            'amount': amount,
-            'destination': address, // The destination address for the withdrawal.
-            'assetId': this.safeInteger (params, 'assetId'),
+            'amount': String (amount),
+            'destination': address,
+            'assetId': code,
         };
+        this.injectSubAccountId (request, params);
         const response = await this.restIridiumPrivatePostUsersWithdraw (this.extend (request, params));
         //
         // {
@@ -1813,9 +1813,110 @@ export default class cube extends Exchange {
         //       "approved": false,
         //       "reason": "text"
         //     }
+        //     "result": {
+        //     "status": "accept",
+        //     "approved": true
+        //    }
         // }
         //
         return response;
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cube#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.fetchMarketMeta ();
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['assetId'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdWithdrawals ();
+        //
+        // result: {
+        //     "161": {
+        //       name: "primary",
+        //       inner: [
+        //         {
+        //           assetId: 80005,
+        //           amount: "100000000",
+        //           createdAt: "2024-05-02T18:03:36.779453Z",
+        //           updatedAt: "2024-05-02T18:03:37.941902Z",
+        //           attemptId: 208,
+        //           address: "6khUqefutr3xA6fEUnZfRMRGwER8BBTZZFFgBPhuUyyp",
+        //           kytStatus: "accept",
+        //           approved: true,
+        //         },
+        //       ],
+        //     },
+        //   },
+        //
+        const withdrawals = this.safeList (response, 'inner', []);
+        return this.parseTransactions (withdrawals, currency, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        // fetchWithdrawals
+        //
+        // result: {
+        //     "161": {
+        //       name: "primary",
+        //       inner: [
+        //         {
+        //           assetId: 80005,
+        //           amount: "100000000",
+        //           createdAt: "2024-05-02T18:03:36.779453Z",
+        //           updatedAt: "2024-05-02T18:03:37.941902Z",
+        //           attemptId: 208,
+        //           address: "6khUqefutr3xA6fEUnZfRMRGwER8BBTZZFFgBPhuUyyp",
+        //           kytStatus: "accept",
+        //           approved: true,
+        //         },
+        //       ],
+        //     },
+        //   },
+        //
+        const currencyId = this.safeString (transaction, 'assetId');
+        const code = this.safeCurrencyCode (currencyId);
+        const amount = this.safeNumber (transaction, 'amount');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
+        const updated = this.parse8601 (this.safeString2 (transaction, 'updatedAt'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'approved'));
+        const address = this.safeString (transaction, 'address');
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': address,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'type': undefined,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': undefined,
+            'comment': undefined,
+            'internal': undefined,
+        };
     }
 
     countWithLoop (items) {

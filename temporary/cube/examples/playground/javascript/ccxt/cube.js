@@ -215,9 +215,23 @@ async function fetchMyTrades() {
 async function deposit() {
 }
 
-// BACKLOG
+// TESTING
+async function fetchWithdrawals() {
+    response = await communityExchange.fetchWithdrawals()
+    log(response)
+}
+
+// DONE
 async function withdraw() {
-    response = await communityExchange.withdraw()
+    response = await communityExchange.withdraw(
+        80005,
+        1,
+        "6khUqefutr3xA6fEUnZfRMRGwER8BBTZZFFgBPhuUyyp",
+        undefined,
+        {
+            'subaccountId': subAccountId
+        }
+    )
     log(response)
 }
 
@@ -261,10 +275,11 @@ async function test() {
     // await fetchOHLCV()
     // await fetchTrades()
     // await fetchStatus()
+    await fetchWithdrawals()
     // await fetchMyTrades()    // TODO Not implemented!!!
     // await fetchClosedOrders()   // TODO Not implemented!!!
     // await deposit()   // TODO Not implemented!!!
-    // await withdraw()   // TODO Not implemented!!!
+    // await withdraw()
     // await watchOrderBook()   // TODO Not implemented!!!
 }
 
