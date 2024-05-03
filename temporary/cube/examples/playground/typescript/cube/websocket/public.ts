@@ -6,9 +6,9 @@ import * as path from 'node:path';
 // @ts-ignore
 import { default as protobuf } from 'protobufjs';
 
-import Long from 'long';
+// import Long from 'long';
 
-protobuf.util.Long = Long;
+// protobuf.util.Long = Long;
 protobuf.configure();
 
 const root = protobuf.loadSync(

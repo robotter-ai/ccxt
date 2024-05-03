@@ -69,13 +69,15 @@ async function createOrderWs({side = 'buy', orderType = 'limit'}) {
 }
 
 async function test() {
-    createProExchange()
-    // await watchOrderBook()
+    await createProExchange()
+    await watchOrderBook();
 
-    await createOrderWs({})
+    // await createOrderWs({})
     // await createOrderWs({'side': orderSides[1]})
     // await createOrderWs({'orderType': orderTypes[1]})
     // await createOrderWs({'side': orderSides[1], 'orderType':orderTypes[1]})
 }
 
-test()
+(async function run() {
+    await test()
+})();

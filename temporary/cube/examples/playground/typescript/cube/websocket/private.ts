@@ -1199,20 +1199,16 @@ function sendLimitOrder() {
         requestId: 1,
         timestamp: Date.now(),
     });
-    
+
     const massCancel = MassCancel.create({
         subAccountId: parseInt(subAccountId),
         requestId: 1,
         marketId: marketId,   // optional (If specified, only orders on the corresponding market will be canceled.)
         side: 0,   // optional (If specified, only orders with this side will be canceled.)
     });
-    
+
     const orderRequest = OrderRequest.create({
-        new: newOrder,
-        cancel: cancelOrder,
-        modify: modifyOrder,
-        heartbeat: heartbeat,
-        massCancel: massCancel,
+        new: newOrder
     });
 
     const buffer = OrderRequest.encode(orderRequest).finish();

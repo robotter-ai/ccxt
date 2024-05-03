@@ -9,7 +9,777 @@ import cubeRest from '../../src/cube.js';
 import {InvalidOrder} from "../base/errors.js";
 import { default as protobuf } from '../../../js/src/static_dependencies/protobufjs/light.js';
 import { default as Client }  from '../../../js/src/base/ws/Client.js';
+// -----------------------------------------------------------------------------
 
+const marketDataProtoDefinitions = {
+    "nested": {
+        "market_data": {
+            "options": {
+                "csharp_namespace": "Cube.MarketData",
+                "go_package": "go/"
+            },
+            "nested": {
+                "Side": {
+                    "values": {
+                        "BID": 0,
+                        "ASK": 1
+                    }
+                },
+                "KlineInterval": {
+                    "values": {
+                        "S1": 0,
+                        "M1": 1,
+                        "M15": 2,
+                        "H1": 3,
+                        "H4": 4,
+                        "D1": 5
+                    }
+                },
+                "MdMessage": {
+                    "oneofs": {
+                        "inner": {
+                            "oneof": [
+                                "heartbeat",
+                                "summary",
+                                "trades",
+                                "mboSnapshot",
+                                "mboDiff",
+                                "mbpSnapshot",
+                                "mbpDiff",
+                                "kline",
+                                "marketStatus"
+                            ]
+                        },
+                        "_marketId": {
+                            "oneof": [
+                                "marketId"
+                            ]
+                        }
+                    },
+                    "fields": {
+                        "heartbeat": {
+                            "type": "Heartbeat",
+                            "id": 1
+                        },
+                        "summary": {
+                            "type": "Summary",
+                            "id": 2
+                        },
+                        "trades": {
+                            "type": "Trades",
+                            "id": 3
+                        },
+                        "mboSnapshot": {
+                            "type": "MarketByOrder",
+                            "id": 4
+                        },
+                        "mboDiff": {
+                            "type": "MarketByOrderDiff",
+                            "id": 5
+                        },
+                        "mbpSnapshot": {
+                            "type": "MarketByPrice",
+                            "id": 6
+                        },
+                        "mbpDiff": {
+                            "type": "MarketByPriceDiff",
+                            "id": 7
+                        },
+                        "kline": {
+                            "type": "Kline",
+                            "id": 8
+                        },
+                        "marketStatus": {
+                            "type": "MarketStatus",
+                            "id": 10
+                        },
+                        "marketId": {
+                            "type": "uint64",
+                            "id": 9,
+                            "options": {
+                                "proto3_optional": true
+                            }
+                        }
+                    }
+                },
+                "MarketByPrice": {
+                    "fields": {
+                        "levels": {
+                            "rule": "repeated",
+                            "type": "Level",
+                            "id": 1
+                        },
+                        "chunk": {
+                            "type": "uint32",
+                            "id": 2
+                        },
+                        "numChunks": {
+                            "type": "uint32",
+                            "id": 3
+                        }
+                    },
+                    "nested": {
+                        "Level": {
+                            "fields": {
+                                "price": {
+                                    "type": "uint64",
+                                    "id": 1
+                                },
+                                "quantity": {
+                                    "type": "uint64",
+                                    "id": 2
+                                },
+                                "side": {
+                                    "type": "Side",
+                                    "id": 3
+                                }
+                            }
+                        }
+                    }
+                },
+                "MarketByPriceDiff": {
+                    "fields": {
+                        "diffs": {
+                            "rule": "repeated",
+                            "type": "Diff",
+                            "id": 1
+                        },
+                        "totalBidLevels": {
+                            "type": "uint32",
+                            "id": 2
+                        },
+                        "totalAskLevels": {
+                            "type": "uint32",
+                            "id": 3
+                        }
+                    },
+                    "nested": {
+                        "DiffOp": {
+                            "values": {
+                                "ADD": 0,
+                                "REMOVE": 1,
+                                "REPLACE": 2
+                            }
+                        },
+                        "Diff": {
+                            "fields": {
+                                "price": {
+                                    "type": "uint64",
+                                    "id": 1
+                                },
+                                "quantity": {
+                                    "type": "uint64",
+                                    "id": 2
+                                },
+                                "side": {
+                                    "type": "Side",
+                                    "id": 3
+                                },
+                                "op": {
+                                    "type": "DiffOp",
+                                    "id": 4
+                                }
+                            }
+                        }
+                    }
+                },
+                "MarketByOrder": {
+                    "fields": {
+                        "orders": {
+                            "rule": "repeated",
+                            "type": "Order",
+                            "id": 1
+                        },
+                        "chunk": {
+                            "type": "uint32",
+                            "id": 2
+                        },
+                        "numChunks": {
+                            "type": "uint32",
+                            "id": 3
+                        }
+                    },
+                    "nested": {
+                        "Order": {
+                            "fields": {
+                                "price": {
+                                    "type": "uint64",
+                                    "id": 1
+                                },
+                                "quantity": {
+                                    "type": "uint64",
+                                    "id": 2
+                                },
+                                "exchangeOrderId": {
+                                    "type": "uint64",
+                                    "id": 3
+                                },
+                                "side": {
+                                    "type": "Side",
+                                    "id": 4
+                                },
+                                "priority": {
+                                    "type": "uint64",
+                                    "id": 5
+                                }
+                            }
+                        }
+                    }
+                },
+                "MarketByOrderDiff": {
+                    "fields": {
+                        "diffs": {
+                            "rule": "repeated",
+                            "type": "Diff",
+                            "id": 1
+                        },
+                        "totalBidLevels": {
+                            "type": "uint32",
+                            "id": 2
+                        },
+                        "totalAskLevels": {
+                            "type": "uint32",
+                            "id": 3
+                        },
+                        "totalBidOrders": {
+                            "type": "uint32",
+                            "id": 4
+                        },
+                        "totalAskOrders": {
+                            "type": "uint32",
+                            "id": 5
+                        }
+                    },
+                    "nested": {
+                        "DiffOp": {
+                            "values": {
+                                "ADD": 0,
+                                "REMOVE": 1,
+                                "REPLACE": 2
+                            }
+                        },
+                        "Diff": {
+                            "fields": {
+                                "price": {
+                                    "type": "uint64",
+                                    "id": 1
+                                },
+                                "quantity": {
+                                    "type": "uint64",
+                                    "id": 2
+                                },
+                                "exchangeOrderId": {
+                                    "type": "uint64",
+                                    "id": 3
+                                },
+                                "side": {
+                                    "type": "Side",
+                                    "id": 4
+                                },
+                                "op": {
+                                    "type": "DiffOp",
+                                    "id": 5
+                                },
+                                "priority": {
+                                    "type": "uint64",
+                                    "id": 6
+                                }
+                            }
+                        }
+                    }
+                },
+                "MarketState": {
+                    "values": {
+                        "UNSPECIFIED": 0,
+                        "NORMAL_OPERATION": 1,
+                        "CANCEL_ONLY": 2
+                    }
+                },
+                "MarketStatus": {
+                    "fields": {
+                        "transactTime": {
+                            "type": "uint64",
+                            "id": 1
+                        },
+                        "marketState": {
+                            "type": "MarketState",
+                            "id": 2
+                        }
+                    }
+                },
+                "AggressingSide": {
+                    "values": {
+                        "AGGRESSING_BID": 0,
+                        "AGGRESSING_ASK": 1,
+                        "AGGRESSING_IMPLIED_BID": 2,
+                        "AGGRESSING_IMPLIED_ASK": 3
+                    }
+                },
+                "Trades": {
+                    "fields": {
+                        "trades": {
+                            "rule": "repeated",
+                            "type": "Trade",
+                            "id": 1
+                        }
+                    },
+                    "nested": {
+                        "Trade": {
+                            "fields": {
+                                "tradeId": {
+                                    "type": "uint64",
+                                    "id": 1
+                                },
+                                "price": {
+                                    "type": "uint64",
+                                    "id": 2
+                                },
+                                "aggressingSide": {
+                                    "type": "AggressingSide",
+                                    "id": 3
+                                },
+                                "restingExchangeOrderId": {
+                                    "type": "uint64",
+                                    "id": 4
+                                },
+                                "fillQuantity": {
+                                    "type": "uint64",
+                                    "id": 5
+                                },
+                                "transactTime": {
+                                    "type": "uint64",
+                                    "id": 6
+                                },
+                                "aggressingExchangeOrderId": {
+                                    "type": "uint64",
+                                    "id": 7
+                                }
+                            }
+                        }
+                    }
+                },
+                "Summary": {
+                    "oneofs": {
+                        "_open": {
+                            "oneof": [
+                                "open"
+                            ]
+                        },
+                        "_close": {
+                            "oneof": [
+                                "close"
+                            ]
+                        },
+                        "_low": {
+                            "oneof": [
+                                "low"
+                            ]
+                        },
+                        "_high": {
+                            "oneof": [
+                                "high"
+                            ]
+                        }
+                    },
+                    "fields": {
+                        "open": {
+                            "type": "uint64",
+                            "id": 1,
+                            "options": {
+                                "proto3_optional": true
+                            }
+                        },
+                        "close": {
+                            "type": "uint64",
+                            "id": 2,
+                            "options": {
+                                "proto3_optional": true
+                            }
+                        },
+                        "low": {
+                            "type": "uint64",
+                            "id": 3,
+                            "options": {
+                                "proto3_optional": true
+                            }
+                        },
+                        "high": {
+                            "type": "uint64",
+                            "id": 4,
+                            "options": {
+                                "proto3_optional": true
+                            }
+                        },
+                        "baseVolumeLo": {
+                            "type": "uint64",
+                            "id": 5
+                        },
+                        "baseVolumeHi": {
+                            "type": "uint64",
+                            "id": 6
+                        },
+                        "quoteVolumeLo": {
+                            "type": "uint64",
+                            "id": 7
+                        },
+                        "quoteVolumeHi": {
+                            "type": "uint64",
+                            "id": 8
+                        }
+                    }
+                },
+                "Kline": {
+                    "oneofs": {
+                        "_open": {
+                            "oneof": [
+                                "open"
+                            ]
+                        },
+                        "_close": {
+                            "oneof": [
+                                "close"
+                            ]
+                        },
+                        "_high": {
+                            "oneof": [
+                                "high"
+                            ]
+                        },
+                        "_low": {
+                            "oneof": [
+                                "low"
+                            ]
+                        }
+                    },
+                    "fields": {
+                        "interval": {
+                            "type": "KlineInterval",
+                            "id": 1
+                        },
+                        "startTime": {
+                            "type": "uint64",
+                            "id": 2
+                        },
+                        "open": {
+                            "type": "uint64",
+                            "id": 3,
+                            "options": {
+                                "proto3_optional": true
+                            }
+                        },
+                        "close": {
+                            "type": "uint64",
+                            "id": 4,
+                            "options": {
+                                "proto3_optional": true
+                            }
+                        },
+                        "high": {
+                            "type": "uint64",
+                            "id": 5,
+                            "options": {
+                                "proto3_optional": true
+                            }
+                        },
+                        "low": {
+                            "type": "uint64",
+                            "id": 6,
+                            "options": {
+                                "proto3_optional": true
+                            }
+                        },
+                        "volumeLo": {
+                            "type": "uint64",
+                            "id": 7
+                        },
+                        "volumeHi": {
+                            "type": "uint64",
+                            "id": 8
+                        }
+                    }
+                },
+                "Heartbeat": {
+                    "fields": {
+                        "requestId": {
+                            "type": "uint64",
+                            "id": 1
+                        },
+                        "timestamp": {
+                            "type": "uint64",
+                            "id": 2
+                        }
+                    }
+                },
+                "MdMessages": {
+                    "fields": {
+                        "messages": {
+                            "rule": "repeated",
+                            "type": "MdMessage",
+                            "id": 1
+                        }
+                    }
+                },
+                "AggMessage": {
+                    "oneofs": {
+                        "inner": {
+                            "oneof": [
+                                "heartbeat",
+                                "topOfBooks",
+                                "rateUpdates"
+                            ]
+                        }
+                    },
+                    "fields": {
+                        "heartbeat": {
+                            "type": "Heartbeat",
+                            "id": 1
+                        },
+                        "topOfBooks": {
+                            "type": "TopOfBooks",
+                            "id": 2
+                        },
+                        "rateUpdates": {
+                            "type": "RateUpdates",
+                            "id": 3
+                        }
+                    }
+                },
+                "TopOfBook": {
+                    "oneofs": {
+                        "_bidPrice": {
+                            "oneof": [
+                                "bidPrice"
+                            ]
+                        },
+                        "_bidQuantity": {
+                            "oneof": [
+                                "bidQuantity"
+                            ]
+                        },
+                        "_askPrice": {
+                            "oneof": [
+                                "askPrice"
+                            ]
+                        },
+                        "_askQuantity": {
+                            "oneof": [
+                                "askQuantity"
+                            ]
+                        },
+                        "_lastPrice": {
+                            "oneof": [
+                                "lastPrice"
+                            ]
+                        },
+                        "_rolling24hPrice": {
+                            "oneof": [
+                                "rolling24hPrice"
+                            ]
+                        },
+                        "_impliedBidPrice": {
+                            "oneof": [
+                                "impliedBidPrice"
+                            ]
+                        },
+                        "_impliedBidQuantity": {
+                            "oneof": [
+                                "impliedBidQuantity"
+                            ]
+                        },
+                        "_impliedAskPrice": {
+                            "oneof": [
+                                "impliedAskPrice"
+                            ]
+                        },
+                        "_impliedAskQuantity": {
+                            "oneof": [
+                                "impliedAskQuantity"
+                            ]
+                        }
+                    },
+                    "fields": {
+                        "marketId": {
+                            "type": "uint64",
+                            "id": 1
+                        },
+                        "transactTime": {
+                            "type": "uint64",
+                            "id": 2
+                        },
+                        "bidPrice": {
+                            "type": "uint64",
+                            "id": 3,
+                            "options": {
+                                "proto3_optional": true
+                            }
+                        },
+                        "bidQuantity": {
+                            "type": "uint64",
+                            "id": 4,
+                            "options": {
+                                "proto3_optional": true
+                            }
+                        },
+                        "askPrice": {
+                            "type": "uint64",
+                            "id": 5,
+                            "options": {
+                                "proto3_optional": true
+                            }
+                        },
+                        "askQuantity": {
+                            "type": "uint64",
+                            "id": 6,
+                            "options": {
+                                "proto3_optional": true
+                            }
+                        },
+                        "lastPrice": {
+                            "type": "uint64",
+                            "id": 7,
+                            "options": {
+                                "proto3_optional": true
+                            }
+                        },
+                        "rolling24hPrice": {
+                            "type": "uint64",
+                            "id": 8,
+                            "options": {
+                                "proto3_optional": true
+                            }
+                        },
+                        "impliedBidPrice": {
+                            "type": "uint64",
+                            "id": 9,
+                            "options": {
+                                "proto3_optional": true
+                            }
+                        },
+                        "impliedBidQuantity": {
+                            "type": "uint64",
+                            "id": 10,
+                            "options": {
+                                "proto3_optional": true
+                            }
+                        },
+                        "impliedAskPrice": {
+                            "type": "uint64",
+                            "id": 11,
+                            "options": {
+                                "proto3_optional": true
+                            }
+                        },
+                        "impliedAskQuantity": {
+                            "type": "uint64",
+                            "id": 12,
+                            "options": {
+                                "proto3_optional": true
+                            }
+                        },
+                        "marketState": {
+                            "type": "MarketState",
+                            "id": 13
+                        }
+                    }
+                },
+                "TopOfBooks": {
+                    "fields": {
+                        "tops": {
+                            "rule": "repeated",
+                            "type": "TopOfBook",
+                            "id": 1
+                        }
+                    }
+                },
+                "RateUpdate": {
+                    "fields": {
+                        "assetId": {
+                            "type": "uint64",
+                            "id": 1
+                        },
+                        "timestamp": {
+                            "type": "uint64",
+                            "id": 2
+                        },
+                        "rate": {
+                            "type": "uint64",
+                            "id": 3
+                        },
+                        "side": {
+                            "type": "RateUpdateSide",
+                            "id": 4
+                        }
+                    }
+                },
+                "RateUpdateSide": {
+                    "values": {
+                        "BASE": 0,
+                        "QUOTE": 1
+                    }
+                },
+                "RateUpdates": {
+                    "fields": {
+                        "updates": {
+                            "rule": "repeated",
+                            "type": "RateUpdate",
+                            "id": 1
+                        }
+                    }
+                },
+                "ClientMessage": {
+                    "oneofs": {
+                        "inner": {
+                            "oneof": [
+                                "heartbeat",
+                                "config"
+                            ]
+                        }
+                    },
+                    "fields": {
+                        "heartbeat": {
+                            "type": "Heartbeat",
+                            "id": 1
+                        },
+                        "config": {
+                            "type": "Config",
+                            "id": 2
+                        }
+                    }
+                },
+                "Config": {
+                    "fields": {
+                        "mbp": {
+                            "type": "bool",
+                            "id": 1
+                        },
+                        "mbo": {
+                            "type": "bool",
+                            "id": 2
+                        },
+                        "trades": {
+                            "type": "bool",
+                            "id": 3
+                        },
+                        "summary": {
+                            "type": "bool",
+                            "id": 4
+                        },
+                        "klines": {
+                            "rule": "repeated",
+                            "type": "KlineInterval",
+                            "id": 5
+                        },
+                        "marketIds": {
+                            "rule": "repeated",
+                            "type": "uint64",
+                            "id": 6
+                        }
+                    }
+                }
+            }
+        }
+    }
+};
 const tradeProtoDefinitions = {
     "options": {
         "csharp_namespace": "Cube.Trade",
@@ -990,36 +1760,64 @@ const tradeProtoDefinitions = {
             }
         }
     }
-}
-const root  = protobuf.Root.fromJSON(tradeProtoDefinitions)
-const AssetPosition = root.lookupType('AssetPosition');
-const AssetPositions = root.lookupType('AssetPositions');
-const Bootstrap = root.lookupType('Bootstrap');
-const CancelOrder = root.lookupType('CancelOrder');
-const CancelOrderAck = root.lookupType('CancelOrderAck');
-const CancelOrderReject = root.lookupType('CancelOrderReject');
-const Credentials = root.lookupType('Credentials');
-const Done = root.lookupType('Done');
-const Fill = root.lookupType('Fill');
-const FixedPointDecimal = root.lookupType('FixedPointDecimal');
-const Heartbeat = root.lookupType('Heartbeat');
-const MassCancel = root.lookupType('MassCancel');
-const MassCancelAck = root.lookupType('MassCancelAck');
-const ModifyOrder = root.lookupType('ModifyOrder');
-const ModifyOrderAck = root.lookupType('ModifyOrderAck');
-const ModifyOrderReject = root.lookupType('ModifyOrderReject');
-const NewOrder = root.lookupType('NewOrder');
-const NewOrderAck = root.lookupType('NewOrderAck');
-const NewOrderReject = root.lookupType('NewOrderReject');
-const OrderRequest = root.lookupType('OrderRequest');
-const OrderResponse = root.lookupType('OrderResponse');
-const RawUnits = root.lookupType('RawUnits');
-const RestingOrder = root.lookupType('RestingOrder');
-const RestingOrders = root.lookupType('RestingOrders');
-const TradingStatus = root.lookupType('TradingStatus');
-// -----------------------------------------------------------------------------
+};
+
+const marketDataRoot = protobuf.Root.fromJSON(marketDataProtoDefinitions);
+const tradeRoot  = protobuf.Root.fromJSON(tradeProtoDefinitions)
+
+const AssetPosition = tradeRoot.lookupType('AssetPosition');
+const AssetPositions = tradeRoot.lookupType('AssetPositions');
+const Bootstrap = tradeRoot.lookupType('Bootstrap');
+const CancelOrder = tradeRoot.lookupType('CancelOrder');
+const CancelOrderAck = tradeRoot.lookupType('CancelOrderAck');
+const CancelOrderReject = tradeRoot.lookupType('CancelOrderReject');
+const Credentials = tradeRoot.lookupType('Credentials');
+const Done = tradeRoot.lookupType('Done');
+const Fill = tradeRoot.lookupType('Fill');
+const FixedPointDecimal = tradeRoot.lookupType('FixedPointDecimal');
+// const Heartbeat = root.lookupType('Heartbeat');
+const MassCancel = tradeRoot.lookupType('MassCancel');
+const MassCancelAck = tradeRoot.lookupType('MassCancelAck');
+const ModifyOrder = tradeRoot.lookupType('ModifyOrder');
+const ModifyOrderAck = tradeRoot.lookupType('ModifyOrderAck');
+const ModifyOrderReject = tradeRoot.lookupType('ModifyOrderReject');
+const NewOrder = tradeRoot.lookupType('NewOrder');
+const NewOrderAck = tradeRoot.lookupType('NewOrderAck');
+const NewOrderReject = tradeRoot.lookupType('NewOrderReject');
+const OrderRequest = tradeRoot.lookupType('OrderRequest');
+const OrderResponse = tradeRoot.lookupType('OrderResponse');
+const RawUnits = tradeRoot.lookupType('RawUnits');
+const RestingOrder = tradeRoot.lookupType('RestingOrder');
+const RestingOrders = tradeRoot.lookupType('RestingOrders');
+const TradingStatus = tradeRoot.lookupType('TradingStatus');
+
+const AggMessage = marketDataRoot.lookupType('AggMessage');
+const ClientMessage = marketDataRoot.lookupType('ClientMessage');
+const Config = marketDataRoot.lookupType('Config');
+const Heartbeat = marketDataRoot.lookupType('Heartbeat');
+const Kline = marketDataRoot.lookupType('Kline');
+const MarketByOrder = marketDataRoot.lookupType('MarketByOrder');
+const MarketByOrderDiff = marketDataRoot.lookupType('MarketByOrderDiff');
+const MarketByPrice = marketDataRoot.lookupType('MarketByPrice');
+const MarketByPriceDiff = marketDataRoot.lookupType('MarketByPriceDiff');
+const MarketStatus = marketDataRoot.lookupType('MarketStatus');
+const MdMessage = marketDataRoot.lookupType('MdMessage');
+const MdMessages = marketDataRoot.lookupType('MdMessages');
+const RateUpdate = marketDataRoot.lookupType('RateUpdate');
+const RateUpdates = marketDataRoot.lookupType('RateUpdates');
+const Summary = marketDataRoot.lookupType('Summary');
+const TopOfBook = marketDataRoot.lookupType('TopOfBook');
+const TopOfBooks = marketDataRoot.lookupType('TopOfBooks');
+const Trades = marketDataRoot.lookupType('Trades');
+
 
 export default class cube extends cubeRest {
+    constructor (userConfig = {}) {
+        super (userConfig);
+
+        this.verbose = true;
+    }
+
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1092,24 +1890,85 @@ export default class cube extends cubeRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        await this.loadMarkets();
-        const environment = this.options['environment'];
-        const marketId = symbol.toLowerCase();
-        const market = this.market(marketId);
-        symbol = this.safeSymbol(marketId, market);
-        const url = this.urls['api']['ws'][environment]['mendelev'] + this.options['api']['ws']['mendelev']['public']['orderbook'];
-        const requestId = '';
-        const subParams = [];
-        const request = {
-            'method': 'SUBSCRIBE',
-            'params': subParams,
-            'id': requestId,
+        // const url = this.getWebsocketUrl ('osmium', 'private', 'root', { 'marketId': marketId });
+        const url = 'wss://staging.cube.exchange/md/book/200047?trades=true&summary=true&mbo=true';
+
+        const configMessage = Config.create({
+            klines: [0],
+            marketIds: [],
+            mbo: true,
+            trades: true,
+            summary: true
+        });
+
+        const clientMessage = ClientMessage.create({
+            config: configMessage
+        });
+
+        const clientMessageBuffer = ClientMessage.encode(clientMessage).finish();
+
+        const message = clientMessageBuffer;
+        const messageHash = 'clientMessage';
+        const subscribeHash = messageHash;
+        const subscription = {
+            'method': this.handleOrderBook,
         };
-        const messageHash = '';
-        return await this.watch(url, messageHash, request, messageHash);
+        return await this.watch(url, messageHash, message, subscribeHash, subscription);
     }
 
-    handleOrderBook (client, message) {}
+    handleOrderBook (client, message) {
+        try {
+            console.log('handleOrderBook:', JSON.stringify(MdMessages.decode(message)));
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async onConnected (client, message = undefined) {
+        try {
+            console.log ('onConnected', message);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    async handleMessage (client, message) {
+        try {
+            console.log('handleOrderBook:', JSON.stringify(MdMessages.decode(message)));
+            // console.log ('handleMessage', this.uint8ArrayToBase64 (message), message);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    uint8ArrayToHex(array) {
+        return Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    uint8ArrayToBase64(array) {
+        const binaryString = array.reduce((acc, byte) => acc + String.fromCharCode(byte), '');
+        return btoa(binaryString);
+    }
+
+    hexToUint8Array(hexString) {
+        const length = hexString.length / 2;
+        const array = new Uint8Array(length);
+        for (let i = 0; i < length; i++) {
+            const hexByte = hexString.substr(i * 2, 2);
+            array[i] = parseInt(hexByte, 16);
+        }
+        return array;
+    }
+
+    base64ToUint8Array(base64String) {
+        const binaryString = atob(base64String);
+        const length = binaryString.length;
+        const array = new Uint8Array(length);
+        for (let i = 0; i < length; i++) {
+            array[i] = binaryString.charCodeAt(i);
+        }
+        return array;
+    }
 
     async createOrderWs (symbol, type, side, amount, price = undefined, params = {}) {
         /**
