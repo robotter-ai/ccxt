@@ -1924,6 +1924,132 @@ export default class cube extends cubeRest {
         }
     }
 
+    async watchTicker (symbol, params = {}){
+        /**
+         * @method
+         * @name cube#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        return null;
+    }
+
+    handleTicker (client, message) {}
+
+    parseTicker (ticker, market = undefined){
+        return null;
+    }
+
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cube#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        const url = this.getWebsocketUrl ('mendelev', 'public', 'orderbook');
+        // await this.authenticate (url);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const messageHash = 'ohlcv:' + symbol;   // ???
+        const request = {};
+        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleOHLCV (client, message) {
+        //
+        //    {
+        //        "endtime": 1714423464,
+        //        "interval": "15m",
+        //        "limit": 1000,
+        //        "marketId": 200047,
+        //        "startTime": 1714122864,
+        //    }
+        //
+        const marketId = this.safeString (message, 'marketId');
+        const symbol = this.safeSymbol (marketId);
+        const data = {};
+        const interval = this.safeString (data, 'interval');
+        const request = {
+            symbol,
+            interval,
+        };
+        return request;
+    }
+
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}){
+        /**
+         * @method
+         * @name cube#watchTrades
+         * @description watches information on multiple trades made in a market
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        return null;   
+    }
+
+    handleTrades (client, message) {}
+
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cube#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        return null;
+    }
+
+    handleOrder (client, message) {}
+
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cube#watchMyTrades
+         * @description watches information on multiple trades made by the user
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.unifiedMargin] use unified margin account
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        return null;
+    }
+
+    async watchBalance (params = {}){
+        /**
+         * @method
+         * @name cube#watchBalance
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to watch the balance of a portfolio margin account
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        return null;
+    }
+
+    handleBalance(client, message) {}
+
     async onConnected (client, message = undefined) {
         try {
             console.log ('onConnected', message);
