@@ -1822,51 +1822,6 @@ export default class cube extends Exchange {
         return response;
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name cube#fetchWithdrawals
-         * @description fetch all withdrawals made from an account
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch withdrawals for
-         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
-        await this.fetchMarketMeta ();
-        const request = {};
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['assetId'] = currency['id'];
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdWithdrawals ();
-        //
-        // result: {
-        //     "161": {
-        //       name: "primary",
-        //       inner: [
-        //         {
-        //           assetId: 80005,
-        //           amount: "100000000",
-        //           createdAt: "2024-05-02T18:03:36.779453Z",
-        //           updatedAt: "2024-05-02T18:03:37.941902Z",
-        //           attemptId: 208,
-        //           address: "6khUqefutr3xA6fEUnZfRMRGwER8BBTZZFFgBPhuUyyp",
-        //           kytStatus: "accept",
-        //           approved: true,
-        //         },
-        //       ],
-        //     },
-        //   },
-        //
-        const withdrawals = this.safeList (response, 'inner', []);
-        return this.parseTransactions (withdrawals, currency, since, limit);
-    }
-
     countWithLoop (items) {
         let count = 0;
         for (let i = 0; i < items.length; i++) {
