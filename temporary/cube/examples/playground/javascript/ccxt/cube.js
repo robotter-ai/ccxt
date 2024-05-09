@@ -5,11 +5,14 @@ const exchangeId = 'cube'
 const useSandBoxMode = true
 const subAccountId = Number(process.env['SUB_ACCOUNT_ID'])
 const marketSymbols = ['tsoltusdc','tbtctusdc']
+const marketSymbolsMainnet = ['solusdc','btcusdc', 'bonkusdc']
 const marketIds = ['200047', '200005']
+const marketIdsMainnet = ['100006', '100004', '100007']
 const orderSides = ['buy', 'sell']
 const orderTypes = ['limit', 'market']
 const clientOrderId = 1712612349538
 const exchangeOrderId = '5328155590'
+const kLineIntervals = ['1s', '1m', '15m', '1h', '4h', '1d']
 
 let communityExchange = undefined
 let proExchange = undefined
@@ -88,7 +91,7 @@ async function fetchOrderBook() {
 
 // TODO
 async function fetchOHLCV() {
-    response = await communityExchange.fetchOHLCV()
+    response = await communityExchange.fetchOHLCV(marketSymbolsMainnet[0], kLineIntervals[2])
     log(response)
 }
 
@@ -272,10 +275,10 @@ async function test() {
     // await fetchTicker()
     // await fetchTickers()
     // await cancelAllOrders()
-    // await fetchOHLCV()
+    // await fetchOHLCV() // Working on Mainnet only
     // await fetchTrades()
     // await fetchStatus()
-    await fetchWithdrawals()
+    // await fetchWithdrawals()
     // await fetchMyTrades()    // TODO Not implemented!!!
     // await fetchClosedOrders()   // TODO Not implemented!!!
     // await deposit()   // TODO Not implemented!!!
