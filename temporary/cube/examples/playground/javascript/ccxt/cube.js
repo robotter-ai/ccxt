@@ -220,7 +220,15 @@ async function deposit() {
 
 // TESTING
 async function fetchDeposits() {
-
+    response = await communityExchange.fetchWithdrawals(
+        "TSOL",
+        undefined,
+        undefined,
+        {
+            'subaccountId': subAccountId
+        }
+    )
+    log(response)
 }
 
 // DONE
@@ -291,7 +299,7 @@ async function test() {
     // await fetchTrades()
     // await fetchStatus()
     // await fetchWithdrawals()
-    // await fetchDeposits()
+    await fetchDeposits()
     // await fetchMyTrades()    // TODO Not implemented!!!
     // await fetchClosedOrders()   // TODO Not implemented!!!
     // await deposit()   // TODO Not implemented!!!

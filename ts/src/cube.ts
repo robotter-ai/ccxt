@@ -1792,7 +1792,7 @@ export default class cube extends Exchange {
         };
     }
 
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cube#fetchDeposits
@@ -1803,7 +1803,40 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        return null;
+        await this.fetchMarketMeta ();
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset_symbol'] = currency['assetId'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdDeposits (this.extend (request, params));
+        //
+        // result: {
+        //     "161": {
+        //       name: "primary",
+        //       inner: [
+        //         {
+        //           assetId: 80005,
+        //           amount: "5000000000",
+        //           txnHash: "5E8xrkpCdwsczNDqGcezQ6agxDoFjXN9YVQFE4ZDk7vcdmdQHbPRSw7z3F769kkg4F57Vh4HsAsaKeFt8Z7qHhjZ",
+        //           txnIndex: 1,
+        //           createdAt: "2024-03-27T23:51:14.933108Z",
+        //           updatedAt: "2024-03-27T23:51:28.93706Z",
+        //           txnState: "confirmed",
+        //           kytStatus: "accept",
+        //           address: "79xoQgxNgKbjDrwp3Gb6t1oc1NmcgZ3PQFE7i1XCrk5x",
+        //           fiatToCrypto: false,
+        //         },
+        //       ],
+        //     },
+        //   },
+        //
+        const deposits = this.safeList (response, 'inner', []);
+        return this.parseTransaction (deposits, currency, since, limit);
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
