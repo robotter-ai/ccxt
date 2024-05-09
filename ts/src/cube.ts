@@ -1843,7 +1843,7 @@ export default class cube extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdWithdrawals ();
+        const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdWithdrawals (this.extend (request, params));
         //
         // result: {
         //     "161": {
@@ -1863,11 +1863,34 @@ export default class cube extends Exchange {
         //     },
         //   },
         //
-        const withdrawals = this.safeList (response, 'inner', []);
-        return this.parseTransactions (withdrawals, currency, since, limit);
+        const result = this.safeValue (response, 'result', {});
+        return this.parseTransaction (result, currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        // result: {
+        //     "161": {
+        //       name: "primary",
+        //       inner: [
+        //         {
+        //           assetId: 80005,
+        //           amount: "5000000000",
+        //           txnHash: "5E8xrkpCdwsczNDqGcezQ6agxDoFjXN9YVQFE4ZDk7vcdmdQHbPRSw7z3F769kkg4F57Vh4HsAsaKeFt8Z7qHhjZ",
+        //           txnIndex: 1,
+        //           createdAt: "2024-03-27T23:51:14.933108Z",
+        //           updatedAt: "2024-03-27T23:51:28.93706Z",
+        //           txnState: "confirmed",
+        //           kytStatus: "accept",
+        //           address: "79xoQgxNgKbjDrwp3Gb6t1oc1NmcgZ3PQFE7i1XCrk5x",
+        //           fiatToCrypto: false,
+        //         },
+        //       ],
+        //     },
+        //   },
+        //
         // fetchWithdrawals
         //
         // result: {
@@ -1893,7 +1916,7 @@ export default class cube extends Exchange {
         const amount = this.safeNumber (transaction, 'amount');
         const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
         const updated = this.parse8601 (this.safeString2 (transaction, 'updatedAt'));
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'approved'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'kytStatus'));
         const address = this.safeString (transaction, 'address');
         return {
             'info': transaction,
@@ -1917,6 +1940,18 @@ export default class cube extends Exchange {
             'comment': undefined,
             'internal': undefined,
         };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            // what are other statuses here?
+            'WITHHOLD': 'ok',
+            'UNCONFIRMED': 'pending',
+            'CONFIRMED': 'ok',
+            'COMPLETED': 'ok',
+            'PENDING': 'pending',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     countWithLoop (items) {
