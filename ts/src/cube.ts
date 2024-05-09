@@ -1573,7 +1573,7 @@ export default class cube extends Exchange {
          */
         const meta = await this.fetchMarketMeta (symbol);
         symbol = this.safeString (meta, 'symbol');
-        const market = this.safeDict (meta, 'market');
+        const market: any = this.safeDict (meta, 'market');
         const rawMarketId = this.safeString (this.safeDict (market, 'info'), 'marketId');
         const rawMarketSymbol = this.safeString (this.safeDict (market, 'info'), 'symbol');
         let request = undefined;
@@ -1634,15 +1634,15 @@ export default class cube extends Exchange {
         //     }
         // }
         //
-        const rawTrades = {
+        const rawTrades: any[] = [ {
             'trades': this.safeList (this.safeDict (recentTradesResponse, 'result'), 'trades'),
             'parsedTrades': this.safeList (this.safeDict (parsedRecentTradesResponse, 'result'), 'trades'),
-        };
+        } ];
         return this.parseTrades (rawTrades, market);
     }
 
-    parseTrades (rawTrades: any, market = undefined) {
-        const parsedTrades = this.safeValue (rawTrades, 'parsedTrades');
+    parseTrades (trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+        const parsedTrades = this.safeValue (trades[0], 'parsedTrades');
         const finalTrades = [];
         if (parsedTrades !== undefined && this.countItems (parsedTrades) > 0) {
             for (let i = 0; i < this.countItems (parsedTrades); i++) {
@@ -1867,57 +1867,57 @@ export default class cube extends Exchange {
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined) {
-        // fetchWithdrawals
-        //
-        // result: {
-        //     "161": {
-        //       name: "primary",
-        //       inner: [
-        //         {
-        //           assetId: 80005,
-        //           amount: "100000000",
-        //           createdAt: "2024-05-02T18:03:36.779453Z",
-        //           updatedAt: "2024-05-02T18:03:37.941902Z",
-        //           attemptId: 208,
-        //           address: "6khUqefutr3xA6fEUnZfRMRGwER8BBTZZFFgBPhuUyyp",
-        //           kytStatus: "accept",
-        //           approved: true,
-        //         },
-        //       ],
-        //     },
-        //   },
-        //
-        const currencyId = this.safeString (transaction, 'assetId');
-        const code = this.safeCurrencyCode (currencyId);
-        const amount = this.safeNumber (transaction, 'amount');
-        const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
-        const updated = this.parse8601 (this.safeString2 (transaction, 'updatedAt'));
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'approved'));
-        const address = this.safeString (transaction, 'address');
-        return {
-            'info': transaction,
-            'id': undefined,
-            'txid': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'network': undefined,
-            'addressFrom': undefined,
-            'address': undefined,
-            'addressTo': address,
-            'tagFrom': undefined,
-            'tag': undefined,
-            'tagTo': undefined,
-            'type': undefined,
-            'amount': amount,
-            'currency': code,
-            'status': status,
-            'updated': updated,
-            'fee': undefined,
-            'comment': undefined,
-            'internal': undefined,
-        };
-    }
+    // parseTransaction (transaction, currency = undefined) {
+    //     // fetchWithdrawals
+    //     //
+    //     // result: {
+    //     //     "161": {
+    //     //       name: "primary",
+    //     //       inner: [
+    //     //         {
+    //     //           assetId: 80005,
+    //     //           amount: "100000000",
+    //     //           createdAt: "2024-05-02T18:03:36.779453Z",
+    //     //           updatedAt: "2024-05-02T18:03:37.941902Z",
+    //     //           attemptId: 208,
+    //     //           address: "6khUqefutr3xA6fEUnZfRMRGwER8BBTZZFFgBPhuUyyp",
+    //     //           kytStatus: "accept",
+    //     //           approved: true,
+    //     //         },
+    //     //       ],
+    //     //     },
+    //     //   },
+    //     //
+    //     const currencyId = this.safeString (transaction, 'assetId');
+    //     const code = this.safeCurrencyCode (currencyId);
+    //     const amount = this.safeNumber (transaction, 'amount');
+    //     const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
+    //     const updated = this.parse8601 (this.safeString2 (transaction, 'updatedAt'));
+    //     const status = this.parseTransactionStatus (this.safeString (transaction, 'approved'));
+    //     const address = this.safeString (transaction, 'address');
+    //     return {
+    //         'info': transaction,
+    //         'id': undefined,
+    //         'txid': undefined,
+    //         'timestamp': timestamp,
+    //         'datetime': this.iso8601 (timestamp),
+    //         'network': undefined,
+    //         'addressFrom': undefined,
+    //         'address': undefined,
+    //         'addressTo': address,
+    //         'tagFrom': undefined,
+    //         'tag': undefined,
+    //         'tagTo': undefined,
+    //         'type': undefined,
+    //         'amount': amount,
+    //         'currency': code,
+    //         'status': status,
+    //         'updated': updated,
+    //         'fee': undefined,
+    //         'comment': undefined,
+    //         'internal': undefined,
+    //     };
+    // }
 
     countWithLoop (items) {
         let count = 0;
