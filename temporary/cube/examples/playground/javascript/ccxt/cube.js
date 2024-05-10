@@ -204,14 +204,18 @@ async function fetchOpenOrders() {
     log(response)
 }
 
-// BACKLOG
 async function fetchClosedOrders() {
-
+    response = await communityExchange.fetchClosedOrders(marketSymbols[0], undefined, undefined, {
+        'subaccountId': `${subAccountId}`,
+    })
+    log(response)
 }
 
-// BACKLOG
 async function fetchMyTrades() {
-
+    response = await communityExchange.fetchMyTrades(marketSymbols[0], undefined, undefined, {
+        'subaccountId': `${subAccountId}`,
+    })
+    log(response)
 }
 
 // BACKLOG
@@ -299,9 +303,9 @@ async function test() {
     // await fetchTrades()
     // await fetchStatus()
     // await fetchWithdrawals()
-    await fetchDeposits()
-    // await fetchMyTrades()    // TODO Not implemented!!!
-    // await fetchClosedOrders()   // TODO Not implemented!!!
+    // await fetchDeposits()
+    // await fetchMyTrades()
+    // await fetchClosedOrders()
     // await deposit()   // TODO Not implemented!!!
     // await withdraw()
     // await watchOrderBook()   // TODO Not implemented!!!

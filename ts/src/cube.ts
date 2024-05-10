@@ -169,7 +169,7 @@ export default class cube extends Exchange {
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistory': false,
                 'fetchCanceledOrders': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': 'emulated',
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -192,7 +192,7 @@ export default class cube extends Exchange {
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': 'emulated',
                 'fetchOHLCV': 'emulated',
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
@@ -1754,15 +1754,80 @@ export default class cube extends Exchange {
     }
 
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        throw new NotSupported (this.id + ' fetchMyTrades() is not supported yet');
+        const allOrders = await this.fetchOrders (symbol, since, limit, params);
+        const myTrades = [];
+        for (let i = 0; i < this.countItems (allOrders); i++) {
+            const orderStatus = this.safeString (allOrders[i], 'status');
+            if (orderStatus === 'filled') {
+                const orderFills = this.safeDict (this.safeDict (this.safeDict (allOrders[i], 'info'), 'fetchedOrder'), 'fills');
+                const fillsLength = this.countItems (orderFills);
+                for (let j = 0; j < fillsLength; j++) {
+                    const trade = orderFills[j];
+                    const parsedTrade = this.parseMyTrade (trade, allOrders[i]);
+                    myTrades.push (parsedTrade);
+                }
+            }
+        }
+        return myTrades;
+    }
+
+    parseMyTrade (trade: any, order: any) {
+        const tradeId = this.safeString (trade, 'tradeId');
+        const timestampInNanoseconds = this.safeInteger (trade, 'filledAt');
+        const timestampInMilliseconds = this.parseToInt (timestampInNanoseconds / 1000000);
+        const datetime = this.iso8601 (timestampInMilliseconds);
+        const marketSymbol = this.safeString (order, 'symbol');
+        const orderType = this.safeString (order, 'type');
+        let orderId = undefined;
+        if (orderType === 'limit') {
+            orderId = this.safeString (order, 'id');
+        } else if (orderType === 'market') {
+            orderId = this.safeString (order, 'clientOrderId');
+        }
+        const orderSide = this.safeString (order, 'side');
+        const timeInForce = this.safeString (order, 'timeInForce');
+        let takerOrMaker = undefined;
+        if (orderType === 'market' || timeInForce === 'IOC' || timeInForce === 'FOK') {
+            takerOrMaker = 'taker';
+        } else {
+            takerOrMaker = 'maker';
+        }
+        const orderPrice = this.safeNumber (order, 'price');
+        const orderAmount = this.safeNumber (order, 'amount');
+        let cost = undefined;
+        if (orderPrice !== undefined) {
+            cost = orderPrice * orderAmount;
+        }
+        const fee = this.safeDict (order, 'fee');
+        const fees = this.safeList (order, 'fees');
+        return {
+            'id': tradeId,
+            'timestamp': timestampInMilliseconds,
+            'datetime': datetime,
+            'symbol': marketSymbol,
+            'order': orderId,
+            'type': orderType,
+            'side': orderSide,
+            'takerOrMaker': takerOrMaker,
+            'price': orderPrice,
+            'amount': orderAmount,
+            'cost': cost,
+            'fee': fee,
+            'fees': fees,
+            'info': order,
+        };
     }
 
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        if (this.has['fetchOrders']) {
-            const orders = await this.fetchOrders (symbol, since, limit, params);
-            return this.filterBy (orders, 'status', 'closed');
+        const allOrders = await this.fetchOrders (symbol, since, limit, params);
+        const closedOrders = [];
+        for (let i = 0; i < this.countItems (allOrders); i++) {
+            const orderStatus = this.safeString (allOrders[i], 'status');
+            if (orderStatus === 'canceled' || orderStatus === 'closed') {
+                closedOrders.push (allOrders[i]);
+            }
         }
-        throw new NotSupported (this.id + ' fetchClosedOrders() is not supported yet');
+        return closedOrders;
     }
 
     async fetchStatus (params = {}): Promise<any> {
