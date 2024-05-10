@@ -27,6 +27,7 @@ import {
     TradingFeeInterface,
     Transaction,
     Currency,
+    List,
 } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
@@ -1658,14 +1659,14 @@ export default class cube extends Exchange {
         //     }
         // }
         //
-        const rawTrades: any[] = [ {
+        const rawTrades: List = [ {
             'trades': this.safeList (this.safeDict (recentTradesResponse, 'result'), 'trades'),
             'parsedTrades': this.safeList (this.safeDict (parsedRecentTradesResponse, 'result'), 'trades'),
         } ];
         return this.parseTrades (rawTrades, market);
     }
 
-    parseTrades (trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    parseTrades (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         const parsedTrades = this.safeValue (trades[0], 'parsedTrades');
         const finalTrades = [];
         if (parsedTrades !== undefined && this.countItems (parsedTrades) > 0) {
@@ -2076,7 +2077,7 @@ export default class cube extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    countWithLoop (items) {
+    countWithLoop (items: any) {
         let count = 0;
         for (let i = 0; i < items.length; i++) {
             count += 1;
@@ -2084,11 +2085,11 @@ export default class cube extends Exchange {
         return count;
     }
 
-    countItems (input) {
+    countItems (input: any) {
         let count = 0;
         if (Array.isArray (input)) {
             count = this.countWithLoop (input);
-        } else if (typeof input === 'object' && input !== null) {
+        } else if (typeof input === 'object' && input !== undefined) {
             const keys = Object.keys (input);
             count = this.countWithLoop (keys);
         }
