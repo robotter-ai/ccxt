@@ -27,6 +27,7 @@ import {
     Trade,
     TradingFeeInterface,
     Transaction,
+    Currency,
 } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
@@ -177,7 +178,7 @@ export default class cube extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -193,7 +194,7 @@ export default class cube extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': 'emulated',
-                'fetchOHLCV': 'emulated',
+                'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
@@ -220,7 +221,7 @@ export default class cube extends Exchange {
                 'fetchTransfers': false,
                 'fetchWithdrawAddresses': false,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
@@ -503,8 +504,8 @@ export default class cube extends Exchange {
         const result = {};
         for (let i = 0; i < assets.length; i++) {
             const rawCurrency = assets[i];
-            const id = String (this.safeString (rawCurrency, 'symbol')).toLowerCase ();
-            const code = String (id).toUpperCase ();
+            const id = this.safeString (rawCurrency, 'symbol').toLowerCase ();
+            const code = id.toUpperCase ();
             const name = this.safeString (this.safeDict (rawCurrency, 'metadata'), 'currencyName');
             const networkId = this.safeString (rawCurrency, 'sourceId');
             const networks = {};
@@ -630,7 +631,7 @@ export default class cube extends Exchange {
     }
 
     parseMarket (market: Dictionary<any>): Market {
-        const id = String (this.safeString (market, 'symbol')).toUpperCase ();
+        const id = this.safeString (market, 'symbol').toUpperCase ();
         const currenciesByNumericId = {};
         for (let i = 0; i < this.countItems (this.currencies); i++) {
             const currenciesKeysArray = Object.keys (this.currencies);
@@ -645,7 +646,7 @@ export default class cube extends Exchange {
         const marketSymbol = baseSymbol + quoteSymbol;
         return this.safeMarketStructure ({
             'id': id,
-            'lowercaseId': String (id).toLowerCase (),
+            'lowercaseId': id.toLowerCase (),
             'symbol': marketSymbol,
             'base': this.safeString (baseAsset, 'code'),
             'quote': this.safeString (quoteAsset, 'code'),
@@ -972,10 +973,12 @@ export default class cube extends Exchange {
         const subaccountId = this.safeString (this.options, 'subaccountId');
         const allOrders = await this.fetchRawOrders ();
         const result = this.safeList (this.safeDict (this.safeDict (response, 'result'), subaccountId), 'inner');
-        return this.parseBalance (result, allOrders);
+        return this.parseBalance ({ 'result': result, 'allOrders': allOrders });
     }
 
-    parseBalance (response: any, allOrders: any = undefined): Balances {
+    parseBalance (response: any): Balances {
+        const result = this.safeDict (response, 'result');
+        const allOrders = this.safeDict (response, 'allOrders');
         const openOrders = [];
         const filledUnsettledOrders = [];
         const allMarketsByNumericId = {};
@@ -996,15 +999,15 @@ export default class cube extends Exchange {
             const targetCurrencyNumericId = this.safeInteger (targetCurrency, 'numericId');
             currenciesByNumericId[targetCurrencyNumericId] = targetCurrency;
         }
-        for (let i = 0; i < this.countItems (response); i++) {
-            const asset = response[i];
+        for (let i = 0; i < this.countItems (result); i++) {
+            const asset = result[i];
             const assetAmount = parseInt (this.safeString (asset, 'amount'));
             if (assetAmount > 0) {
                 const assetNumericId = this.parseToInt (this.safeString (asset, 'assetId'));
                 const currency = currenciesByNumericId[assetNumericId];
                 const currencyPrecision = this.safeInteger (currency, 'precision');
                 const assetSymbol = this.safeString (currency, 'code');
-                total[assetSymbol] = assetAmount / 10 ** currencyPrecision;
+                total[assetSymbol] = assetAmount / Math.pow (10, currencyPrecision);
                 used[assetSymbol] = 0; // To prevent the 'parser' from adding 'null' when there are no orders holding an asset.
                 free[assetSymbol] = 0; // To prevent the 'parser' from adding 'null' when there are no orders holding an asset.
             }
@@ -1044,9 +1047,9 @@ export default class cube extends Exchange {
             const targetCurrencyPrecision = this.safeInteger (targetCurrency, 'precision');
             let orderLockedAmount = 0;
             if (orderSide === 'Ask') {
-                orderLockedAmount = orderAmount * lotSize / 10 ** targetCurrencyPrecision;
+                orderLockedAmount = orderAmount * lotSize / Math.pow (10, targetCurrencyPrecision);
             } else if (orderSide === 'Bid') {
-                orderLockedAmount = orderAmount * orderPrice * lotSize / 10 ** targetCurrencyPrecision;
+                orderLockedAmount = orderAmount * orderPrice * lotSize / Math.pow (10, targetCurrencyPrecision);
             }
             used[targetToken] += orderLockedAmount;
             free[targetToken] = total[targetToken] - used[targetToken];
@@ -1059,9 +1062,9 @@ export default class cube extends Exchange {
             }
         }
         const timestamp = this.milliseconds ();
-        const result = {
+        const balanceResult = {
             'info': {
-                'balances': response,
+                'balances': result,
                 'openOrders': openOrders,
                 'filledUnsettledOrders': filledUnsettledOrders,
             },
@@ -1078,9 +1081,9 @@ export default class cube extends Exchange {
                 'used': this.safeNumber (used, assetSymbol),
                 'total': this.safeNumber (total, assetSymbol),
             };
-            result[assetSymbol] = assetBalances;
+            balanceResult[assetSymbol] = assetBalances;
         }
-        return this.safeBalance (result);
+        return this.safeBalance (balanceResult);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
@@ -1287,7 +1290,7 @@ export default class cube extends Exchange {
         );
     }
 
-    async fetchRawOrder (id, symbol = undefined, params = {}) {
+    async fetchRawOrder (id: string, symbol = undefined, params = {}) {
         /**
          * @method
          * @name cube#fetchRawOrder
@@ -1331,7 +1334,7 @@ export default class cube extends Exchange {
         for (let i = 0; i < this.countItems (result); i++) {
             const clientOrderId = this.safeString (result[i], 'clientOrderId');
             const exchangeOrderId = this.safeString (result[i], 'exchangeOrderId');
-            if (String (id) === clientOrderId || String (id) === exchangeOrderId) {
+            if (id === clientOrderId || id === exchangeOrderId) {
                 order = result[i];
                 break;
             }
@@ -1857,7 +1860,7 @@ export default class cube extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name cube#fetchDeposits
@@ -1871,8 +1874,8 @@ export default class cube extends Exchange {
         await this.fetchMarketMeta ();
         const request = {};
         let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
+        if (symbol !== undefined) {
+            currency = this.currency (symbol);
             request['asset_symbol'] = currency['assetId'];
         }
         if (limit !== undefined) {
@@ -1901,7 +1904,7 @@ export default class cube extends Exchange {
         //   },
         //
         const deposits = this.safeList (response, 'inner', []);
-        return this.parseTransaction (deposits, currency, since, limit);
+        return [ this.parseTransaction (deposits, currency) ];
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
@@ -1920,7 +1923,7 @@ export default class cube extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.fetchMarketMeta ();
         const request = {
-            'amount': String (amount),
+            'amount': amount.toString (),
             'destination': address,
             'assetId': code,
         };
@@ -1942,7 +1945,7 @@ export default class cube extends Exchange {
         return response;
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name cube#fetchWithdrawals
@@ -1956,8 +1959,8 @@ export default class cube extends Exchange {
         await this.fetchMarketMeta ();
         const request = {};
         let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
+        if (symbol !== undefined) {
+            currency = this.currency (symbol);
             request['assetId'] = currency['id'];
         }
         if (limit !== undefined) {
@@ -1984,10 +1987,10 @@ export default class cube extends Exchange {
         //   },
         //
         const result = this.safeValue (response, 'result', {});
-        return this.parseTransaction (result, currency, since, limit);
+        return [ this.parseTransaction (result, currency) ];
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -2035,7 +2038,7 @@ export default class cube extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         const amount = this.safeNumber (transaction, 'amount');
         const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
-        const updated = this.parse8601 (this.safeString2 (transaction, 'updatedAt'));
+        const updated = this.parse8601 (this.safeString (transaction, 'updatedAt'));
         const status = this.parseTransactionStatus (this.safeString (transaction, 'kytStatus'));
         const address = this.safeString (transaction, 'address');
         return {
@@ -2059,7 +2062,7 @@ export default class cube extends Exchange {
             'fee': undefined,
             'comment': undefined,
             'internal': undefined,
-        };
+        } as Transaction;
     }
 
     parseTransactionStatus (status) {
