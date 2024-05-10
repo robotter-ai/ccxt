@@ -7,7 +7,6 @@ import {
     BadRequest,
     BadSymbol,
     InvalidOrder,
-    NotSupported,
 } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import {
@@ -928,7 +927,7 @@ export default class cube extends Exchange {
     }
 
     parseOHLCV (ohlcv, market: Market = undefined) : OHLCV {
-        // Cuve KLine format
+        // Cube KLine format
         // [
         //     1715278500,  // start_time           |   ohlcv[0]
         //     14695,       // Kline open price.    |   ohlcv[1]
@@ -1990,7 +1989,7 @@ export default class cube extends Exchange {
         return [ this.parseTransaction (result, currency) ];
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: any, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -2065,7 +2064,7 @@ export default class cube extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: any) {
         const statuses = {
             // what are other statuses here?
             'WITHHOLD': 'ok',
