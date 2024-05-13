@@ -45,7 +45,7 @@ export default class cube extends Exchange {
             'countries': [],
             'urls': {
                 'referral': '',
-                'logo': '', // TODO Add Cube logo URL.
+                'logo': 'https://www.cube.exchange/assets/cube-logo-180x180.png',
                 'api': {
                     'rest': {
                         'production': {
@@ -305,7 +305,7 @@ export default class cube extends Exchange {
         });
     }
 
-    generateSignature (): any {
+    generateSignature () {
         const timestamp = this.seconds ();
         const timestampBytes = this.numberToLE (timestamp, 8);
         const secretKeyBytes = this.base16ToBinary (this.secret);
@@ -323,7 +323,7 @@ export default class cube extends Exchange {
         };
     }
 
-    authenticateRequest (request: any): any {
+    authenticateRequest (request) {
         const headers = this.safeDict (request, 'headers', {});
         request['headers'] = this.extend (headers, this.generateAuthenticationHeaders ());
         return request;
@@ -395,7 +395,7 @@ export default class cube extends Exchange {
         }
     }
 
-    async fetchMarketMeta (symbolOrSymbols: any = undefined) {
+    async fetchMarketMeta (symbolOrSymbols = undefined) {
         let symbol = undefined;
         let marketId = undefined;
         let market = undefined;
@@ -759,7 +759,7 @@ export default class cube extends Exchange {
         return this.parseOrderBook (rawOrderbook, symbol, timestamp, 'bids', 'asks');
     }
 
-    parseBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): any[] {
+    parseBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): List {
         return bidasks;
     }
 
@@ -976,7 +976,7 @@ export default class cube extends Exchange {
         return this.parseBalance ({ 'result': result, 'allOrders': allOrders });
     }
 
-    parseBalance (response: any): Balances {
+    parseBalance (response): Balances {
         const result = this.safeDict (response, 'result');
         const allOrders = this.safeDict (response, 'allOrders');
         const openOrders = [];
@@ -1598,7 +1598,7 @@ export default class cube extends Exchange {
          */
         const meta = await this.fetchMarketMeta (symbol);
         symbol = this.safeString (meta, 'symbol');
-        const market: any = this.safeDict (meta, 'market');
+        const market = this.safeDict (meta, 'market') as any;
         const rawMarketId = this.safeString (this.safeDict (market, 'info'), 'marketId');
         const rawMarketSymbol = this.safeString (this.safeDict (market, 'info'), 'symbol');
         let request = undefined;
@@ -1774,7 +1774,7 @@ export default class cube extends Exchange {
         return myTrades;
     }
 
-    parseMyTrade (trade: any, order: any) {
+    parseMyTrade (trade, order) {
         const tradeId = this.safeString (trade, 'tradeId');
         const timestampInNanoseconds = this.safeInteger (trade, 'filledAt');
         const timestampInMilliseconds = this.parseToInt (timestampInNanoseconds / 1000000);
@@ -1990,7 +1990,7 @@ export default class cube extends Exchange {
         return [ this.parseTransaction (result, currency) ];
     }
 
-    parseTransaction (transaction: any, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -2065,7 +2065,7 @@ export default class cube extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: any) {
+    parseTransactionStatus (status) {
         const statuses = {
             // what are other statuses here?
             'WITHHOLD': 'ok',
@@ -2077,7 +2077,7 @@ export default class cube extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    countWithLoop (items: any) {
+    countWithLoop (items) {
         let count = 0;
         for (let i = 0; i < items.length; i++) {
             count += 1;
@@ -2085,7 +2085,7 @@ export default class cube extends Exchange {
         return count;
     }
 
-    countItems (input: any) {
+    countItems (input) {
         let count = 0;
         if (Array.isArray (input)) {
             count = this.countWithLoop (input);
@@ -2096,7 +2096,7 @@ export default class cube extends Exchange {
         return count;
     }
 
-    countDecimalPlaces (number: any) {
+    countDecimalPlaces (number) {
         const numberString = number.toString ();
         if (numberString.indexOf ('.') === -1) {
             return 0;
