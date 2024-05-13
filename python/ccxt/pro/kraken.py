@@ -734,6 +734,8 @@ class kraken(ccxt.async_support.kraken):
                 localChecksum = self.crc32(payload, False)
                 if localChecksum != c:
                     error = InvalidNonce(self.id + ' invalid checksum')
+                    del client.subscriptions[messageHash]
+                    del self.orderbooks[symbol]
                     client.reject(error, messageHash)
                     return
             orderbook['symbol'] = symbol
@@ -1242,7 +1244,7 @@ class kraken(ccxt.async_support.kraken):
             },
         }
         url = self.urls['api']['ws']['public']
-        return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscriptionArgs)
+        return await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes, subscriptionArgs)
 
     def get_message_hash(self, unifiedElementName: str, subChannelName: Str = None, symbol: Str = None):
         # unifiedElementName can be : orderbook, trade, ticker, bidask ...

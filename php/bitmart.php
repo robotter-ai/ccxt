@@ -975,7 +975,7 @@ class bitmart extends Exchange {
         return $this->array_concat($spot, $contract);
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1039,7 +1039,7 @@ class bitmart extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $response = $this->privateGetAccountV1WithdrawCharge (array_merge($request, $params));
+        $response = $this->privateGetAccountV1WithdrawCharge ($this->extend($request, $params));
         //
         //     {
         //         "message" => "OK",
@@ -1098,7 +1098,7 @@ class bitmart extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $response = $this->privateGetAccountV1WithdrawCharge (array_merge($request, $params));
+        $response = $this->privateGetAccountV1WithdrawCharge ($this->extend($request, $params));
         //
         //     {
         //         "message" => "OK",
@@ -1116,7 +1116,7 @@ class bitmart extends Exchange {
         return $this->parse_deposit_withdraw_fee($data);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // spot (REST)
         //
@@ -1236,10 +1236,10 @@ class bitmart extends Exchange {
         $response = null;
         if ($market['swap']) {
             $request['contract_symbol'] = $market['id'];
-            $response = $this->publicGetContractV1Tickers (array_merge($request, $params));
+            $response = $this->publicGetContractV1Tickers ($this->extend($request, $params));
         } elseif ($market['spot']) {
             $request['symbol'] = $market['id'];
-            $response = $this->publicGetSpotV1Ticker (array_merge($request, $params));
+            $response = $this->publicGetSpotV1Ticker ($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchTicker() does not support ' . $market['type'] . ' markets, only spot and swap markets are accepted');
         }
@@ -1365,9 +1365,9 @@ class bitmart extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 35, max 50
             }
-            $response = $this->publicGetSpotQuotationV3Books (array_merge($request, $params));
+            $response = $this->publicGetSpotQuotationV3Books ($this->extend($request, $params));
         } elseif ($market['swap']) {
-            $response = $this->publicGetContractPublicDepth (array_merge($request, $params));
+            $response = $this->publicGetContractPublicDepth ($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchOrderBook() does not support ' . $market['type'] . ' markets, only spot and swap markets are accepted');
         }
@@ -1543,7 +1543,7 @@ class bitmart extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetSpotV1SymbolsTrades (array_merge($request, $params));
+        $response = $this->publicGetSpotV1SymbolsTrades ($this->extend($request, $params));
         //
         // spot
         //
@@ -1693,9 +1693,9 @@ class bitmart extends Exchange {
         }
         $response = null;
         if ($market['swap']) {
-            $response = $this->publicGetContractPublicKline (array_merge($request, $params));
+            $response = $this->publicGetContractPublicKline ($this->extend($request, $params));
         } else {
-            $response = $this->publicGetSpotQuotationV3Klines (array_merge($request, $params));
+            $response = $this->publicGetSpotQuotationV3Klines ($this->extend($request, $params));
         }
         //
         // spot
@@ -1777,7 +1777,7 @@ class bitmart extends Exchange {
             if ($until !== null) {
                 $request['endTime'] = $until;
             }
-            $response = $this->privatePostSpotV4QueryTrades (array_merge($request, $params));
+            $response = $this->privatePostSpotV4QueryTrades ($this->extend($request, $params));
         } elseif ($type === 'swap') {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -1788,7 +1788,7 @@ class bitmart extends Exchange {
             if ($until !== null) {
                 $request['end_time'] = $until;
             }
-            $response = $this->privateGetContractPrivateTrades (array_merge($request, $params));
+            $response = $this->privateGetContractPrivateTrades ($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchMyTrades() does not support ' . $type . ' orders, only spot and swap orders are accepted');
         }
@@ -1862,7 +1862,7 @@ class bitmart extends Exchange {
         $request = array(
             'orderId' => $id,
         );
-        $response = $this->privatePostSpotV4QueryOrderTrades (array_merge($request, $params));
+        $response = $this->privatePostSpotV4QueryOrderTrades ($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, null, $since, $limit);
     }
@@ -2082,7 +2082,7 @@ class bitmart extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->privateGetSpotV1TradeFee (array_merge($request, $params));
+        $response = $this->privateGetSpotV1TradeFee ($this->extend($request, $params));
         //
         //     {
         //         "message" => "OK",
@@ -2458,7 +2458,7 @@ class bitmart extends Exchange {
         $leverage = $this->safe_integer($params, 'leverage', 1);
         $params = $this->omit($params, array( 'timeInForce', 'postOnly', 'reduceOnly', 'leverage', 'trailingTriggerPrice', 'trailingPercent', 'triggerPrice', 'stopPrice' ));
         $request['leverage'] = $this->number_to_string($leverage);
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function create_spot_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
@@ -2501,7 +2501,7 @@ class bitmart extends Exchange {
         } elseif ($isMarketOrder) {
             // for $market buy it requires the $amount of quote currency to spend
             if ($side === 'buy') {
-                $notional = $this->safe_number_2($params, 'cost', 'notional');
+                $notional = $this->safe_string_2($params, 'cost', 'notional');
                 $params = $this->omit($params, 'cost');
                 $createMarketBuyOrderRequiresPrice = true;
                 list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -2511,10 +2511,10 @@ class bitmart extends Exchange {
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
-                        $notional = $this->parse_number(Precise::string_mul($amountString, $priceString));
+                        $notional = Precise::string_mul($amountString, $priceString);
                     }
                 } else {
-                    $notional = ($notional === null) ? $amount : $notional;
+                    $notional = ($notional === null) ? $this->number_to_string($amount) : $notional;
                 }
                 $request['notional'] = $this->decimal_to_precision($notional, TRUNCATE, $market['precision']['price'], $this->precisionMode);
             } elseif ($side === 'sell') {
@@ -2527,7 +2527,7 @@ class bitmart extends Exchange {
         if ($ioc) {
             $request['type'] = 'ioc';
         }
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -2561,14 +2561,14 @@ class bitmart extends Exchange {
         $params = $this->omit($params, array( 'clientOrderId' ));
         $response = null;
         if ($market['spot']) {
-            $response = $this->privatePostSpotV3CancelOrder (array_merge($request, $params));
+            $response = $this->privatePostSpotV3CancelOrder ($this->extend($request, $params));
         } else {
             $stop = $this->safe_value_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             if (!$stop) {
-                $response = $this->privatePostContractPrivateCancelOrder (array_merge($request, $params));
+                $response = $this->privatePostContractPrivateCancelOrder ($this->extend($request, $params));
             } else {
-                $response = $this->privatePostContractPrivateCancelPlanOrder (array_merge($request, $params));
+                $response = $this->privatePostContractPrivateCancelPlanOrder ($this->extend($request, $params));
             }
         }
         // swap
@@ -2614,7 +2614,7 @@ class bitmart extends Exchange {
             }
         }
         $order = $this->parse_order($id, $market);
-        return array_merge($order, array( 'id' => $id ));
+        return $this->extend($order, array( 'id' => $id ));
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -2638,12 +2638,12 @@ class bitmart extends Exchange {
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
         if ($type === 'spot') {
-            $response = $this->privatePostSpotV1CancelOrders (array_merge($request, $params));
+            $response = $this->privatePostSpotV1CancelOrders ($this->extend($request, $params));
         } elseif ($type === 'swap') {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
             }
-            $response = $this->privatePostContractPrivateCancelOrders (array_merge($request, $params));
+            $response = $this->privatePostContractPrivateCancelOrders ($this->extend($request, $params));
         }
         //
         // spot
@@ -2689,7 +2689,7 @@ class bitmart extends Exchange {
         } else {
             $request['status'] = $status;
         }
-        $response = $this->privateGetSpotV3Orders (array_merge($request, $params));
+        $response = $this->privateGetSpotV3Orders ($this->extend($request, $params));
         //
         // spot
         //
@@ -2769,12 +2769,12 @@ class bitmart extends Exchange {
                 $params = $this->omit($params, array( 'endTime' ));
                 $request['endTime'] = $until;
             }
-            $response = $this->privatePostSpotV4QueryOpenOrders (array_merge($request, $params));
+            $response = $this->privatePostSpotV4QueryOpenOrders ($this->extend($request, $params));
         } elseif ($type === 'swap') {
             $isStop = $this->safe_value_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             if ($isStop) {
-                $response = $this->privateGetContractPrivateCurrentPlanOrder (array_merge($request, $params));
+                $response = $this->privateGetContractPrivateCurrentPlanOrder ($this->extend($request, $params));
             } else {
                 $trailing = $this->safe_bool($params, 'trailing', false);
                 $orderType = $this->safe_string($params, 'orderType');
@@ -2785,7 +2785,7 @@ class bitmart extends Exchange {
                 if ($orderType !== null) {
                     $request['type'] = $orderType;
                 }
-                $response = $this->privateGetContractPrivateGetOpenOrders (array_merge($request, $params));
+                $response = $this->privateGetContractPrivateGetOpenOrders ($this->extend($request, $params));
             }
         } else {
             throw new NotSupported($this->id . ' fetchOpenOrders() does not support ' . $type . ' orders, only spot and swap orders are accepted');
@@ -2892,9 +2892,9 @@ class bitmart extends Exchange {
         }
         $response = null;
         if ($type === 'spot') {
-            $response = $this->privatePostSpotV4QueryHistoryOrders (array_merge($request, $params));
+            $response = $this->privatePostSpotV4QueryHistoryOrders ($this->extend($request, $params));
         } else {
-            $response = $this->privateGetContractPrivateOrderHistory (array_merge($request, $params));
+            $response = $this->privateGetContractPrivateOrderHistory ($this->extend($request, $params));
         }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
@@ -2941,9 +2941,9 @@ class bitmart extends Exchange {
                 $request['orderId'] = $id;
             }
             if ($clientOrderId !== null) {
-                $response = $this->privatePostSpotV4QueryClientOrder (array_merge($request, $params));
+                $response = $this->privatePostSpotV4QueryClientOrder ($this->extend($request, $params));
             } else {
-                $response = $this->privatePostSpotV4QueryOrder (array_merge($request, $params));
+                $response = $this->privatePostSpotV4QueryOrder ($this->extend($request, $params));
             }
         } elseif ($type === 'swap') {
             if ($symbol === null) {
@@ -2960,7 +2960,7 @@ class bitmart extends Exchange {
             }
             $request['symbol'] = $market['id'];
             $request['order_id'] = $id;
-            $response = $this->privateGetContractPrivateOrder (array_merge($request, $params));
+            $response = $this->privateGetContractPrivateOrder ($this->extend($request, $params));
         }
         //
         // spot
@@ -3040,7 +3040,7 @@ class bitmart extends Exchange {
                 $params = $this->omit($params, 'network');
             }
         }
-        $response = $this->privateGetAccountV1DepositAddress (array_merge($request, $params));
+        $response = $this->privateGetAccountV1DepositAddress ($this->extend($request, $params));
         //
         //    {
         //        "message" => "OK",
@@ -3097,7 +3097,7 @@ class bitmart extends Exchange {
         return $this->network_id_to_code($networkId);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -3131,7 +3131,7 @@ class bitmart extends Exchange {
                 $params = $this->omit($params, 'network');
             }
         }
-        $response = $this->privatePostAccountV1WithdrawApply (array_merge($request, $params));
+        $response = $this->privatePostAccountV1WithdrawApply ($this->extend($request, $params));
         //
         //     {
         //         "code" => 1000,
@@ -3144,7 +3144,7 @@ class bitmart extends Exchange {
         //
         $data = $this->safe_value($response, 'data');
         $transaction = $this->parse_transaction($data, $currency);
-        return array_merge($transaction, array(
+        return $this->extend($transaction, array(
             'code' => $code,
             'address' => $address,
             'tag' => $tag,
@@ -3178,7 +3178,7 @@ class bitmart extends Exchange {
                 $params = $this->omit($params, 'network');
             }
         }
-        $response = $this->privateGetAccountV2DepositWithdrawHistory (array_merge($request, $params));
+        $response = $this->privateGetAccountV2DepositWithdrawHistory ($this->extend($request, $params));
         //
         //     {
         //         "message":"OK",
@@ -3220,7 +3220,7 @@ class bitmart extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $response = $this->privateGetAccountV1DepositWithdrawDetail (array_merge($request, $params));
+        $response = $this->privateGetAccountV1DepositWithdrawDetail ($this->extend($request, $params));
         //
         //     {
         //         "message":"OK",
@@ -3272,7 +3272,7 @@ class bitmart extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $response = $this->privateGetAccountV1DepositWithdrawDetail (array_merge($request, $params));
+        $response = $this->privateGetAccountV1DepositWithdrawDetail ($this->extend($request, $params));
         //
         //     {
         //         "message":"OK",
@@ -3417,7 +3417,7 @@ class bitmart extends Exchange {
             'currency' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $response = $this->privatePostSpotV1MarginIsolatedRepay (array_merge($request, $params));
+        $response = $this->privatePostSpotV1MarginIsolatedRepay ($this->extend($request, $params));
         //
         //     {
         //         "message" => "OK",
@@ -3430,7 +3430,7 @@ class bitmart extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $transaction = $this->parse_margin_loan($data, $currency);
-        return array_merge($transaction, array(
+        return $this->extend($transaction, array(
             'amount' => $amount,
             'symbol' => $symbol,
         ));
@@ -3454,7 +3454,7 @@ class bitmart extends Exchange {
             'currency' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $response = $this->privatePostSpotV1MarginIsolatedBorrow (array_merge($request, $params));
+        $response = $this->privatePostSpotV1MarginIsolatedBorrow ($this->extend($request, $params));
         //
         //     {
         //         "message" => "OK",
@@ -3467,7 +3467,7 @@ class bitmart extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $transaction = $this->parse_margin_loan($data, $currency);
-        return array_merge($transaction, array(
+        return $this->extend($transaction, array(
             'amount' => $amount,
             'symbol' => $symbol,
         ));
@@ -3498,7 +3498,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()) {
+    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the rate of interest to borrow a currency for margin trading
          * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
@@ -3511,7 +3511,7 @@ class bitmart extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->privateGetSpotV1MarginIsolatedPairs (array_merge($request, $params));
+        $response = $this->privateGetSpotV1MarginIsolatedPairs ($this->extend($request, $params));
         //
         //     {
         //         "message" => "OK",
@@ -3550,7 +3550,7 @@ class bitmart extends Exchange {
         return $this->parse_isolated_borrow_rate($borrowRate, $market);
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+    public function parse_isolated_borrow_rate($info, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTC_USDT",
@@ -3593,7 +3593,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_isolated_borrow_rates($params = array ()) {
+    public function fetch_isolated_borrow_rates($params = array ()): IsolatedBorrowRates {
         /**
          * fetch the borrow interest rates of all currencies, currently only works for isolated margin
          * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
@@ -3636,12 +3636,7 @@ class bitmart extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $symbols = $this->safe_value($data, 'symbols', array());
-        $result = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $this->safe_value($symbols, $i);
-            $result[] = $this->parse_isolated_borrow_rate($symbol);
-        }
-        return $result;
+        return $this->parse_isolated_borrow_rates($symbols);
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
@@ -3684,9 +3679,9 @@ class bitmart extends Exchange {
         }
         $response = null;
         if (($fromAccount === 'margin') || ($toAccount === 'margin')) {
-            $response = $this->privatePostSpotV1MarginIsolatedTransfer (array_merge($request, $params));
+            $response = $this->privatePostSpotV1MarginIsolatedTransfer ($this->extend($request, $params));
         } elseif (($fromAccount === 'swap') || ($toAccount === 'swap')) {
-            $response = $this->privatePostAccountV1TransferContract (array_merge($request, $params));
+            $response = $this->privatePostAccountV1TransferContract ($this->extend($request, $params));
         }
         //
         // margin
@@ -3713,12 +3708,12 @@ class bitmart extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return array_merge($this->parse_transfer($data, $currency), array(
+        return $this->extend($this->parse_transfer($data, $currency), array(
             'status' => $this->parse_transfer_status($this->safe_string_2($response, 'code', 'message')),
         ));
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             '1000' => 'ok',
             'OK' => 'ok',
@@ -3743,7 +3738,7 @@ class bitmart extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // margin
         //
@@ -3783,7 +3778,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
          * @see https://developer-pro.bitmart.com/en/futures/#get-transfer-list-signed
@@ -3814,13 +3809,13 @@ class bitmart extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+        $until = $this->safe_integer($params, 'until'); // unified in milliseconds
         $endTime = $this->safe_integer($params, 'time_end', $until); // exchange-specific in milliseconds
-        $params = $this->omit($params, array( 'till', 'until' ));
+        $params = $this->omit($params, array( 'until' ));
         if ($endTime !== null) {
             $request['time_end'] = $endTime;
         }
-        $response = $this->privatePostAccountV1TransferContractList (array_merge($request, $params));
+        $response = $this->privatePostAccountV1TransferContractList ($this->extend($request, $params));
         //
         //     {
         //         "message" => "OK",
@@ -3870,7 +3865,7 @@ class bitmart extends Exchange {
         if ($since !== null) {
             $request['start_time'] = $since;
         }
-        $response = $this->privateGetSpotV1MarginIsolatedBorrowRecord (array_merge($request, $params));
+        $response = $this->privateGetSpotV1MarginIsolatedBorrowRecord ($this->extend($request, $params));
         //
         //     {
         //         "message" => "OK",
@@ -3943,7 +3938,7 @@ class bitmart extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetContractPublicOpenInterest (array_merge($request, $params));
+        $response = $this->publicGetContractPublicOpenInterest ($this->extend($request, $params));
         //
         //     {
         //         "code" => 1000,
@@ -4008,7 +4003,7 @@ class bitmart extends Exchange {
             'leverage' => (string) $leverage,
             'open_type' => $marginMode,
         );
-        return $this->privatePostContractPrivateSubmitLeverage (array_merge($request, $params));
+        return $this->privatePostContractPrivateSubmitLeverage ($this->extend($request, $params));
     }
 
     public function fetch_funding_rate(string $symbol, $params = array ()) {
@@ -4027,7 +4022,7 @@ class bitmart extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetContractPublicFundingRate (array_merge($request, $params));
+        $response = $this->publicGetContractPublicFundingRate ($this->extend($request, $params));
         //
         //     {
         //         "code" => 1000,
@@ -4090,7 +4085,7 @@ class bitmart extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->privateGetContractPrivatePosition (array_merge($request, $params));
+        $response = $this->privateGetContractPrivatePosition ($this->extend($request, $params));
         //
         //     {
         //         "code" => 1000,
@@ -4146,7 +4141,7 @@ class bitmart extends Exchange {
             // only supports $symbols or sending one symbol
             $request['symbol'] = $market['id'];
         }
-        $response = $this->privateGetContractPrivatePosition (array_merge($request, $params));
+        $response = $this->privateGetContractPrivatePosition ($this->extend($request, $params));
         //
         //     {
         //         "code" => 1000,
@@ -4276,7 +4271,7 @@ class bitmart extends Exchange {
             $request['start_time'] = $since;
         }
         list($request, $params) = $this->handle_until_option('end_time', $request, $params);
-        $response = $this->privateGetContractPrivateOrderHistory (array_merge($request, $params));
+        $response = $this->privateGetContractPrivateOrderHistory ($this->extend($request, $params));
         //
         //     {
         //         "code" => 1000,
