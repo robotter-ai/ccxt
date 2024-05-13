@@ -100,42 +100,38 @@ public partial class Exchange
     {
         return (string)a; // stub
     }
-
-    public object numberToBE(object n, object padding = null)
-    {
-        // implement number to big endian
-        return (string)n; // stub
+    
+    public byte[] hexToBytes(string hex) {
+        if (hex == null) throw new ArgumentNullException(nameof(hex));
+        if (hex.Length % 2 != 0) throw new ArgumentException("Hex string is invalid: unpadded.", nameof(hex));
+        byte[] array = new byte[hex.Length / 2];
+        for (int i = 0; i < array.Length; i++) {
+            int j = i * 2;
+            string hexByte = hex.Substring(j, 2);
+            byte b = Convert.ToByte(hexByte, 16);
+            array[i] = b;
+        }
+        return array;
     }
 
-   public static byte[] NumberToBytesBE(BigInteger n, int len)
+    public byte[] numberToBytesBE(BigInteger n, int len)
     {
-        if (n < 0) throw new ArgumentException("The number must be non-negative.");
-
-        string hexString = NumberToBE(n.ToString("X")).ToString();
-
-        // Ensures the string has the necessary length, padding with zeros on the left
-        hexString = hexString.PadLeft(len * 2, '0');
-
-        if (hexString.Length > len * 2)
-        {
-            throw new ArgumentException("The specified length is too small for the number.");
-        }
-
-        // Converts the hexadecimal string to a byte array
-        byte[] result = new byte[len];
-        for (int i = 0; i < result.Length; i++)
-        {
-            string byteValue = hexString.Substring(i * 2, 2);
-            result[i] = byte.Parse(byteValue, NumberStyles.HexNumber);
-        }
-        return result;
+        return hexToBytes(n.ToString("X").PadLeft(len * 2, '0'));
     }
 
-    public static byte[] numberToLE(BigInteger n, int len)
+    public byte[] numberToBytesLE(BigInteger n, int len)
     {
-        var bytesBE = NumberToBytesBE(n, len);
-        Array.Reverse(bytesBE); // This flips the bytesBE array in-place
-        return bytesBE; // Now bytesBE is in Little Endian
+        return numberToBytesBE(n, len).Reverse().ToArray();
+    }
+
+    public byte[] numberToLE(object n, int padding)
+    {
+        return numberToBytesLE(new BigInteger((long)n), padding);
+    }
+
+    public byte[] numberToBE(object n, int padding)
+    {
+        return numberToBytesBE(new BigInteger((long)n), padding);
     }
 
     public static string binaryToHex(byte[] buff)
