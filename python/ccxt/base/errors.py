@@ -21,6 +21,7 @@ error_hierarchy = {
                 'NoChange': {
                     'MarginModeAlreadySet': {},
                 },
+                'MarketClosed': {},
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -102,6 +103,10 @@ class NoChange(OperationRejected):
 
 
 class MarginModeAlreadySet(NoChange):
+    pass
+
+
+class MarketClosed(OperationRejected):
     pass
 
 
@@ -215,6 +220,7 @@ __all__ = [
     'OperationRejected',
     'NoChange',
     'MarginModeAlreadySet',
+    'MarketClosed',
     'BadResponse',
     'NullResponse',
     'InsufficientFunds',

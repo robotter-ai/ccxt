@@ -70,7 +70,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [Exchange Structure](#exchange-structure)
 - [Rate Limit](#rate-limit)
 
-The CCXT library currently supports the following 97 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 98 cryptocurrency exchange markets and trading APIs:
 
 | logo                                                                                                                                                                                                          | id                    | name                                                                                                  | ver                                                                                                                                              | certified                                                                                                                   | pro                                                                          |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|-------------------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -168,6 +168,7 @@ The CCXT library currently supports the following 97 cryptocurrency exchange mar
 | [![wazirx](https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg)](https://wazirx.com/invite/k7rrnks5)                                                        | wazirx                | [WazirX](https://wazirx.com/invite/k7rrnks5)                                                          | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.wazirx.com/#public-rest-api-for-wazirx)                                |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![whitebit](https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg)](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)                        | whitebit              | [WhiteBit](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)                        | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://github.com/whitebit-exchange/api-docs)                                      |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![woo](https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg)](https://x.woo.org/register?ref=YWOWC96B)                                                       | woo                   | [WOO X](https://x.woo.org/register?ref=YWOWC96B)                                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.woo.org/)                                                              | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![woofipro](https://github.com/ccxt/ccxt/assets/43336371/b1e7b348-a0fc-4605-8b7f-91176958fd69)](https://dex.woo.org/en/trade?ref=CCXT)                                                                       | woofipro              | [WOOFI PRO](https://dex.woo.org/en/trade?ref=CCXT)                                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://orderly.network/docs/build-on-evm/building-on-evm)                          | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![yobit](https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg)](https://www.yobit.net)                                                                        | yobit                 | [YoBit](https://www.yobit.net)                                                                        | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.yobit.net/en/api/)                                                      |                                                                                                                             |                                                                              |
 | [![zaif](https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg)](https://zaif.jp)                                                                               | zaif                  | [Zaif](https://zaif.jp)                                                                               | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://techbureau-api-document.readthedocs.io/ja/latest/index.html)                |                                                                                                                             |                                                                              |
 | [![zonda](https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg)](https://auth.zondaglobal.com/ref/jHlbB4mIkdS1)                                               | zonda                 | [Zonda](https://auth.zondaglobal.com/ref/jHlbB4mIkdS1)                                                | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.zondacrypto.exchange/)                                                 |                                                                                                                             |                                                                              |
@@ -3881,6 +3882,7 @@ The exchanges' order management APIs differ by design. The user has to understan
 - `cancelOrder()` – used for canceling a single order
 - `cancelOrders()` - used for canceling multiple orders
 - `cancelAllOrders()` - used for canceling all orders
+- `cancelAllOrdersAfter()` - used for canceling all orders after the given timeout
 
 The majority of the exchanges will have a way of fetching currently-open orders. Thus, the `exchange.has['fetchOpenOrders']`. If that method is not available, then most likely the `exchange.has['fetchOrders']` that will provide a list of all orders. The exchange will return a list of open orders either from `fetchOpenOrders()` or from `fetchOrders()`. One of the two methods is usually available from any exchange.
 
@@ -4760,6 +4762,7 @@ To cancel an existing order use
 - `cancelOrder ()` for a single order
 - `cancelOrders ()` for multiple orders
 - `cancelAllOrders ()` for all open orders
+- `cancelAllOrdersAfter ()` for all open orders after the given timeout
 
 ```javascript
 cancelOrder (id, symbol = undefined, params = {})
@@ -4801,6 +4804,19 @@ Parameters
 Returns
 
 - An array of [order structures](#order-structure)
+
+```javascript
+async cancelAllOrdersAfter (timeout, params = {})
+```
+
+Parameters
+
+- **timeout** (number) countdown time in milliseconds **required** on some exchanges, 0 represents cancel the timer (e.g. ``10``\ )
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. ``{"type": "spot"}``\ )
+
+Returns
+
+- An object
 
 #### Exceptions Upon Canceling Orders
 
@@ -6131,6 +6147,8 @@ To get information about positions currently held in contract markets, use
 - fetchPosition ()            // for a single market
 - fetchPositions ()           // for all positions
 - fetchAccountPositions ()    // TODO
+- fetchPositionHistory ()     // for single historical position
+- fetchPositionsHistory ()     // for historical positions
 
 ```javascript
 fetchPosition (symbol, params = {})                         // for a single market
@@ -6153,6 +6171,21 @@ fetchAccountPositions (symbols = undefined, params = {})
 Parameters
 
 - **symbols** (\[String\]) Unified CCXT market symbols, do not set to retrieve all positions (e.g. `["BTC/USDT:USDT"]`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [position structures](#position-structure)
+
+```javascript
+fetchPositionHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (\[String\]) Unified CCXT market symbols, do not set to retrieve all positions (e.g. `["BTC/USDT:USDT"]`)
+- **since** (Integer) Timestamp (ms) of the earliest time to retrieve positions for (e.g. `1646940314000`)
+- **limit** (Integer) The number of [position structures](#position-structure) to retrieve (e.g. `5`)
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
@@ -6336,6 +6369,39 @@ Parameters
 Returns
 
 - A [conversion structure](#conversion-structure)
+
+The `fetchConvertTrade` method can be used to fetch a specific conversion trade using the trades id.
+
+```javascript
+fetchConvertTrade (id, code = undefined, params = {})
+```
+
+Parameters
+
+- **id** (String) *required* Conversion trade id (e.g. `"80794187SDHJ25"`)
+- **code** (String) The unified currency code of the conversion trade (e.g. `"USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"toAmount": 2.9722}`)
+
+Returns
+
+- A [conversion structure](#conversion-structure)
+
+The `fetchConvertTradeHistory` method can be used to fetch the conversion history for a specified currency code.
+
+```javascript
+fetchConvertTradeHistory (code = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **code** (String) The unified currency code to fetch conversion trade history for (e.g. `"USDT"`)
+- **since** (Integer) Timestamp of the earliest conversion (e.g. `1645807945000`)
+- **limit** (Integer) The maximum number of conversion structures to retrieve (e.g. `10`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"toAmount": 2.9722}`)
+
+Returns
+
+- An array of [conversion structures](#conversion-structure)
 
 #### Conversion Structure
 
@@ -6615,13 +6681,13 @@ From `BaseError` derives two different families of errors: `OperationFailed` and
 ### OperationFailed
 <a name="NetworkError" id="NetworkError"></a>
 
-An `OperationFailed` happens when user sends **correctly constructed & valid request** to exchange, but an non-deterministic problem occurred. In such cases, you might consider retrying after some time.
+An `OperationFailed` might happen when user sends **correctly constructed & valid request** to exchange, but a non-deterministic problem occurred:
 - maintenance ongoing
 - internet/network connectivitiy issues
 - DDoS protections
 - "Server busy, try again"...
 
-Such network-related exceptions are time-dependent and re-trying the request later might be enough, but if the error still happens, then it may indicate some persistent problem with the exchange or with your connection.
+Such exceptions are temporary and re-trying the request again might be enough. However, if the error still happens, then it may indicate some persistent problem with the exchange or with your connection.
 
 `OperationFailed` has the following sub-types: `RequestTimeout`,`DDoSProtection` (includes sub-type `RateLimitExceeded`),  `ExchangeNotAvailable`, `InvalidNonce`.
 
@@ -6668,7 +6734,7 @@ Raised when your nonce is less than the previous nonce used with your keypair, a
 
 ### ExchangeError
 
-In contrast to `NetworkError`, the `ExchangeError` is mostly happening when the request is impossible to succeed (because of factors listed below), so even if you retry the same request hundreds of times, they will still fail, because the request is being made incorrectly.
+In contrast to `OperationFailed`, the `ExchangeError` is mostly happening when the request is impossible to succeed (because of factors listed below), so even if you retry the same request hundreds of times, they will still fail, because the request is being made incorrectly.
 
 Possible reasons for this exception:
 
@@ -6682,7 +6748,7 @@ Possible reasons for this exception:
 
   - `NotSupported`: when the endpoint/operation is not offered or supported by the exchange API.
   - `BadRequest`: user sends an **incorrectly** constructed request/parameter/action that is invalid/unallowed (i.e.: "invalid number", "forbidden symbol", "size beyond min/max limits", "incorrect precision", etc). Retrying would not help in this case, the request needs to be fixed/adjusted first.
-  - `OperationRejected` - user sends a **correctly** constructed request (that should be accepted by the exchange), but your current account status does not allow it. (i.e. "please close existing positions before changing the leverage", "too many pending orders"). Please notice how this exception differs from [**OperationFailed**](#operationfailed)
+  - `OperationRejected` - user sends a **correctly** constructed request (that should be accepted by the exchange in a typical case), but some deterministic factor prevents your request to succeed. For example, your current account status might not allow it (i.e. "please close existing positions before changing the leverage", "too many pending orders", "your account in wrong position/margin mode") or at the give moment symbol is not tradable (i.e. "MarketClosed") or some explained factors, where you need to take a specific action (i.e. change some setting at first, or wait till specific moment). So, once again: [**OperationFailed**](#operationfailed) can be blindly re-tried and should success, while `OperationRejected` is a failure that depends on specific exact factors that need to be considered, before request can be retried.
   - `AuthenticationError`: when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, sometimes you also need `uid` and/or `password` if exchange API requires it.
   - `PermissionDenied`: when there's no access for specified action or insufficient permissions on the specified `apiKey`.
   - `InsufficientFunds`: when you don't have enough currency on your account balance to place an order.

@@ -113,6 +113,7 @@ var wavesexchange = require('./src/wavesexchange.js');
 var wazirx = require('./src/wazirx.js');
 var whitebit = require('./src/whitebit.js');
 var woo = require('./src/woo.js');
+var woofipro = require('./src/woofipro.js');
 var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
 var zonda = require('./src/zonda.js');
@@ -181,10 +182,11 @@ var upbit$1 = require('./src/pro/upbit.js');
 var wazirx$1 = require('./src/pro/wazirx.js');
 var whitebit$1 = require('./src/pro/whitebit.js');
 var woo$1 = require('./src/pro/woo.js');
+var woofipro$1 = require('./src/pro/woofipro.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.3.2';
+const version = '4.3.22';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -288,6 +290,7 @@ const exchanges = {
     'wazirx': wazirx,
     'whitebit': whitebit,
     'woo': woo,
+    'woofipro': woofipro,
     'yobit': yobit,
     'zaif': zaif,
     'zonda': zonda,
@@ -358,6 +361,7 @@ const pro = {
     'wazirx': wazirx$1,
     'whitebit': whitebit$1,
     'woo': woo$1,
+    'woofipro': woofipro$1,
 };
 pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange["default"]; // now the same for rest and ts
@@ -389,6 +393,7 @@ exports.InvalidAddress = errors.InvalidAddress;
 exports.InvalidNonce = errors.InvalidNonce;
 exports.InvalidOrder = errors.InvalidOrder;
 exports.MarginModeAlreadySet = errors.MarginModeAlreadySet;
+exports.MarketClosed = errors.MarketClosed;
 exports.NetworkError = errors.NetworkError;
 exports.NoChange = errors.NoChange;
 exports.NotSupported = errors.NotSupported;
@@ -506,6 +511,7 @@ exports.wavesexchange = wavesexchange;
 exports.wazirx = wazirx;
 exports.whitebit = whitebit;
 exports.woo = woo;
+exports.woofipro = woofipro;
 exports.yobit = yobit;
 exports.zaif = zaif;
 exports.zonda = zonda;

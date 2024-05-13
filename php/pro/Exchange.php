@@ -84,5 +84,6 @@ Exchange::$exchanges = array(
     'wazirx',
     'whitebit',
     'woo',
+    'woofipro',
 );
 
