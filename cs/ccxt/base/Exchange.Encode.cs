@@ -1,6 +1,9 @@
 namespace ccxt;
+using System;
 using System.Security.Cryptography;
 using System.Text;
+using System.Numerics;
+using System.Globalization;
 
 using MiniMessagePack;
 
@@ -102,6 +105,37 @@ public partial class Exchange
     {
         // implement number to big endian
         return (string)n; // stub
+    }
+
+   public static byte[] NumberToBytesBE(BigInteger n, int len)
+    {
+        if (n < 0) throw new ArgumentException("The number must be non-negative.");
+
+        string hexString = NumberToBE(n.ToString("X")).ToString();
+
+        // Ensures the string has the necessary length, padding with zeros on the left
+        hexString = hexString.PadLeft(len * 2, '0');
+
+        if (hexString.Length > len * 2)
+        {
+            throw new ArgumentException("The specified length is too small for the number.");
+        }
+
+        // Converts the hexadecimal string to a byte array
+        byte[] result = new byte[len];
+        for (int i = 0; i < result.Length; i++)
+        {
+            string byteValue = hexString.Substring(i * 2, 2);
+            result[i] = byte.Parse(byteValue, NumberStyles.HexNumber);
+        }
+        return result;
+    }
+
+    public static byte[] numberToLE(BigInteger n, int len)
+    {
+        var bytesBE = NumberToBytesBE(n, len);
+        Array.Reverse(bytesBE); // This flips the bytesBE array in-place
+        return bytesBE; // Now bytesBE is in Little Endian
     }
 
     public static string binaryToHex(byte[] buff)
