@@ -249,7 +249,7 @@ export default class cube extends Exchange {
                 'M15': '15m',
                 'H1': '1h',
                 'H4': '4h',
-                '1y': '1d',
+                'D1': '1d',
             },
             'timeout': 10000,
             'rateLimit': 100,
