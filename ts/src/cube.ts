@@ -1834,7 +1834,7 @@ export default class cube extends Exchange {
         return closedOrders;
     }
 
-    async fetchStatus (params = {}): Promise<any> {
+    async fetchStatus (params = {}) {
         /**
          * @method
          * @name cube#fetchStatus
