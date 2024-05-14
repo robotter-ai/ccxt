@@ -10,7 +10,8 @@ import {
 } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import {
-    Balances, Currencies, Dictionary,
+    Balances,
+    Currencies,
     IndexType,
     Int,
     Market,
@@ -27,7 +28,6 @@ import {
     TradingFeeInterface,
     Transaction,
     Currency,
-    List,
 } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
@@ -329,7 +329,7 @@ export default class cube extends Exchange {
         return request;
     }
 
-    sign (path: string, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const environment = this.options['environment'];
         let endpoint = undefined;
         let apiArray = undefined;
@@ -500,7 +500,7 @@ export default class cube extends Exchange {
         return this.parseCurrencies (assets);
     }
 
-    parseCurrencies (assets: Dictionary<any>): Currencies {
+    parseCurrencies (assets): Currencies {
         const result = {};
         for (let i = 0; i < assets.length; i++) {
             const rawCurrency = assets[i];
@@ -621,7 +621,7 @@ export default class cube extends Exchange {
         return this.parseMarkets (rawMarkets);
     }
 
-    parseMarkets (markets: Dictionary<any>): Market[] {
+    parseMarkets (markets): Market[] {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = this.parseMarket (markets[i]);
@@ -630,7 +630,7 @@ export default class cube extends Exchange {
         return result;
     }
 
-    parseMarket (market: Dictionary<any>): Market {
+    parseMarket (market): Market {
         const id = this.safeString (market, 'symbol').toUpperCase ();
         const currenciesByNumericId = {};
         for (let i = 0; i < this.countItems (this.currencies); i++) {
@@ -759,7 +759,7 @@ export default class cube extends Exchange {
         return this.parseOrderBook (rawOrderbook, symbol, timestamp, 'bids', 'asks');
     }
 
-    parseBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): List {
+    parseBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         return bidasks;
     }
 
@@ -783,7 +783,7 @@ export default class cube extends Exchange {
         return ticker;
     }
 
-    parseTicker (ticker: Dictionary<any>, market: Market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //       {
         //         ticker_id: "JTOUSDC",
@@ -1659,14 +1659,15 @@ export default class cube extends Exchange {
         //     }
         // }
         //
-        const rawTrades: List = [ {
+        const tradesAndParsedTrades = {
             'trades': this.safeList (this.safeDict (recentTradesResponse, 'result'), 'trades'),
             'parsedTrades': this.safeList (this.safeDict (parsedRecentTradesResponse, 'result'), 'trades'),
-        } ];
+        };
+        const rawTrades = [ tradesAndParsedTrades ];
         return this.parseTrades (rawTrades, market);
     }
 
-    parseTrades (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    parseTrades (trades, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         const parsedTrades = this.safeValue (trades[0], 'parsedTrades');
         const finalTrades = [];
         if (parsedTrades !== undefined && this.countItems (parsedTrades) > 0) {
