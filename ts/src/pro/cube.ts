@@ -90,10 +90,6 @@ export default class cube extends cubeRest {
 
     handleTicker (client: Client, message) {}
 
-    parseTicker (ticker, market = undefined): Ticker {
-        return null;
-    }
-
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
