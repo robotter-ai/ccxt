@@ -1,0 +1,44 @@
+{
+  "exchange": "cube",
+  "skipKeys": [],
+  "outputType": "json",
+  "methods": {
+    "cancelAllOrders": {},
+    "cancelOrder": {},
+    "createOrder": {},
+    "fetchAccounts": {},
+    "fetchBalance": {},
+    "fetchClosedOrders": {},
+    "fetchDeposits": {},
+    "fetchMyTrades": {},
+    "fetchOHLCV": {
+      "description": "Fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market",
+      "method": "fetchOHLCV",
+      "url": "https://api.cube.exchange/ir/v0/history/klines?interval=1m&marketId=100004",
+      "input": [
+        "BTC/USDC"
+      ]
+    },
+    "fetchOpenOrders": {},
+    "fetchOrder": {},
+    "fetchOrderBook": {
+      "description": "Fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data",
+      "method": "fetchOrderBook",
+      "url": "https://api.cube.exchange/md/v0/parsed/book/BTCUSDC/snapshot",
+      "input": [
+        "BTC/USDC"
+      ]
+    },
+    "fetchStatus": {
+      "description": "The latest known information on the availability of the exchange API",
+      "method": "fetchStatus",
+      "url": "https://api.cube.exchange/ir/v0/markets",
+      "input": []
+    },
+    "fetchTicker": {},
+    "fetchTrades": {},
+    "fetchTradingFee": {},
+    "fetchWithdrawals": {},
+    "withdraw": {}
+  }
+}
