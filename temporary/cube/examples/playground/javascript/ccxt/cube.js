@@ -59,39 +59,37 @@ async function loadMarkets() {
     log(response)
 }
 
-// DEVELOPMENT (conferir o objeto)
 async function fetchMarkets() {
     response = await communityExchange.fetchMarkets()
     log(response)
 }
 
-// DEVELOPMENT (conferir o objeto)
 async function fetchCurrencies() {
     response = await communityExchange.fetchCurrencies()
     log(response)
 }
 
-// DONE
 async function fetchTicker() {
-    response = await communityExchange.fetchTicker(marketSymbols[0])
+    const symbol = useSandBoxMode ? marketSymbols[0] : marketSymbolsMainnet[0];
+    response = await communityExchange.fetchTicker(symbol)
     log(response)
 }
 
-// DONE
 async function fetchTickers() {
-    response = await communityExchange.fetchTickers(marketSymbols)
+    const symbols = useSandBoxMode ? marketSymbols : marketSymbolsMainnet;
+    response = await communityExchange.fetchTickers(symbols)
     log(response)
 }
 
-// DEVELOPMENT (conferir o objeto, em especial o datetime)
 async function fetchOrderBook() {
-    response = await communityExchange.fetchOrderBook(marketSymbols[0])
+    const symbol = useSandBoxMode ? marketSymbols[0] : marketSymbolsMainnet[0];
+    response = await communityExchange.fetchOrderBook(symbol)
     log(response)
 }
 
-// TODO
 async function fetchOHLCV() {
-    response = await communityExchange.fetchOHLCV(marketSymbolsMainnet[0], kLineIntervals[2])
+    const symbol = useSandBoxMode ? marketSymbols[0] : marketSymbolsMainnet[0];
+    response = await communityExchange.fetchOHLCV(symbol, kLineIntervals[2])
     log(response)
 }
 
@@ -100,22 +98,19 @@ async function fetchStatus() {
         log(response)
 }
 
-// BACKLOG?
 async function fetchTrades() {
-    // ???
-    response = await communityExchange.fetchTrades(marketSymbols[0])
+    const symbol = useSandBoxMode ? marketSymbols[0] : marketSymbolsMainnet[0];
+    response = await communityExchange.fetchTrades(symbol)
     log(response)
 }
 
-// DEVELOPMENT (incompleto)
 async function fetchBalance() {
-    // ???
     response = await communityExchange.fetchBalance()
     log(response)
 }
 
-// DEVELOPMENT (incompleto)
 async function createOrder({side = 'buy', orderType = 'limit'}) {
+    const symbol = useSandBoxMode ? marketSymbols[0] : marketSymbolsMainnet[0];
     let response = undefined
     if (orderType === 'limit') {
         let price = undefined
@@ -125,7 +120,7 @@ async function createOrder({side = 'buy', orderType = 'limit'}) {
             price = 160.0
         }
         response = await communityExchange.createOrder(
-            marketSymbols[0], orderType, side, 0.1, price,
+            symbol, orderType, side, 0.1, price,
             {
                 'requestId': 1,
                 'selfTradePrevention': 0,
@@ -136,7 +131,7 @@ async function createOrder({side = 'buy', orderType = 'limit'}) {
         )
     } else if (orderType === 'market') {
         response = await communityExchange.createOrder(
-            marketSymbols[0], orderType, side, 0.1, undefined,
+            symbol, orderType, side, 0.1, undefined,
             {
                 'requestId': 1,
                 'selfTradePrevention': 0,
@@ -150,69 +145,69 @@ async function createOrder({side = 'buy', orderType = 'limit'}) {
 }
 
 async function cancelOrder() {
-    // ???
-    response = await communityExchange.cancelOrder(exchangeOrderId, marketSymbols[0], {'requestId': 1})
+    const symbol = useSandBoxMode ? marketSymbols[0] : marketSymbolsMainnet[0];
+    response = await communityExchange.cancelOrder(exchangeOrderId, symbol, {'requestId': 1})
     log(response)
 }
 
 async function cancelAllOrders() {
-    response = await communityExchange.cancelAllOrders(marketSymbols[0], {
+    const symbol = useSandBoxMode ? marketSymbols[0] : marketSymbolsMainnet[0];
+    response = await communityExchange.cancelAllOrders(symbol, {
         'requestId': 1,
     })
     log(response)
 }
 
 async function fetchRawOrder() {
-    // ???
-    response = await communityExchange.fetchRawOrder(exchangeOrderId, marketSymbols[0], {
+    const symbol = useSandBoxMode ? marketSymbols[0] : marketSymbolsMainnet[0];
+    response = await communityExchange.fetchRawOrder(exchangeOrderId, symbol, {
         'subaccountId': `${subAccountId}`,
     })
     log(response)
 }
 
-// DEVELOPMENT (incompleto)
 async function fetchOrder() {
-    // ???
-    response = await communityExchange.fetchOrder(exchangeOrderId, marketSymbols[0], {
+    const symbol = useSandBoxMode ? marketSymbols[0] : marketSymbolsMainnet[0];
+    response = await communityExchange.fetchOrder(exchangeOrderId, symbol, {
         'subaccountId': `${subAccountId}`,
     })
     log(response)
 }
 
 async function fetchOrders() {
-    // ???
-    response = await communityExchange.fetchOrders(marketSymbols[0], undefined, undefined, {
+    const symbol = useSandBoxMode ? marketSymbols[0] : marketSymbolsMainnet[0];
+    response = await communityExchange.fetchOrders(symbol, undefined, undefined, {
         'subaccountId': `${subAccountId}`,
     })
     log(response)
 }
 
 async function fetchRawOrders() {
-    // ???
     response = await communityExchange.fetchRawOrders(undefined, undefined, {
         'subaccountId': `${subAccountId}`,
     })
     log(response)
 }
 
-// TODO
 async function fetchOpenOrders() {
-    // ???
-    response = await communityExchange.fetchOpenOrders(marketSymbols[0], undefined, undefined, {
+    const symbol = useSandBoxMode ? marketSymbols[0] : marketSymbolsMainnet[0];
+    response = await communityExchange.fetchOpenOrders(symbol, undefined, undefined, {
         'subaccountId': `${subAccountId}`,
     })
     log(response)
 }
 
 async function fetchClosedOrders() {
-    response = await communityExchange.fetchClosedOrders(marketSymbols[0], undefined, undefined, {
+    const symbol = useSandBoxMode ? marketSymbols[0] : marketSymbolsMainnet[0];
+    response = await communityExchange.fetchClosedOrders(symbol, undefined, undefined, {
         'subaccountId': `${subAccountId}`,
     })
     log(response)
 }
 
 async function fetchMyTrades() {
-    response = await communityExchange.fetchMyTrades(marketSymbols[0], undefined, undefined, {
+    const symbol = useSandBoxMode ? marketSymbols[0] : marketSymbolsMainnet[0];
+    response = await communityExchange.fetchMyTrades(symbol, undefined, undefined, {
         'subaccountId': `${subAccountId}`,
     })
     log(response)
@@ -262,15 +257,16 @@ async function withdraw() {
     log(response)
 }
 
-// DEVELOPMENT (incompleto)
 async function fetchTradingFee() {
-    response = await communityExchange.fetchTradingFee(marketSymbols[0])
+    const symbol = useSandBoxMode ? marketSymbols[0] : marketSymbolsMainnet[0];
+    response = await communityExchange.fetchTradingFee(symbol)
     log(response)
 }
 
 // DEVELOPMENT (incompleto)
 async function watchOrderBook() {
-    response = await proExchange.watchOrderBook(marketSymbols[0])
+    const symbol = useSandBoxMode ? marketSymbols[0] : marketSymbolsMainnet[0];
+    response = await proExchange.watchOrderBook(symbol)
     log(response)
 }
 
