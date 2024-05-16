@@ -5,7 +5,131 @@
   "methods": {
     "cancelAllOrders": {},
     "cancelOrder": {},
-    "createOrder": {},
+    "createOrder": {
+      "description": "Create a trade order",
+      "method": "createOrder",
+      "input": [
+        "tSOL/tUSDC",
+        "limit",
+        "buy",
+        0.1,
+        140,
+        {
+          "subaccountId": 175,
+          "requestId": 1,
+          "selfTradePrevention": 0,
+          "postOnly": 0,
+          "timeInForce": 1,
+          "cancelOnDisconnect": false
+        }
+      ],
+      "httpResponse": {
+        "result": {
+          "orders": [
+            {
+              "clientOrderId": "1715882473058",
+              "exchangeOrderId": "5779261924",
+              "marketId": "200047",
+              "price": "13000",
+              "orderQuantity": "1000",
+              "side": "0",
+              "timeInForce": "1",
+              "orderType": "0",
+              "remainingQuantity": "1000",
+              "restTime": "1715882473272272035",
+              "subaccountId": "175",
+              "cumulativeQuantity": "0",
+              "cancelOnDisconnect": false
+            },
+            {
+              "clientOrderId": "1715883148170",
+              "exchangeOrderId": "5779420130",
+              "marketId": "200047",
+              "price": "16000",
+              "orderQuantity": "1000",
+              "side": "1",
+              "timeInForce": "1",
+              "orderType": "0",
+              "remainingQuantity": "1000",
+              "restTime": "1715883148405397662",
+              "subaccountId": "175",
+              "cumulativeQuantity": "0",
+              "cancelOnDisconnect": false
+            },
+            {
+              "clientOrderId": "1715884315213",
+              "exchangeOrderId": "5779587139",
+              "marketId": "200047",
+              "price": "14000",
+              "orderQuantity": "1000",
+              "side": "0",
+              "timeInForce": "1",
+              "orderType": "0",
+              "remainingQuantity": "1000",
+              "restTime": "1715884315447876167",
+              "subaccountId": "175",
+              "cumulativeQuantity": "0",
+              "cancelOnDisconnect": false
+            }
+          ]
+        }
+      },
+      "parsedResponse": {
+        "id": "5779587139",
+        "clientOrderId": "1715884315213",
+        "datetime": "2024-05-16T18:31:55.447Z",
+        "timestamp": 1715884315447,
+        "lastTradeTimestamp": 1715884315447,
+        "status": "open",
+        "symbol": "tSOLtUSDC",
+        "type": "limit",
+        "timeInForce": "GTC",
+        "side": "buy",
+        "price": 140,
+        "average": null,
+        "amount": 0.1,
+        "filled": 0,
+        "remaining": 0.1,
+        "cost": 0,
+        "trades": [],
+        "fee": {
+          "currency": "TSOL",
+          "cost": 0.00004,
+          "rate": 0.0004
+        },
+        "info": {
+          "fetchedOrder": {
+            "clientOrderId": "1715884315213",
+            "exchangeOrderId": "5779587139",
+            "marketId": "200047",
+            "price": "14000",
+            "orderQuantity": "1000",
+            "side": "0",
+            "timeInForce": "1",
+            "orderType": "0",
+            "remainingQuantity": "1000",
+            "restTime": "1715884315447876167",
+            "subaccountId": "175",
+            "cumulativeQuantity": "0",
+            "cancelOnDisconnect": false
+          }
+        },
+        "fees": [
+          {
+            "currency": "TSOL",
+            "cost": 0.00004,
+            "rate": 0.0004
+          }
+        ],
+        "lastUpdateTimestamp": null,
+        "postOnly": false,
+        "reduceOnly": null,
+        "stopPrice": null,
+        "triggerPrice": null,
+        "takeProfitPrice": null,
+        "stopLossPrice": null
+      }
+    },
     "fetchBalance": {
       "description": "Query for balance and get the amount of funds available for trading or funds locked in orders",
       "method": "fetchBalance",
@@ -21216,8 +21340,154 @@
         ]
       ]
     },
-    "fetchOpenOrders": {},
-    "fetchOrder": {},
+    "fetchOpenOrders": {
+      "description": "Fetch all unfilled currently open orders",
+      "method": "fetchOpenOrders",
+      "input": [
+        "tSOL/tUSDC",
+        null,
+        1,
+        {
+          "subaccountId": 175
+        }
+      ],
+      "httpResponse": {
+        "result": {
+          "orders": [
+            {
+              "clientOrderId": "1715882473058",
+              "exchangeOrderId": "5779261924",
+              "marketId": "200047",
+              "price": "13000",
+              "orderQuantity": "1000",
+              "side": "0",
+              "timeInForce": "1",
+              "orderType": "0",
+              "remainingQuantity": "1000",
+              "restTime": "1715882473272272035",
+              "subaccountId": "175",
+              "cumulativeQuantity": "0",
+              "cancelOnDisconnect": false
+            },
+            {
+              "clientOrderId": "1715883148170",
+              "exchangeOrderId": "5779420130",
+              "marketId": "200047",
+              "price": "16000",
+              "orderQuantity": "1000",
+              "side": "1",
+              "timeInForce": "1",
+              "orderType": "0",
+              "remainingQuantity": "1000",
+              "restTime": "1715883148405397662",
+              "subaccountId": "175",
+              "cumulativeQuantity": "0",
+              "cancelOnDisconnect": false
+            }
+          ]
+        }
+      },
+      "parsedResponse": [
+        {
+          "id": "5779420130",
+          "clientOrderId": "1715883148170",
+          "datetime": "2024-05-16T18:12:28.405Z",
+          "timestamp": 1715883148405,
+          "lastTradeTimestamp": 1715883148405,
+          "status": null,
+          "symbol": "tSOLtUSDC",
+          "type": "limit",
+          "timeInForce": "GTC",
+          "side": "sell",
+          "price": 160,
+          "average": null,
+          "amount": 0.1,
+          "filled": 0,
+          "remaining": 0.1,
+          "cost": 0,
+          "trades": [],
+          "fee": {
+            "currency": "TUSDC",
+            "cost": 0.00008,
+            "rate": 0.0008
+          },
+          "fees": [
+            {
+              "currency": "TUSDC",
+              "cost": 0.00008,
+              "rate": 0.0008
+            }
+          ],
+          "lastUpdateTimestamp": null,
+          "postOnly": false,
+          "reduceOnly": null,
+          "stopPrice": null,
+          "triggerPrice": null,
+          "takeProfitPrice": null,
+          "stopLossPrice": null
+        }
+      ]
+    },
+    "fetchOrder": {
+      "description": "Fetches information on an order made by the user",
+      "method": "fetchOrder",
+      "input": [
+        5779261924,
+        "tSOL/tUSDC",
+        {
+          "subaccountId": 175
+        }
+      ],
+      "httpResponse": {
+        "result": {
+          "orders": [
+            {
+              "clientOrderId": "1715882473058",
+              "exchangeOrderId": "5779261924",
+              "marketId": "200047",
+              "price": "13000",
+              "orderQuantity": "1000",
+              "side": "0",
+              "timeInForce": "1",
+              "orderType": "0",
+              "remainingQuantity": "1000",
+              "restTime": "1715882473272272035",
+              "subaccountId": "175",
+              "cumulativeQuantity": "0",
+              "cancelOnDisconnect": false
+            }
+          ]
+        }
+      },
+      "parsedResponse": {
+        "fees": [],
+        "id": null,
+        "clientOrderId": null,
+        "timestamp": null,
+        "datetime": null,
+        "symbol": null,
+        "type": null,
+        "side": null,
+        "lastTradeTimestamp": null,
+        "lastUpdateTimestamp": null,
+        "price": null,
+        "amount": null,
+        "cost": null,
+        "average": null,
+        "filled": null,
+        "remaining": null,
+        "timeInForce": null,
+        "postOnly": null,
+        "trades": [],
+        "reduceOnly": null,
+        "stopPrice": null,
+        "triggerPrice": null,
+        "takeProfitPrice": null,
+        "stopLossPrice": null,
+        "status": null,
+        "fee": null
+      }
+    },
     "fetchOrderBook": {
       "description": "Fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data",
       "method": "fetchOrderBook",

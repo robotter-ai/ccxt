@@ -5,7 +5,26 @@
   "methods": {
     "cancelAllOrders": {},
     "cancelOrder": {},
-    "createOrder": {},
+    "createOrder": {
+      "description": "Create a trade order",
+      "method": "createOrder",
+      "url": "https://staging.cube.exchange/os/v0/orders?subaccountId=175",
+      "input": [
+        "tSOL/tUSDC",
+        "limit",
+        "buy",
+        0.1,
+        140,
+        {
+          "subaccountId": 175,
+          "requestId": 1,
+          "selfTradePrevention": 0,
+          "postOnly": 0,
+          "timeInForce": 1,
+          "cancelOnDisconnect": false
+        }
+      ]
+    },
     "fetchBalance": {
       "description": "Query for balance and get the amount of funds available for trading or funds locked in orders",
       "method": "fetchBalance",
@@ -49,8 +68,31 @@
         "BTC/USDC"
       ]
     },
-    "fetchOpenOrders": {},
-    "fetchOrder": {},
+    "fetchOpenOrders": {
+      "description": "Fetch all unfilled currently open orders",
+      "method": "fetchOpenOrders",
+      "url": "https://staging.cube.exchange/os/v0/orders?subaccountId=175",
+      "input": [
+        "tSOL/tUSDC",
+        null,
+        1,
+        {
+          "subaccountId": 175
+        }
+      ]
+    },
+    "fetchOrder": {
+      "description": "Fetches information on an order made by the user",
+      "method": "fetchOrder",
+      "url": "https://staging.cube.exchange/os/v0/orders?subaccountId=175",
+      "input": [
+        5779261924,
+        "tSOL/tUSDC",
+        {
+          "subaccountId": 175
+        }
+      ]
+    },
     "fetchOrderBook": {
       "description": "Fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data",
       "method": "fetchOrderBook",
