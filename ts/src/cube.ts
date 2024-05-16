@@ -1823,6 +1823,14 @@ export default class cube extends Exchange {
     }
 
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name cube#fetchClosedOrders
+         * @description fetches a list of closed (or canceled) orders
+         * @see https://github.com/ccxt/ccxt/wiki/Manual#understanding-the-orders-api-design
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         const allOrders = await this.fetchOrders (symbol, since, limit, params);
         const closedOrders = [];
         for (let i = 0; i < this.countItems (allOrders); i++) {
