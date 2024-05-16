@@ -6,8 +6,27 @@
     "cancelAllOrders": {},
     "cancelOrder": {},
     "createOrder": {},
-    "fetchBalance": {},
-    "fetchClosedOrders": {},
+    "fetchBalance": {
+      "description": "Query for balance and get the amount of funds available for trading or funds locked in orders",
+      "method": "fetchBalance",
+      "url": "https://staging.cube.exchange/ir/v0/users/subaccount/175/orders",
+      "input": [
+        {
+          "subaccountId": 175
+        }
+      ]
+    },
+    "fetchClosedOrders": {
+      "description": "Fetches a list of closed (or canceled) orders",
+      "method": "fetchClosedOrders",
+      "url": "https://staging.cube.exchange/ir/v0/users/subaccount/175/orders",
+      "input": [
+        "tBTC/tUSDC",
+        {
+          "subaccountId": 175
+        }
+      ]
+    },
     "fetchCurrencies": {
       "description": "Fetches all available currencies on an exchange",
       "method": "fetchCurrencies",
