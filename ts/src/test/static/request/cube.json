@@ -71,7 +71,18 @@
       "url": "https://api.cube.exchange/ir/v0/markets",
       "input": []
     },
-    "fetchMyTrades": {},
+    "fetchMyTrades": {
+      "description": "Fetch all trades made by the user",
+      "method": "fetchMyTrades",
+      "input": [
+        "tsoltusdc",
+        null,
+        1,
+        {
+          "subaccountId": 161
+        }
+      ]
+    },
     "fetchOHLCV": {
       "description": "Fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market",
       "method": "fetchOHLCV",
