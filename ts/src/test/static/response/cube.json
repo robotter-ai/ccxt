@@ -13885,7 +13885,74 @@
         }
       }
     },
-    "fetchDeposits": {},
+    "fetchDeposits": {
+      "description": "Fetch all deposits made to an account",
+      "method": "fetchDeposits",
+      "input": [
+        "TSOL",
+        null,
+        null,
+        {
+          "subaccountId": 175
+        }
+      ],
+      "httpResponse": {
+        "result": {
+          "175": {
+            "name": "primary",
+            "inner": [
+              {
+                "assetId": "80005",
+                "amount": "2500000000",
+                "txnHash": "5XjVQ9vRyQgWVqjpmkchnA3viy1ymF39EDsyoPAhbfk68RXonA7cYwK3wpf2Givfu1psrCvs2JGhm7jaoJJCEST2",
+                "txnIndex": "2",
+                "createdAt": "2024-04-12T02:18:19.576691Z",
+                "updatedAt": "2024-04-12T02:18:35.407622Z",
+                "txnState": "confirmed",
+                "kytStatus": "accept",
+                "address": "35WyiQ9XVYyj16S4KEcjZ3b8NfLGXrU754BT8xE8tA1P",
+                "fiatToCrypto": false
+              },
+              {
+                "assetId": "80005",
+                "amount": "4000000000",
+                "txnHash": "5XjVQ9vRyQgWVqjpmkchnA3viy1ymF39EDsyoPAhbfk68RXonA7cYwK3wpf2Givfu1psrCvs2JGhm7jaoJJCEST2",
+                "txnIndex": "1",
+                "createdAt": "2024-04-12T02:18:19.576691Z",
+                "updatedAt": "2024-04-12T02:18:35.407622Z",
+                "txnState": "confirmed",
+                "kytStatus": "accept",
+                "address": "79xoQgxNgKbjDrwp3Gb6t1oc1NmcgZ3PQFE7i1XCrk5x",
+                "fiatToCrypto": false
+              }
+            ]
+          }
+        }
+      },
+      "parsedResponse": [
+        {
+          "id": null,
+          "txid": null,
+          "timestamp": null,
+          "datetime": null,
+          "network": null,
+          "addressFrom": null,
+          "address": null,
+          "addressTo": null,
+          "tagFrom": null,
+          "tag": null,
+          "tagTo": null,
+          "type": null,
+          "amount": null,
+          "currency": null,
+          "status": null,
+          "updated": null,
+          "fee": null,
+          "comment": null,
+          "internal": null
+        }
+      ]
+    },
     "fetchMarkets": {
       "description": "Retrieves data on all markets for cube",
       "method": "fetchMarkets",
@@ -30046,7 +30113,76 @@
       ]
     },
     "fetchTradingFee": {},
-    "fetchWithdrawals": {},
+    "fetchWithdrawals": {
+      "description": "Fetch all withdrawals made from an account",
+      "method": "fetchWithdrawals",
+      "input": [
+        "TSOL",
+        null,
+        null,
+        {
+          "subaccountId": 175
+        }
+      ],
+      "httpResponse": {
+        "result": {
+          "175": {
+            "name": "primary",
+            "inner": [
+              {
+                "assetId": "80005",
+                "amount": "2400000000",
+                "txnHash": "eN7fHvTYmT3Hi1CqxKqqtoCykerqjnR1rZUugXdTiC6RYYLSkmPvz4oXi4oUqVJsmNUg1ZAT1yMcCDNYgcigx7c",
+                "txnIndex": "0",
+                "txnState": "confirmed",
+                "createdAt": "2024-05-09T21:35:35.021793Z",
+                "updatedAt": "2024-05-09T21:36:16.898423Z",
+                "attemptId": "217",
+                "address": "35WyiQ9XVYyj16S4KEcjZ3b8NfLGXrU754BT8xE8tA1P",
+                "kytStatus": "accept",
+                "approved": true
+              },
+              {
+                "assetId": "80005",
+                "amount": "100000000",
+                "txnHash": "3jRpRffFyF4NFumfoYCP7qdnCqHMh38Z9rAP4gfuuocWyL25pz18BtiDSf4fxry7ikKREme44FDkfrAAzdXKQhwy",
+                "txnIndex": "0",
+                "txnState": "confirmed",
+                "createdAt": "2024-05-09T21:33:02.809546Z",
+                "updatedAt": "2024-05-09T21:33:37.532509Z",
+                "attemptId": "216",
+                "address": "35WyiQ9XVYyj16S4KEcjZ3b8NfLGXrU754BT8xE8tA1P",
+                "kytStatus": "accept",
+                "approved": true
+              }
+            ]
+          }
+        }
+      },
+      "parsedResponse": [
+        {
+          "id": null,
+          "txid": null,
+          "timestamp": null,
+          "datetime": null,
+          "network": null,
+          "addressFrom": null,
+          "address": null,
+          "addressTo": null,
+          "tagFrom": null,
+          "tag": null,
+          "tagTo": null,
+          "type": null,
+          "amount": null,
+          "currency": null,
+          "status": null,
+          "updated": null,
+          "fee": null,
+          "comment": null,
+          "internal": null
+        }
+      ]
+    },
     "withdraw": {}
   }
 }

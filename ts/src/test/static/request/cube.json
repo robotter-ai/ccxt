@@ -52,7 +52,19 @@
       "url": "https://api.cube.exchange/ir/v0/markets",
       "input": []
     },
-    "fetchDeposits": {},
+    "fetchDeposits": {
+      "description": "Fetch all deposits made to an account",
+      "method": "fetchDeposits",
+      "url": "https://staging.cube.exchange/ir/v0/users/subaccount/175/deposits?",
+      "input": [
+        "TSOL",
+        null,
+        null,
+        {
+          "subaccountId": 175
+        }
+      ]
+    },
     "fetchMarkets": {
       "description": "Retrieves data on all markets for cube",
       "method": "fetchMarkets",
@@ -125,7 +137,19 @@
       ]
     },
     "fetchTradingFee": {},
-    "fetchWithdrawals": {},
+    "fetchWithdrawals": {
+      "description": "Fetch all withdrawals made from an account",
+      "method": "fetchWithdrawals",
+      "url": "https://staging.cube.exchange/ir/v0/users/subaccount/175/withdrawals?assetId=tsol",
+      "input": [
+        "TSOL",
+        null,
+        null,
+        {
+          "subaccountId": 175
+        }
+      ]
+    },
     "withdraw": {}
   }
 }
