@@ -3,7 +3,19 @@
   "skipKeys": [],
   "outputType": "json",
   "methods": {
-    "cancelAllOrders": {},
+    "cancelAllOrders": {
+      "description": "Cancel all open orders",
+      "method": "cancelAllOrders",
+      "url": "https://staging.cube.exchange/os/v0/orders",
+      "input": [
+        "tSOL/tUSDC",
+        {
+          "subaccountId": 175,
+          "requestId": 1
+        }
+      ],
+      "output": "{\"marketId\":200047,\"requestId\":1,\"subaccountId\":175}"
+    },
     "cancelOrder": {},
     "createOrder": {
       "description": "Create a trade order",
@@ -141,13 +153,22 @@
     "fetchTrades": {
       "description": "Get the list of most recent trades for a particular symbol",
       "method": "fetchTrades",
+      "url": "https://api.cube.exchange/md/v0/parsed/book/BTCUSDC/recent-trades",
       "input": [
-        "solusdc",
-        null,
-        1
+        "BTC/USDC"
       ]
     },
-    "fetchTradingFee": {},
+    "fetchTradingFee": {
+      "description": "Fetch the trading fees for a market",
+      "method": "fetchTradingFee",
+      "url": "https://staging.cube.exchange/ir/v0/users/fee-estimate/200047?subaccountId=175",
+      "input": [
+        "tSOL/tUSDC",
+        {
+          "subaccountId": 175
+        }
+      ]
+    },
     "fetchWithdrawals": {
       "description": "Fetch all withdrawals made from an account",
       "method": "fetchWithdrawals",
