@@ -1106,7 +1106,7 @@ export default class cube extends Exchange {
         const market = this.safeDict (meta, 'market');
         const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
         const quantityTickSize = this.safeNumber (this.safeDict (market, 'info'), 'quantityTickSize');
-        const exchangeAmount = this.parseToInt (amount * 1 / quantityTickSize);
+        const exchangeAmount = quantityTickSize != 0 ? this.parseToInt (amount / quantityTickSize) : undefined;
         let exchangeOrderType = undefined;
         if (type === 'limit') {
             exchangeOrderType = 0;
@@ -1147,7 +1147,7 @@ export default class cube extends Exchange {
         };
         const priceTickSize = this.safeNumber (this.safeDict (market, 'info'), 'priceTickSize');
         if (price !== undefined) {
-            request['price'] = this.parseToInt (price * 1 / priceTickSize);
+            request['price'] = priceTickSize != 0 ? this.parseToInt (price / priceTickSize): undefined;
         }
         this.injectSubAccountId (request, params);
         const response = await this.restOsmiumPrivatePostOrder (this.extend (request, params));
@@ -1480,7 +1480,7 @@ export default class cube extends Exchange {
             if (rawPrice === undefined || orderType === 'market') {
                 price = 0;
             } else {
-                price = rawPrice / (1 / priceTickSize);
+                price = priceTickSize != 0 ? rawPrice / priceTickSize : undefined;
             }
             let amount = undefined;
             amount = this.safeInteger (fetchedOrder, 'quantity');
@@ -1507,9 +1507,9 @@ export default class cube extends Exchange {
                 rate = this.safeNumber (tradeFeeRatios, 'taker');
             }
             const quantityTickSize = this.safeNumber (this.safeDict (market, 'info'), 'quantityTickSize');
-            const decimalAmount = amount / (1 / quantityTickSize);
-            const decimalFilledAmount = filledAmount / (1 / quantityTickSize);
-            const decimalRemainingAmount = remainingAmount / (1 / quantityTickSize);
+            const decimalAmount = quantityTickSize != 0 ? amount / quantityTickSize : undefined;
+            const decimalFilledAmount = quantityTickSize != 0 ? filledAmount / quantityTickSize : undefined;
+            const decimalRemainingAmount = quantityTickSize != 0 ? remainingAmount / quantityTickSize : undefined;
             const cost = decimalFilledAmount * price;
             const feeCost = decimalAmount * rate;
             return this.safeOrder ({
