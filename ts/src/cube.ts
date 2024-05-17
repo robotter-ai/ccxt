@@ -1963,7 +1963,7 @@ export default class cube extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.fetchMarketMeta ();
         const request = {
-            'amount': amount,
+            'amount': this.numberToString (amount),
             'destination': address,
             'assetId': code,
         };
