@@ -1962,8 +1962,18 @@ export default class cube extends Exchange {
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.fetchMarketMeta ();
+        const currenciesByNumericId = {};
+        for (let i = 0; i < this.countItems (this.currencies); i++) {
+            const currenciesKeysArray = Object.keys (this.currencies);
+            const targetCurrency = this.safeValue (this.currencies, currenciesKeysArray[i]);
+            const targetCurrencyNumericId = this.safeInteger (targetCurrency, 'numericId');
+            currenciesByNumericId[targetCurrencyNumericId] = targetCurrency;
+        };
+        const currency = currenciesByNumericId[assetNumericId];
+        const currencyPrecision = this.safeInteger (currency, 'precision');
+        const exchangeAmount = amount / Math.pow (10, currencyPrecision);
         const request = {
-            'amount': this.numberToString (amount),
+            'amount': this.numberToString (exchangeAmount),
             'destination': address,
             'assetId': code,
         };
