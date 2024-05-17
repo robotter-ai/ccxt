@@ -29696,6 +29696,30 @@
         }
       ]
     },
-    "withdraw": {}
+    "withdraw": {
+      "description": "Fill this with a description of the method call",
+      "method": "withdraw",
+      "input": [
+        80005,
+        1,
+        "6khUqefutr3xA6fEUnZfRMRGwER8BBTZZFFgBPhuUyyp",
+        null,
+        {
+          "subaccountId": 161
+        }
+      ],
+      "httpResponse": {
+        "result": {
+          "status": "accept",
+          "approved": true
+        }
+      },
+      "parsedResponse": {
+        "result": {
+          "status": "accept",
+          "approved": true
+        }
+      }
+    }
   }
 }

@@ -197,6 +197,18 @@
         }
       ]
     },
-    "withdraw": {}
+    "withdraw": {
+      "description": "Make a withdrawal",
+      "method": "withdraw",
+      "input": [
+        80005,
+        1,
+        "6khUqefutr3xA6fEUnZfRMRGwER8BBTZZFFgBPhuUyyp",
+        null,
+        {
+          "subaccountId": 161
+        }
+      ]
+    }
   }
 }
