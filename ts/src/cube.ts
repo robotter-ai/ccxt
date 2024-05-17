@@ -1526,6 +1526,12 @@ export default class cube extends Exchange {
             }
             const cost = decimalFilledAmount * price;
             const feeCost = decimalAmount * rate;
+            let average = undefined;
+            if (price !== undefined && price.toString ().split ('.').length === 1) {
+                average = this.parseToNumeric (price.toString () + '.0000001');
+            } else {
+                average = price;
+            }
             return this.safeOrder ({
                 'id': exchangeOrderId,
                 'clientOrderId': clientOrderId,
@@ -1538,7 +1544,7 @@ export default class cube extends Exchange {
                 'timeInForce': timeInForce,
                 'side': orderSide,
                 'price': price,
-                'average': undefined,
+                'average': average,
                 'amount': decimalAmount,
                 'filled': decimalFilledAmount,
                 'remaining': decimalRemainingAmount,
@@ -1772,6 +1778,17 @@ export default class cube extends Exchange {
     }
 
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name bitopro#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @see https://cubexch.gitbook.io/cube-api/rest-iridium-api#users-subaccount-subaccount_id-fills
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
         const allOrders = await this.fetchOrders (symbol, since, limit, params);
         const myTrades = [];
         for (let i = 0; i < this.countItems (allOrders); i++) {
