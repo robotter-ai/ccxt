@@ -1968,10 +1968,10 @@ export default class cube extends Exchange {
             const targetCurrency = this.safeValue (this.currencies, currenciesKeysArray[i]);
             const targetCurrencyNumericId = this.safeInteger (targetCurrency, 'numericId');
             currenciesByNumericId[targetCurrencyNumericId] = targetCurrency;
-        };
-        const currency = currenciesByNumericId[assetNumericId];
+        }
+        const currency = currenciesByNumericId[code];
         const currencyPrecision = this.safeInteger (currency, 'precision');
-        const exchangeAmount = amount / Math.pow (10, currencyPrecision);
+        const exchangeAmount = amount * Math.pow (10, currencyPrecision);
         const request = {
             'amount': this.numberToString (exchangeAmount),
             'destination': address,
