@@ -109,7 +109,75 @@
         }
       }
     },
-    "cancelOrder": {},
+    "cancelOrder": {
+      "description": "Cancels an open order",
+      "method": "cancelOrder",
+      "input": [
+        5790823375,
+        "tSOL/tUSDC",
+        {
+          "subaccountId": 175,
+          "clientOrderId": 1715955267396,
+          "requestId": 1,
+          "marketId": 200047
+        }
+      ],
+      "httpResponse": {
+        "result": {
+          "Ack": {
+            "msgSeqNum": "1836137",
+            "clientOrderId": "1715955267396",
+            "requestId": "1",
+            "transactTime": "1715955827485181746",
+            "subaccountId": "175",
+            "reason": "2",
+            "marketId": "200047",
+            "exchangeOrderId": "5790823375"
+          }
+        }
+      },
+      "parsedResponse": {
+        "id": null,
+        "clientOrderId": null,
+        "datetime": null,
+        "timestamp": null,
+        "lastTradeTimestamp": null,
+        "status": "canceled",
+        "symbol": "tSOLtUSDC",
+        "type": null,
+        "timeInForce": null,
+        "side": "sell",
+        "price": null,
+        "average": 1e-7,
+        "amount": null,
+        "filled": null,
+        "remaining": 0,
+        "cost": null,
+        "trades": [],
+        "fee": {
+          "currency": "TUSDC",
+          "cost": null,
+          "rate": 0.0008
+        },
+        "info": {
+          "fetchedOrder": {}
+        },
+        "fees": [
+          {
+            "currency": "TUSDC",
+            "cost": null,
+            "rate": 0.0008
+          }
+        ],
+        "lastUpdateTimestamp": null,
+        "postOnly": null,
+        "reduceOnly": null,
+        "stopPrice": null,
+        "triggerPrice": null,
+        "takeProfitPrice": null,
+        "stopLossPrice": null
+      }
+    },
     "createOrder": {
       "description": "Create a trade order",
       "method": "createOrder",
@@ -19899,7 +19967,7 @@
       ]
     },
     "fetchMyTrades": {
-      "description": "Fill this with a description of the method call",
+      "description": "Fetch all trades made by the user",
       "method": "fetchMyTrades",
       "input": [
         "tsoltusdc",

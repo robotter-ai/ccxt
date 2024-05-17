@@ -16,7 +16,22 @@
       ],
       "output": "{\"marketId\":200047,\"requestId\":1,\"subaccountId\":175}"
     },
-    "cancelOrder": {},
+    "cancelOrder": {
+      "description": "Cancels an open order",
+      "method": "cancelOrder",
+      "url": "https://staging.cube.exchange/os/v0/order",
+      "input": [
+        5790823375,
+        "tSOL/tUSDC",
+        {
+          "subaccountId": 175,
+          "clientOrderId": 1715955267396,
+          "requestId": 1,
+          "marketId": 200047
+        }
+      ],
+      "output": "{\"clientOrderId\":1715954465193,\"requestId\":1,\"marketId\":200047,\"subaccountId\":175}"
+    },
     "createOrder": {
       "description": "Create a trade order",
       "method": "createOrder",
