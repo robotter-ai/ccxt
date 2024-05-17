@@ -1526,12 +1526,12 @@ export default class cube extends Exchange {
             }
             const cost = decimalFilledAmount * price;
             const feeCost = decimalAmount * rate;
-            let average = undefined;
-            if (price !== undefined && price.toString ().split ('.').length === 1) {
-                average = this.parseToNumeric (price.toString () + '.0000001');
-            } else {
-                average = price;
-            }
+            // let average = undefined;
+            // if (price !== undefined && price.toString ().split ('.').length === 1) {
+            //     average = this.parseToNumeric (price.toString () + '.0000001');
+            // } else {
+            //     average = price;
+            // }
             return this.safeOrder ({
                 'id': exchangeOrderId,
                 'clientOrderId': clientOrderId,
@@ -1544,7 +1544,7 @@ export default class cube extends Exchange {
                 'timeInForce': timeInForce,
                 'side': orderSide,
                 'price': price,
-                'average': average,
+                'average': undefined,
                 'amount': decimalAmount,
                 'filled': decimalFilledAmount,
                 'remaining': decimalRemainingAmount,
