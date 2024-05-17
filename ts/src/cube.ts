@@ -7,6 +7,7 @@ import {
     BadRequest,
     BadSymbol,
     InvalidOrder,
+    OrderNotFound,
 } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import {
@@ -1417,9 +1418,7 @@ export default class cube extends Exchange {
         if (transactionType === 'creation') {
             orderStatus = this.safeString (order, 'orderStatus');
             if (orderStatus === 'rejected') {
-                return this.safeOrder ({
-                    'status': orderStatus,
-                });
+                throw new InvalidOrder ('Order was rejected');
             }
             if (orderStatus === 'filled') {
                 fetchedOrder = this.safeDict (order, 'order');
@@ -1562,7 +1561,7 @@ export default class cube extends Exchange {
             finalOrder['fees'] = this.safeDict (finalOrder, 'fee');
             return this.safeOrder (finalOrder);
         } else {
-            return this.safeOrder ({});
+            throw new OrderNotFound('Order not found');
         }
     }
 
