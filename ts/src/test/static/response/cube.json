@@ -29697,7 +29697,7 @@
       ]
     },
     "withdraw": {
-      "description": "Fill this with a description of the method call",
+      "description": "Make a withdrawal",
       "method": "withdraw",
       "input": [
         80005,
