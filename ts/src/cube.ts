@@ -1106,7 +1106,10 @@ export default class cube extends Exchange {
         const market = this.safeDict (meta, 'market');
         const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
         const quantityTickSize = this.safeNumber (this.safeDict (market, 'info'), 'quantityTickSize');
-        const exchangeAmount = this.parseToInt (amount * 1 / quantityTickSize);
+        let exchangeAmount = undefined;
+        if (quantityTickSize !== 0) {
+            exchangeAmount = this.parseToInt (amount / quantityTickSize);
+        }
         let exchangeOrderType = undefined;
         if (type === 'limit') {
             exchangeOrderType = 0;
@@ -1147,7 +1150,11 @@ export default class cube extends Exchange {
         };
         const priceTickSize = this.safeNumber (this.safeDict (market, 'info'), 'priceTickSize');
         if (price !== undefined) {
-            request['price'] = this.parseToInt (price * 1 / priceTickSize);
+            let lamportPrice = undefined;
+            if (priceTickSize !== 0) {
+                lamportPrice = this.parseToInt (price / priceTickSize);
+            }
+            request['price'] = lamportPrice;
         }
         this.injectSubAccountId (request, params);
         const response = await this.restOsmiumPrivatePostOrder (this.extend (request, params));
@@ -1480,7 +1487,9 @@ export default class cube extends Exchange {
             if (rawPrice === undefined || orderType === 'market') {
                 price = 0;
             } else {
-                price = rawPrice / (1 / priceTickSize);
+                if (priceTickSize !== 0) {
+                    price = rawPrice / priceTickSize;
+                }
             }
             let amount = undefined;
             amount = this.safeInteger (fetchedOrder, 'quantity');
@@ -1507,11 +1516,22 @@ export default class cube extends Exchange {
                 rate = this.safeNumber (tradeFeeRatios, 'taker');
             }
             const quantityTickSize = this.safeNumber (this.safeDict (market, 'info'), 'quantityTickSize');
-            const decimalAmount = amount / (1 / quantityTickSize);
-            const decimalFilledAmount = filledAmount / (1 / quantityTickSize);
-            const decimalRemainingAmount = remainingAmount / (1 / quantityTickSize);
+            let decimalAmount = undefined;
+            let decimalFilledAmount = undefined;
+            let decimalRemainingAmount = undefined;
+            if (quantityTickSize !== 0) {
+                decimalAmount = amount / quantityTickSize;
+                decimalFilledAmount = filledAmount / quantityTickSize;
+                decimalRemainingAmount = remainingAmount / quantityTickSize;
+            }
             const cost = decimalFilledAmount * price;
             const feeCost = decimalAmount * rate;
+            let average = undefined;
+            if (price !== undefined && price.toString ().split ('.').length === 1) {
+                average = this.parseToNumeric (price.toString () + '.0000001');
+            } else {
+                average = price;
+            }
             return this.safeOrder ({
                 'id': exchangeOrderId,
                 'clientOrderId': clientOrderId,
@@ -1524,7 +1544,7 @@ export default class cube extends Exchange {
                 'timeInForce': timeInForce,
                 'side': orderSide,
                 'price': price,
-                'average': undefined,
+                'average': average,
                 'amount': decimalAmount,
                 'filled': decimalFilledAmount,
                 'remaining': decimalRemainingAmount,
@@ -1758,6 +1778,17 @@ export default class cube extends Exchange {
     }
 
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name bitopro#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @see https://cubexch.gitbook.io/cube-api/rest-iridium-api#users-subaccount-subaccount_id-fills
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
         const allOrders = await this.fetchOrders (symbol, since, limit, params);
         const myTrades = [];
         for (let i = 0; i < this.countItems (allOrders); i++) {
@@ -1823,6 +1854,14 @@ export default class cube extends Exchange {
     }
 
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name cube#fetchClosedOrders
+         * @description fetches a list of closed (or canceled) orders
+         * @see https://github.com/ccxt/ccxt/wiki/Manual#understanding-the-orders-api-design
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         const allOrders = await this.fetchOrders (symbol, since, limit, params);
         const closedOrders = [];
         for (let i = 0; i < this.countItems (allOrders); i++) {
@@ -1924,7 +1963,7 @@ export default class cube extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.fetchMarketMeta ();
         const request = {
-            'amount': amount.toString (),
+            'amount': amount,
             'destination': address,
             'assetId': code,
         };
