@@ -1516,9 +1516,9 @@ export default class cube extends Exchange {
                 rate = this.safeNumber (tradeFeeRatios, 'taker');
             }
             const quantityTickSize = this.safeNumber (this.safeDict (market, 'info'), 'quantityTickSize');
-            let decimalAmount = undefined;
-            let decimalFilledAmount = undefined;
-            let decimalRemainingAmount = undefined;
+            let decimalAmount = 0;
+            let decimalFilledAmount = 0;
+            let decimalRemainingAmount = 0;
             if (quantityTickSize !== 0) {
                 decimalAmount = amount / quantityTickSize;
                 decimalFilledAmount = filledAmount / quantityTickSize;
@@ -1532,7 +1532,7 @@ export default class cube extends Exchange {
             // } else {
             //     average = price;
             // }
-            return this.safeOrder ({
+            const finalOrder = {
                 'id': exchangeOrderId,
                 'clientOrderId': clientOrderId,
                 'datetime': this.iso8601 (timestampInMilliseconds),
@@ -1558,7 +1558,9 @@ export default class cube extends Exchange {
                 'info': {
                     'fetchedOrder': fetchedOrder,
                 },
-            });
+            };
+            finalOrder['fees'] = this.safeDict (finalOrder, 'fee');
+            return this.safeOrder (finalOrder);
         } else {
             return this.safeOrder ({});
         }
