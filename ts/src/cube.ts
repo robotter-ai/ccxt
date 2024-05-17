@@ -1106,7 +1106,10 @@ export default class cube extends Exchange {
         const market = this.safeDict (meta, 'market');
         const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
         const quantityTickSize = this.safeNumber (this.safeDict (market, 'info'), 'quantityTickSize');
-        const exchangeAmount = quantityTickSize != 0 ? this.parseToInt (amount / quantityTickSize) : undefined;
+        let exchangeAmount = undefined;
+        if (quantityTickSize !== 0) {
+            exchangeAmount = this.parseToInt (amount / quantityTickSize);
+        }
         let exchangeOrderType = undefined;
         if (type === 'limit') {
             exchangeOrderType = 0;
@@ -1147,7 +1150,11 @@ export default class cube extends Exchange {
         };
         const priceTickSize = this.safeNumber (this.safeDict (market, 'info'), 'priceTickSize');
         if (price !== undefined) {
-            request['price'] = priceTickSize != 0 ? this.parseToInt (price / priceTickSize): undefined;
+            let lamportPrice = undefined;
+            if (priceTickSize !== 0) {
+                lamportPrice = this.parseToInt (price / priceTickSize);
+            }
+            request['price'] = lamportPrice;
         }
         this.injectSubAccountId (request, params);
         const response = await this.restOsmiumPrivatePostOrder (this.extend (request, params));
@@ -1480,7 +1487,9 @@ export default class cube extends Exchange {
             if (rawPrice === undefined || orderType === 'market') {
                 price = 0;
             } else {
-                price = priceTickSize != 0 ? rawPrice / priceTickSize : undefined;
+                if (priceTickSize !== 0) {
+                    price = rawPrice / priceTickSize;
+                }
             }
             let amount = undefined;
             amount = this.safeInteger (fetchedOrder, 'quantity');
@@ -1507,9 +1516,14 @@ export default class cube extends Exchange {
                 rate = this.safeNumber (tradeFeeRatios, 'taker');
             }
             const quantityTickSize = this.safeNumber (this.safeDict (market, 'info'), 'quantityTickSize');
-            const decimalAmount = quantityTickSize != 0 ? amount / quantityTickSize : undefined;
-            const decimalFilledAmount = quantityTickSize != 0 ? filledAmount / quantityTickSize : undefined;
-            const decimalRemainingAmount = quantityTickSize != 0 ? remainingAmount / quantityTickSize : undefined;
+            let decimalAmount = undefined;
+            let decimalFilledAmount = undefined;
+            let decimalRemainingAmount = undefined;
+            if (quantityTickSize !== 0) {
+                decimalAmount = amount / quantityTickSize;
+                decimalFilledAmount = filledAmount / quantityTickSize;
+                decimalRemainingAmount = remainingAmount / quantityTickSize;
+            }
             const cost = decimalFilledAmount * price;
             const feeCost = decimalAmount * rate;
             return this.safeOrder ({
