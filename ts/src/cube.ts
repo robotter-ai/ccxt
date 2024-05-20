@@ -978,8 +978,8 @@ export default class cube extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = this.safeDict (response, 'result');
-        const allOrders = this.safeDict (response, 'allOrders');
+        const result = this.safeValue (response, 'result');
+        const allOrders = this.safeValue (response, 'allOrders');
         const openOrders = [];
         const filledUnsettledOrders = [];
         const allMarketsByNumericId = {};
