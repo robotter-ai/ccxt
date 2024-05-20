@@ -1108,7 +1108,7 @@ export default class cube extends Exchange {
         const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
         const quantityTickSize = this.safeNumber (this.safeDict (market, 'info'), 'quantityTickSize');
         let exchangeAmount = undefined;
-        if (quantityTickSize !== 0) {
+        if (quantityTickSize && quantityTickSize !== 0) {
             exchangeAmount = this.parseToInt (amount / quantityTickSize);
         }
         let exchangeOrderType = undefined;
@@ -1152,7 +1152,7 @@ export default class cube extends Exchange {
         const priceTickSize = this.safeNumber (this.safeDict (market, 'info'), 'priceTickSize');
         if (price !== undefined) {
             let lamportPrice = undefined;
-            if (priceTickSize !== 0) {
+            if (priceTickSize && priceTickSize !== 0) {
                 lamportPrice = this.parseToInt (price / priceTickSize);
             }
             request['price'] = lamportPrice;
@@ -1486,7 +1486,7 @@ export default class cube extends Exchange {
             if (rawPrice === undefined || orderType === 'market') {
                 price = 0;
             } else {
-                if (priceTickSize !== 0) {
+                if (priceTickSize && priceTickSize !== 0) {
                     price = rawPrice / priceTickSize;
                 }
             }
@@ -1518,7 +1518,7 @@ export default class cube extends Exchange {
             let decimalAmount = 0;
             let decimalFilledAmount = 0;
             let decimalRemainingAmount = 0;
-            if (quantityTickSize !== 0) {
+            if (quantityTickSize && quantityTickSize !== 0) {
                 decimalAmount = amount / quantityTickSize;
                 decimalFilledAmount = filledAmount / quantityTickSize;
                 decimalRemainingAmount = remainingAmount / quantityTickSize;
