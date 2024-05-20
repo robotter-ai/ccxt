@@ -1917,7 +1917,7 @@ export default class cube extends Exchange {
         let currency = undefined;
         if (symbol !== undefined) {
             currency = this.currency (symbol);
-            request['asset_symbol'] = currency['assetId'];
+            request['asset_symbol'] = this.safeString (this.safeDict (currency, 'info'), 'assetId');
         }
         if (limit !== undefined) {
             request['limit'] = limit;
