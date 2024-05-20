@@ -3,7 +3,7 @@
   "skipKeys": [],
   "options": {},
   "methods": {
-    "cancelAllOrders": {
+    "cancelAllOrders": [{
       "description": "Cancel all open orders",
       "method": "cancelAllOrders",
       "input": [
@@ -108,8 +108,8 @@
           }
         }
       }
-    },
-    "cancelOrder": {
+    }],
+    "cancelOrder": [{
       "description": "Cancels an open order",
       "method": "cancelOrder",
       "input": [
@@ -177,8 +177,8 @@
         "takeProfitPrice": null,
         "stopLossPrice": null
       }
-    },
-    "createOrder": {
+    }],
+    "createOrder": [{
       "description": "Create a trade order",
       "method": "createOrder",
       "input": [
@@ -302,8 +302,8 @@
         "takeProfitPrice": null,
         "stopLossPrice": null
       }
-    },
-    "fetchBalance": {
+    }],
+    "fetchBalance": [{
       "description": "Query for balance and get the amount of funds available for trading or funds locked in orders",
       "method": "fetchBalance",
       "input": [
@@ -3313,8 +3313,8 @@
           "total": 145.852919
         }
       }
-    },
-    "fetchClosedOrders": {
+    }],
+    "fetchClosedOrders": [{
       "description": "Fetches a list of closed (or canceled) orders",
       "method": "fetchClosedOrders",
       "input": [
@@ -6265,8 +6265,8 @@
         }
       },
       "parsedResponse": []
-    },
-    "fetchCurrencies": {
+    }],
+    "fetchCurrencies": [{
       "description": "Fetches all available currencies on an exchange",
       "method": "fetchCurrencies",
       "input": [],
@@ -14057,8 +14057,8 @@
           }
         }
       }
-    },
-    "fetchDeposits": {
+    }],
+    "fetchDeposits": [{
       "description": "Fetch all deposits made to an account",
       "method": "fetchDeposits",
       "input": [
@@ -14125,8 +14125,8 @@
           "internal": null
         }
       ]
-    },
-    "fetchMarkets": {
+    }],
+    "fetchMarkets": [{
       "description": "Retrieves data on all markets for cube",
       "method": "fetchMarkets",
       "input": [],
@@ -19965,8 +19965,8 @@
           "created": null
         }
       ]
-    },
-    "fetchMyTrades": {
+    }],
+    "fetchMyTrades": [{
       "description": "Fetch all trades made by the user",
       "method": "fetchMyTrades",
       "input": [
@@ -20163,8 +20163,8 @@
         }
       },
       "parsedResponse": []
-    },
-    "fetchOHLCV": {
+    }],
+    "fetchOHLCV": [{
       "description": "Fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market",
       "method": "fetchOHLCV",
       "input": [
@@ -21776,8 +21776,8 @@
           33980
         ]
       ]
-    },
-    "fetchOpenOrders": {
+    }],
+    "fetchOpenOrders": [{
       "description": "Fetch all unfilled currently open orders",
       "method": "fetchOpenOrders",
       "input": [
@@ -21864,8 +21864,8 @@
           "stopLossPrice": null
         }
       ]
-    },
-    "fetchOrder": {
+    }],
+    "fetchOrder": [{
       "description": "Fetches information on an order made by the user",
       "method": "fetchOrder",
       "input": [
@@ -21924,8 +21924,8 @@
         "status": null,
         "fee": null
       }
-    },
-    "fetchOrderBook": {
+    }],
+    "fetchOrderBook": [{
       "description": "Fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data",
       "method": "fetchOrderBook",
       "input": [
@@ -22283,8 +22283,8 @@
         "datetime": "2024-05-15T14:36:03.447Z",
         "nonce": null
       }
-    },
-    "fetchStatus": {
+    }],
+    "fetchStatus": [{
       "description": "The latest known information on the availability of the exchange API",
       "method": "fetchStatus",
       "input": [],
@@ -25216,8 +25216,8 @@
         "url": null,
         "info": null
       }
-    },
-    "fetchTicker": {
+    }],
+    "fetchTicker": [{
       "description": "Fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market",
       "method": "fetchTicker",
       "input": [
@@ -25990,8 +25990,8 @@
           "open": "61392.0"
         }
       }
-    },
-    "fetchTrades": {
+    }],
+    "fetchTrades": [{
         "description": "Get the list of most recent trades for a particular symbol",
         "method": "fetchTrades",
         "input": [
@@ -29592,8 +29592,8 @@
           ]
         }
       ]
-    },
-    "fetchTradingFee": {
+    }],
+    "fetchTradingFee": [{
       "description": "Fetch the trading fees for a market",
       "method": "fetchTradingFee",
       "input": [
@@ -29625,8 +29625,8 @@
         "percentage": null,
         "tierBased": null
       }
-    },
-    "fetchWithdrawals": {
+    }],
+    "fetchWithdrawals": [{
       "description": "Fetch all withdrawals made from an account",
       "method": "fetchWithdrawals",
       "input": [
@@ -29695,8 +29695,8 @@
           "internal": null
         }
       ]
-    },
-    "withdraw": {
+    }],
+    "withdraw": [{
       "description": "Make a withdrawal",
       "method": "withdraw",
       "input": [
@@ -29720,6 +29720,6 @@
           "approved": true
         }
       }
-    }
+    }]
   }
 }
