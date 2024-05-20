@@ -1561,7 +1561,7 @@ export default class cube extends Exchange {
             finalOrder['fees'] = this.safeDict (finalOrder, 'fee');
             return this.safeOrder (finalOrder);
         } else {
-            throw new OrderNotFound('Order not found');
+            throw new OrderNotFound ('Order not found');
         }
     }
 
