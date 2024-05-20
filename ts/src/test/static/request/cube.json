@@ -146,9 +146,9 @@
     "fetchOrderBook": [{
       "description": "Fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data",
       "method": "fetchOrderBook",
-      "url": "https://api.cube.exchange/md/v0/parsed/book/BTCUSDC/snapshot",
+      "url": "https://staging.cube.exchange/md/v0/parsed/book/tBTCtUSDC/snapshot",
       "input": [
-        "BTC/USDC"
+        "tBTC/tUSDC"
       ]
     }],
     "fetchStatus": [{
@@ -160,17 +160,17 @@
     "fetchTicker": [{
       "description": "Fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market",
       "method": "fetchTicker",
-      "url": "https://api.cube.exchange/md/v0/parsed/tickers",
+      "url": "https://staging.cube.exchange/md/v0/parsed/tickers",
       "input": [
-        "BTC/USDC"
+        "tBTC/tUSDC"
       ]
     }],
     "fetchTrades": [{
       "description": "Get the list of most recent trades for a particular symbol",
       "method": "fetchTrades",
-      "url": "https://api.cube.exchange/md/v0/parsed/book/BTCUSDC/recent-trades",
+      "url": "https://staging.cube.exchange/md/v0/parsed/book/tBTCtUSDC/recent-trades",
       "input": [
-        "BTC/USDC"
+        "tBTC/tUSDC"
       ]
     }],
     "fetchTradingFee": [{
