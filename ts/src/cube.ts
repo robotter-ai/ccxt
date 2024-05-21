@@ -1160,7 +1160,7 @@ export default class cube extends Exchange {
             'postOnly': this.safeInteger (params, 'postOnly', 0),
             'cancelOnDisconnect': this.safeBool (params, 'cancelOnDisconnect', false),
         };
-        const priceTickSize = this.safeNumber (this.safeDict (market, 'info'), 'priceTickSize');
+        const priceTickSize = this.parseToNumeric (this.safeValue (this.safeDict (market, 'info'), 'priceTickSize'));
         if (price !== undefined) {
             let lamportPrice = undefined;
             if (priceTickSize && priceTickSize !== 0) {
@@ -1491,7 +1491,7 @@ export default class cube extends Exchange {
             } else if (timeInForceRaw === 2) {
                 timeInForce = 'FOK';
             }
-            const priceTickSize = this.safeNumber (this.safeDict (market, 'info'), 'priceTickSize');
+            const priceTickSize = this.parseToNumeric (this.safeValue (this.safeDict (market, 'info'), 'priceTickSize'));
             const rawPrice = this.safeInteger (fetchedOrder, 'price');
             let price = undefined;
             if (rawPrice === undefined || orderType === 'market') {
@@ -1525,7 +1525,7 @@ export default class cube extends Exchange {
             } else if (orderSide === 'sell') {
                 rate = this.safeNumber (tradeFeeRatios, 'taker');
             }
-            const quantityTickSize = this.safeNumber (this.safeDict (market, 'info'), 'quantityTickSize');
+            const quantityTickSize = this.parseToNumeric (this.safeValue (this.safeDict (market, 'info'), 'quantityTickSize'));
             let decimalAmount = 0;
             let decimalFilledAmount = 0;
             let decimalRemainingAmount = 0;
