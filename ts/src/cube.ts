@@ -684,8 +684,8 @@ export default class cube extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.countDecimalPlaces (this.safeString (market, 'quantityTickSize')),
-                'price': this.countDecimalPlaces (this.safeString (market, 'priceTickSize')),
+                'amount': this.precisionFromString (this.safeString (market, 'quantityTickSize')),
+                'price': this.precisionFromString (this.safeString (market, 'priceTickSize')),
                 'cost': undefined,
                 'base': undefined,
                 'quote': undefined,
@@ -2158,14 +2158,5 @@ export default class cube extends Exchange {
             counter = this.countWithLoop (this.stringToCharsArray (input));
         }
         return counter;
-    }
-
-    countDecimalPlaces (number) {
-        const numberString = number.toString ();
-        if (numberString.indexOf ('.') === -1) {
-            return 0;
-        }
-        const parts = numberString.split ('.');
-        return parts[1].length;
     }
 }
