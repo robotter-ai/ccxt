@@ -2155,7 +2155,7 @@ export default class cube extends Exchange {
             const keys = Object.keys (input);
             counter = this.countWithLoop (keys);
         } else if (typeof input === 'string') {
-            counter = this.countWithLoop (input.split (''));
+            counter = this.countWithLoop (this.stringToCharsArray (input));
         }
         return counter;
     }
