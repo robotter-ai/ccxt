@@ -309,7 +309,7 @@ export default class cube extends Exchange {
     removeNonBase16Chars (input: string): string {
         const base16Chars = '0123456789abcdefABCDEF';
         let result = '';
-        for (let i = 0; i < input.length; i++) {
+        for (let i = 0; i < this.countItems (input); i++) {
             if (base16Chars.indexOf (input[i]) !== -1) {
                 result += input[i];
             }
