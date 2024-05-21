@@ -1112,7 +1112,7 @@ class testMainClass(baseMainTestClass):
             'httpProxy': 'http://fake:8080',
             'httpsProxy': 'http://fake:8080',
             'apiKey': 'key',
-            'secret': '0123456789abcdef',
+            'secret': 'secretsecret',
             'password': 'password',
             'walletAddress': 'wallet',
             'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771',
