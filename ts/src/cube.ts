@@ -2140,22 +2140,22 @@ export default class cube extends Exchange {
     }
 
     countWithLoop (items) {
-        let count = 0;
+        let counter = 0;
         for (let i = 0; i < items.length; i++) {
-            count += 1;
+            counter += 1;
         }
-        return count;
+        return counter;
     }
 
     countItems (input) {
-        let count = 0;
+        let counter = 0;
         if (Array.isArray (input)) {
-            count = this.countWithLoop (input);
+            counter = this.countWithLoop (input);
         } else if (typeof input === 'object' && input !== undefined) {
             const keys = Object.keys (input);
-            count = this.countWithLoop (keys);
+            counter = this.countWithLoop (keys);
         }
-        return count;
+        return counter;
     }
 
     countDecimalPlaces (number) {
