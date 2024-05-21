@@ -306,10 +306,21 @@ export default class cube extends Exchange {
         });
     }
 
+    removeNonBase16Chars (input: string): string {
+        const base16Chars = '0123456789abcdefABCDEF';
+        let result = '';
+        for (let i = 0; i < input.length; i++) {
+            if (base16Chars.indexOf (input[i]) !== -1) {
+                result += input[i];
+            }
+        }
+        return result;
+    }
+
     generateSignature () {
         const timestamp = this.seconds ();
         const timestampBytes = this.numberToLE (timestamp, 8);
-        const secretKeyBytes = this.base16ToBinary (this.secret);
+        const secretKeyBytes = this.base16ToBinary (this.removeNonBase16Chars (this.secret));
         const message = this.binaryConcat (this.encode ('cube.xyz'), timestampBytes);
         const signature = this.hmac (message, secretKeyBytes, sha256, 'base64');
         return [ signature, timestamp ];
