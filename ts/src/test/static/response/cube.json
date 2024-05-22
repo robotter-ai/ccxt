@@ -7276,13 +7276,11 @@
             "cost": 0.00008,
             "rate": 0.0008
           },
-          "fees": [
-            {
-              "currency": "TUSDC",
-              "cost": 0.00008,
-              "rate": 0.0008
-            }
-          ],
+          "fees": {
+            "currency": "TUSDC",
+            "cost": 0.00008,
+            "rate": 0.0008
+          },
           "lastUpdateTimestamp": null,
           "postOnly": false,
           "reduceOnly": null,
