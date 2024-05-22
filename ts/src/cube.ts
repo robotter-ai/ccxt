@@ -1498,7 +1498,7 @@ export default class cube extends Exchange {
                 price = 0;
             } else {
                 if (priceTickSize && priceTickSize !== 0) {
-                    price = rawPrice / priceTickSize;
+                    price = rawPrice * priceTickSize;
                 }
             }
             let amount = undefined;
@@ -1530,9 +1530,9 @@ export default class cube extends Exchange {
             let decimalFilledAmount = 0;
             let decimalRemainingAmount = 0;
             if (quantityTickSize && quantityTickSize !== 0) {
-                decimalAmount = amount / quantityTickSize;
-                decimalFilledAmount = filledAmount / quantityTickSize;
-                decimalRemainingAmount = remainingAmount / quantityTickSize;
+                decimalAmount = amount * quantityTickSize;
+                decimalFilledAmount = filledAmount * quantityTickSize;
+                decimalRemainingAmount = remainingAmount * quantityTickSize;
             }
             const cost = decimalFilledAmount * price;
             const feeCost = decimalAmount * rate;
