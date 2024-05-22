@@ -15,32 +15,11 @@
       "url": "https://api.cube.exchange/ir/v0/markets",
       "input": []
     }],
-    "fetchOpenOrders": [{
-      "description": "Fetch all unfilled currently open orders",
-      "method": "fetchOpenOrders",
-      "url": "https://staging.cube.exchange/os/v0/orders?subaccountId=175",
-      "input": [
-        "tSOL/tUSDC",
-        null,
-        1,
-        {
-          "subaccountId": 175
-        }
-      ]
-    }],
     "fetchStatus": [{
       "description": "The latest known information on the availability of the exchange API",
       "method": "fetchStatus",
       "url": "https://api.cube.exchange/ir/v0/markets",
       "input": []
-    }],
-    "fetchTicker": [{
-      "description": "Fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market",
-      "method": "fetchTicker",
-      "url": "https://staging.cube.exchange/md/v0/parsed/tickers",
-      "input": [
-        "tBTC/tUSDC"
-      ]
     }]
   }
 }
