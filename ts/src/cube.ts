@@ -306,10 +306,21 @@ export default class cube extends Exchange {
         });
     }
 
+    removeNonBase16Chars (input: string): string {
+        const base16Chars = '0123456789abcdefABCDEF';
+        let result = '';
+        for (let i = 0; i < this.countItems (input); i++) {
+            if (base16Chars.indexOf (input[i]) !== -1) {
+                result += input[i];
+            }
+        }
+        return result;
+    }
+
     generateSignature () {
         const timestamp = this.seconds ();
         const timestampBytes = this.numberToLE (timestamp, 8);
-        const secretKeyBytes = this.base16ToBinary (this.secret);
+        const secretKeyBytes = this.base16ToBinary (this.removeNonBase16Chars (this.secret));
         const message = this.binaryConcat (this.encode ('cube.xyz'), timestampBytes);
         const signature = this.hmac (message, secretKeyBytes, sha256, 'base64');
         return [ signature, timestamp ];
@@ -673,8 +684,8 @@ export default class cube extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.countDecimalPlaces (this.safeString (market, 'quantityTickSize')),
-                'price': this.countDecimalPlaces (this.safeString (market, 'priceTickSize')),
+                'amount': this.precisionFromString (this.safeString (market, 'quantityTickSize')),
+                'price': this.precisionFromString (this.safeString (market, 'priceTickSize')),
                 'cost': undefined,
                 'base': undefined,
                 'quote': undefined,
@@ -978,8 +989,8 @@ export default class cube extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = this.safeDict (response, 'result');
-        const allOrders = this.safeDict (response, 'allOrders');
+        const result = this.safeValue (response, 'result');
+        const allOrders = this.safeValue (response, 'allOrders');
         const openOrders = [];
         const filledUnsettledOrders = [];
         const allMarketsByNumericId = {};
@@ -1108,7 +1119,7 @@ export default class cube extends Exchange {
         const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
         const quantityTickSize = this.safeNumber (this.safeDict (market, 'info'), 'quantityTickSize');
         let exchangeAmount = undefined;
-        if (quantityTickSize !== 0) {
+        if (quantityTickSize && quantityTickSize !== 0) {
             exchangeAmount = this.parseToInt (amount / quantityTickSize);
         }
         let exchangeOrderType = undefined;
@@ -1149,10 +1160,10 @@ export default class cube extends Exchange {
             'postOnly': this.safeInteger (params, 'postOnly', 0),
             'cancelOnDisconnect': this.safeBool (params, 'cancelOnDisconnect', false),
         };
-        const priceTickSize = this.safeNumber (this.safeDict (market, 'info'), 'priceTickSize');
+        const priceTickSize = this.parseToNumeric (this.safeValue (this.safeDict (market, 'info'), 'priceTickSize'));
         if (price !== undefined) {
             let lamportPrice = undefined;
-            if (priceTickSize !== 0) {
+            if (priceTickSize && priceTickSize !== 0) {
                 lamportPrice = this.parseToInt (price / priceTickSize);
             }
             request['price'] = lamportPrice;
@@ -1480,14 +1491,14 @@ export default class cube extends Exchange {
             } else if (timeInForceRaw === 2) {
                 timeInForce = 'FOK';
             }
-            const priceTickSize = this.safeNumber (this.safeDict (market, 'info'), 'priceTickSize');
+            const priceTickSize = this.parseToNumeric (this.safeValue (this.safeDict (market, 'info'), 'priceTickSize'));
             const rawPrice = this.safeInteger (fetchedOrder, 'price');
             let price = undefined;
             if (rawPrice === undefined || orderType === 'market') {
                 price = 0;
             } else {
-                if (priceTickSize !== 0) {
-                    price = rawPrice / priceTickSize;
+                if (priceTickSize && priceTickSize !== 0) {
+                    price = rawPrice * priceTickSize;
                 }
             }
             let amount = undefined;
@@ -1514,14 +1525,14 @@ export default class cube extends Exchange {
             } else if (orderSide === 'sell') {
                 rate = this.safeNumber (tradeFeeRatios, 'taker');
             }
-            const quantityTickSize = this.safeNumber (this.safeDict (market, 'info'), 'quantityTickSize');
+            const quantityTickSize = this.parseToNumeric (this.safeValue (this.safeDict (market, 'info'), 'quantityTickSize'));
             let decimalAmount = 0;
             let decimalFilledAmount = 0;
             let decimalRemainingAmount = 0;
-            if (quantityTickSize !== 0) {
-                decimalAmount = amount / quantityTickSize;
-                decimalFilledAmount = filledAmount / quantityTickSize;
-                decimalRemainingAmount = remainingAmount / quantityTickSize;
+            if (quantityTickSize && quantityTickSize !== 0) {
+                decimalAmount = amount * quantityTickSize;
+                decimalFilledAmount = filledAmount * quantityTickSize;
+                decimalRemainingAmount = remainingAmount * quantityTickSize;
             }
             const cost = decimalFilledAmount * price;
             const feeCost = decimalAmount * rate;
@@ -1917,7 +1928,7 @@ export default class cube extends Exchange {
         let currency = undefined;
         if (symbol !== undefined) {
             currency = this.currency (symbol);
-            request['asset_symbol'] = currency['assetId'];
+            request['asset_symbol'] = this.safeString (this.safeDict (currency, 'info'), 'assetId');
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2129,30 +2140,23 @@ export default class cube extends Exchange {
     }
 
     countWithLoop (items) {
-        let count = 0;
+        let counter = 0;
         for (let i = 0; i < items.length; i++) {
-            count += 1;
+            counter += 1;
         }
-        return count;
+        return counter;
     }
 
     countItems (input) {
-        let count = 0;
+        let counter = 0;
         if (Array.isArray (input)) {
-            count = this.countWithLoop (input);
+            counter = this.countWithLoop (input);
         } else if (typeof input === 'object' && input !== undefined) {
             const keys = Object.keys (input);
-            count = this.countWithLoop (keys);
+            counter = this.countWithLoop (keys);
+        } else if (typeof input === 'string') {
+            counter = this.countWithLoop (this.stringToCharsArray (input));
         }
-        return count;
-    }
-
-    countDecimalPlaces (number) {
-        const numberString = number.toString ();
-        if (numberString.indexOf ('.') === -1) {
-            return 0;
-        }
-        const parts = numberString.split ('.');
-        return parts[1].length;
+        return counter;
     }
 }

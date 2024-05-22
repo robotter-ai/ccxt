@@ -1,124 +1,21 @@
 {
   "exchange": "cube",
-  "skipKeys": [],
+  "skipKeys": ["clientOrderId", "marketId"],
   "outputType": "json",
   "methods": {
-    "cancelAllOrders": {
-      "description": "Cancel all open orders",
-      "method": "cancelAllOrders",
-      "url": "https://staging.cube.exchange/os/v0/orders",
-      "input": [
-        "tSOL/tUSDC",
-        {
-          "subaccountId": 175,
-          "requestId": 1
-        }
-      ],
-      "output": "{\"marketId\":200047,\"requestId\":1,\"subaccountId\":175}"
-    },
-    "cancelOrder": {
-      "description": "Cancels an open order",
-      "method": "cancelOrder",
-      "url": "https://staging.cube.exchange/os/v0/order",
-      "input": [
-        5790823375,
-        "tSOL/tUSDC",
-        {
-          "subaccountId": 175,
-          "clientOrderId": 1715955267396,
-          "requestId": 1,
-          "marketId": 200047
-        }
-      ],
-      "output": "{\"clientOrderId\":1715954465193,\"requestId\":1,\"marketId\":200047,\"subaccountId\":175}"
-    },
-    "createOrder": {
-      "description": "Create a trade order",
-      "method": "createOrder",
-      "url": "https://staging.cube.exchange/os/v0/orders?subaccountId=175",
-      "input": [
-        "tSOL/tUSDC",
-        "limit",
-        "buy",
-        0.1,
-        140,
-        {
-          "subaccountId": 175,
-          "requestId": 1,
-          "selfTradePrevention": 0,
-          "postOnly": 0,
-          "timeInForce": 1,
-          "cancelOnDisconnect": false
-        }
-      ]
-    },
-    "fetchBalance": {
-      "description": "Query for balance and get the amount of funds available for trading or funds locked in orders",
-      "method": "fetchBalance",
-      "url": "https://staging.cube.exchange/ir/v0/users/subaccount/175/orders",
-      "input": [
-        {
-          "subaccountId": 175
-        }
-      ]
-    },
-    "fetchClosedOrders": {
-      "description": "Fetches a list of closed (or canceled) orders",
-      "method": "fetchClosedOrders",
-      "url": "https://staging.cube.exchange/ir/v0/users/subaccount/175/orders",
-      "input": [
-        "tBTC/tUSDC",
-        {
-          "subaccountId": 175
-        }
-      ]
-    },
-    "fetchCurrencies": {
+    "fetchCurrencies": [{
       "description": "Fetches all available currencies on an exchange",
       "method": "fetchCurrencies",
       "url": "https://api.cube.exchange/ir/v0/markets",
       "input": []
-    },
-    "fetchDeposits": {
-      "description": "Fetch all deposits made to an account",
-      "method": "fetchDeposits",
-      "url": "https://staging.cube.exchange/ir/v0/users/subaccount/175/deposits?",
-      "input": [
-        "TSOL",
-        null,
-        null,
-        {
-          "subaccountId": 175
-        }
-      ]
-    },
-    "fetchMarkets": {
+    }],
+    "fetchMarkets": [{
       "description": "Retrieves data on all markets for cube",
       "method": "fetchMarkets",
       "url": "https://api.cube.exchange/ir/v0/markets",
       "input": []
-    },
-    "fetchMyTrades": {
-      "description": "Fetch all trades made by the user",
-      "method": "fetchMyTrades",
-      "input": [
-        "tsoltusdc",
-        null,
-        1,
-        {
-          "subaccountId": 161
-        }
-      ]
-    },
-    "fetchOHLCV": {
-      "description": "Fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market",
-      "method": "fetchOHLCV",
-      "url": "https://api.cube.exchange/ir/v0/history/klines?interval=1m&marketId=100004",
-      "input": [
-        "BTC/USDC"
-      ]
-    },
-    "fetchOpenOrders": {
+    }],
+    "fetchOpenOrders": [{
       "description": "Fetch all unfilled currently open orders",
       "method": "fetchOpenOrders",
       "url": "https://staging.cube.exchange/os/v0/orders?subaccountId=175",
@@ -130,85 +27,20 @@
           "subaccountId": 175
         }
       ]
-    },
-    "fetchOrder": {
-      "description": "Fetches information on an order made by the user",
-      "method": "fetchOrder",
-      "url": "https://staging.cube.exchange/os/v0/orders?subaccountId=175",
-      "input": [
-        5779261924,
-        "tSOL/tUSDC",
-        {
-          "subaccountId": 175
-        }
-      ]
-    },
-    "fetchOrderBook": {
-      "description": "Fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data",
-      "method": "fetchOrderBook",
-      "url": "https://api.cube.exchange/md/v0/parsed/book/BTCUSDC/snapshot",
-      "input": [
-        "BTC/USDC"
-      ]
-    },
-    "fetchStatus": {
+    }],
+    "fetchStatus": [{
       "description": "The latest known information on the availability of the exchange API",
       "method": "fetchStatus",
       "url": "https://api.cube.exchange/ir/v0/markets",
       "input": []
-    },
-    "fetchTicker": {
+    }],
+    "fetchTicker": [{
       "description": "Fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market",
       "method": "fetchTicker",
-      "url": "https://api.cube.exchange/md/v0/parsed/tickers",
+      "url": "https://staging.cube.exchange/md/v0/parsed/tickers",
       "input": [
-        "BTC/USDC"
+        "tBTC/tUSDC"
       ]
-    },
-    "fetchTrades": {
-      "description": "Get the list of most recent trades for a particular symbol",
-      "method": "fetchTrades",
-      "url": "https://api.cube.exchange/md/v0/parsed/book/BTCUSDC/recent-trades",
-      "input": [
-        "BTC/USDC"
-      ]
-    },
-    "fetchTradingFee": {
-      "description": "Fetch the trading fees for a market",
-      "method": "fetchTradingFee",
-      "url": "https://staging.cube.exchange/ir/v0/users/fee-estimate/200047?subaccountId=175",
-      "input": [
-        "tSOL/tUSDC",
-        {
-          "subaccountId": 175
-        }
-      ]
-    },
-    "fetchWithdrawals": {
-      "description": "Fetch all withdrawals made from an account",
-      "method": "fetchWithdrawals",
-      "url": "https://staging.cube.exchange/ir/v0/users/subaccount/175/withdrawals?assetId=tsol",
-      "input": [
-        "TSOL",
-        null,
-        null,
-        {
-          "subaccountId": 175
-        }
-      ]
-    },
-    "withdraw": {
-      "description": "Make a withdrawal",
-      "method": "withdraw",
-      "input": [
-        80005,
-        1,
-        "6khUqefutr3xA6fEUnZfRMRGwER8BBTZZFFgBPhuUyyp",
-        null,
-        {
-          "subaccountId": 161
-        }
-      ]
-    }
+    }]
   }
 }
