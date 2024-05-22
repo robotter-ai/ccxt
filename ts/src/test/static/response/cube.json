@@ -7235,21 +7235,6 @@
         "result": {
           "orders": [
             {
-              "clientOrderId": "1715882473058",
-              "exchangeOrderId": "5779261924",
-              "marketId": "200047",
-              "price": "13000",
-              "orderQuantity": "1000",
-              "side": "0",
-              "timeInForce": "1",
-              "orderType": "0",
-              "remainingQuantity": "1000",
-              "restTime": "1715882473272272035",
-              "subaccountId": "175",
-              "cumulativeQuantity": "0",
-              "cancelOnDisconnect": false
-            },
-            {
               "clientOrderId": "1715883148170",
               "exchangeOrderId": "5779420130",
               "marketId": "200047",
@@ -7304,7 +7289,24 @@
           "stopPrice": null,
           "triggerPrice": null,
           "takeProfitPrice": null,
-          "stopLossPrice": null
+          "stopLossPrice": null,
+          "info": {
+            "fetchedOrder": {
+              "clientOrderId": "1715883148170",
+              "exchangeOrderId": "5779420130",
+              "marketId": "200047",
+              "price": "16000",
+              "orderQuantity": "1000",
+              "side": "1",
+              "timeInForce": "1",
+              "orderType": "0",
+              "remainingQuantity": "1000",
+              "restTime": "1715883148405397662",
+              "subaccountId": "175",
+              "cumulativeQuantity": "0",
+              "cancelOnDisconnect": false
+            }
+          }
         }
       ]
     }],
