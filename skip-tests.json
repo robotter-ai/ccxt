@@ -797,10 +797,6 @@
         }
     },
     "cube": {
-        "skip": true,
-        "skipWs": true,
-        "skipCSharp": true,
-        "skipPhpAsync": true
     },
     "currencycom": {
         "skipMethods": {
