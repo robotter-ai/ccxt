@@ -1959,7 +1959,7 @@ export default class cube extends Exchange {
         //   },
         //
         const deposits = this.safeList (this.safeDict (this.safeDict (response, 'result'), subAccountId), 'inner', []);
-        return [ this.parseTransaction (deposits, currency) ];
+        return this.parseTransactions (deposits, currency, since, limit, params);
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
@@ -2032,6 +2032,7 @@ export default class cube extends Exchange {
             request['limit'] = limit;
         }
         this.injectSubAccountId (request, params);
+        const subAccountId = this.safeString (request, 'subaccountId');
         const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdWithdrawals (this.extend (request, params));
         //
         // result: {
@@ -2052,8 +2053,8 @@ export default class cube extends Exchange {
         //     },
         //   },
         //
-        const result = this.safeValue (response, 'result', {});
-        return [ this.parseTransaction (result, currency) ];
+        const withdrawals = this.safeList (this.safeDict (this.safeDict (response, 'result'), subAccountId), 'inner', []);
+        return this.parseTransactions (withdrawals, currency, since, limit, params);
     }
 
     parseTransaction (transaction, currency: Currency = undefined): Transaction {
