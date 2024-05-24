@@ -1934,6 +1934,7 @@ export default class cube extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        this.injectSubAccountId (request, params);
         const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdDeposits (this.extend (request, params));
         //
         // result: {
