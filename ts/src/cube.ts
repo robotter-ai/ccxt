@@ -1935,6 +1935,7 @@ export default class cube extends Exchange {
             request['limit'] = limit;
         }
         this.injectSubAccountId (request, params);
+        const subAccountId = this.safeString (request, 'subaccountId');
         const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdDeposits (this.extend (request, params));
         //
         // result: {
@@ -1957,7 +1958,7 @@ export default class cube extends Exchange {
         //     },
         //   },
         //
-        const deposits = this.safeList (response, 'inner', []);
+        const deposits = this.safeList (this.safeDict (this.safeDict (response, 'result'), subAccountId), 'inner', []);
         return [ this.parseTransaction (deposits, currency) ];
     }
 
