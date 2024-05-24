@@ -647,6 +647,7 @@ export default class cube extends Exchange {
 
     parseMarket (market): Market {
         const id = this.safeString (market, 'symbol').toUpperCase ();
+        // TODO Expose this object globally for the exchange so the currencies can be retrieved in O(1) time
         const currenciesByNumericId = {};
         for (let i = 0; i < this.countItems (this.currencies); i++) {
             const currenciesKeysArray = Object.keys (this.currencies);
@@ -2101,8 +2102,15 @@ export default class cube extends Exchange {
         //     },
         //   },
         //
-        const currencyId = this.safeString (transaction, 'assetId');
-        const code = this.safeCurrencyCode (currencyId);
+        // TODO Expose this object globally for the exchange so the currencies can be retrieved in O(1) time
+        const currenciesByNumericId = {};
+        for (let i = 0; i < this.countItems (this.currencies); i++) {
+            const currenciesKeysArray = Object.keys (this.currencies);
+            const targetCurrency = this.safeValue (this.currencies, currenciesKeysArray[i]);
+            const targetCurrencyNumericId = this.safeInteger (targetCurrency, 'numericId');
+            currenciesByNumericId[targetCurrencyNumericId] = targetCurrency;
+        }
+        const code = this.safeString (currenciesByNumericId[this.safeInteger (transaction, 'assetId')], 'code');
         const amount = this.safeNumber (transaction, 'amount');
         const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
         const updated = this.parse8601 (this.safeString (transaction, 'updatedAt'));
