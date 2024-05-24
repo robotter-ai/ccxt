@@ -1698,7 +1698,8 @@ export default class cube extends Exchange {
             'parsedTrades': this.safeList (this.safeDict (parsedRecentTradesResponse, 'result'), 'trades'),
         };
         const rawTrades = [ tradesAndParsedTrades ];
-        return this.parseTrades (rawTrades, market);
+        const parsedTrades = this.parseTrades (rawTrades, market);
+        return this.filterBySymbolSinceLimit (parsedTrades, symbol, since, limit);
     }
 
     parseTrades (trades, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
@@ -1794,7 +1795,7 @@ export default class cube extends Exchange {
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name bitopro#fetchMyTrades
+         * @name cube#fetchMyTrades
          * @description fetch all trades made by the user
          * @see https://cubexch.gitbook.io/cube-api/rest-iridium-api#users-subaccount-subaccount_id-fills
          * @param {string} symbol unified market symbol
@@ -1803,29 +1804,32 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
+        const meta = await this.fetchMarketMeta (symbol);
+        symbol = this.safeString (meta, 'symbol');
         const allOrders = await this.fetchOrders (symbol, since, limit, params);
         const myTrades = [];
         for (let i = 0; i < this.countItems (allOrders); i++) {
             const orderStatus = this.safeString (allOrders[i], 'status');
             if (orderStatus === 'filled') {
-                const orderFills = this.safeDict (this.safeDict (this.safeDict (allOrders[i], 'info'), 'fetchedOrder'), 'fills');
+                const orderFills = this.safeList (this.safeDict (this.safeDict (allOrders[i], 'info'), 'fetchedOrder'), 'fills');
                 const fillsLength = this.countItems (orderFills);
                 for (let j = 0; j < fillsLength; j++) {
                     const trade = orderFills[j];
-                    const parsedTrade = this.parseMyTrade (trade, allOrders[i]);
+                    const parsedTrade = await this.parseMyTrade (trade, allOrders[i]);
                     myTrades.push (parsedTrade);
                 }
             }
         }
-        return myTrades;
+        return this.filterBySymbolSinceLimit (myTrades, symbol, since, limit);
     }
 
-    parseMyTrade (trade, order) {
+    async parseMyTrade (trade, order) {
         const tradeId = this.safeString (trade, 'tradeId');
         const timestampInNanoseconds = this.safeInteger (trade, 'filledAt');
         const timestampInMilliseconds = this.parseToInt (timestampInNanoseconds / 1000000);
         const datetime = this.iso8601 (timestampInMilliseconds);
-        const marketSymbol = this.safeString (order, 'symbol');
+        const meta = await this.fetchMarketMeta (this.safeString (order, 'symbol'));
+        const marketSymbol = this.safeString (meta, 'symbol');
         const orderType = this.safeString (order, 'type');
         let orderId = undefined;
         if (orderType === 'limit') {
