@@ -902,15 +902,12 @@ export default class cube extends Exchange {
         const meta = await this.fetchMarketMeta (symbol);
         symbol = this.safeString (meta, 'symbol');
         const market = this.safeDict (meta, 'market');
-        const marketId = this.safeString (meta, 'marketId');
         const marketNumericId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
         const selectedTimeframe = this.timeframes[timeframe];
         const request = {
             'interval': selectedTimeframe,
         };
-        if (marketId !== undefined) {
-            request['marketId'] = marketId;
-        } else {
+        if (marketNumericId !== undefined) {
             request['marketId'] = marketNumericId;
         }
         if (since !== undefined) {
