@@ -2103,6 +2103,8 @@ export default class cube extends Exchange {
             const targetCurrencyNumericId = this.safeInteger (targetCurrency, 'numericId');
             currenciesByNumericId[targetCurrencyNumericId] = targetCurrency;
         }
+        const id = this.safeString (transaction, 'attemptId');
+        const txId = this.safeString (transaction, 'txnHash');
         const code = this.safeString (currenciesByNumericId[this.safeInteger (transaction, 'assetId')], 'code');
         const amount = this.safeNumber (transaction, 'amount');
         const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
@@ -2111,8 +2113,8 @@ export default class cube extends Exchange {
         const address = this.safeString (transaction, 'address');
         return {
             'info': transaction,
-            'id': undefined,
-            'txid': undefined,
+            'id': id,
+            'txid': txId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'network': undefined,
