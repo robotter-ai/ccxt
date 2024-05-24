@@ -636,6 +636,9 @@ export default class cube extends Exchange {
     parseMarkets (markets): Market[] {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
+            if (this.safeString (markets[i], 'status') !== '1') {
+                continue;
+            }
             const market = this.parseMarket (markets[i]);
             result.push (market);
         }
