@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.31'
+__version__ = '4.3.33'
 
 # -----------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings, CancellationRequest
+from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings, CancellationRequest, Bool
 
 # -----------------------------------------------------------------------------
 
@@ -254,9 +254,11 @@ class Exchange(object):
         '511': AuthenticationError,
     }
     balance = None
+    liquidations = None
     orderbooks = None
     orders = None
     triggerOrders = None
+    myLiquidations = None
     myTrades = None
     trades = None
     transactions = None
@@ -390,6 +392,10 @@ class Exchange(object):
         'watchOrderBookForSymbols': None,
         'watchOHLCVForSymbols': None,
         'watchBalance': None,
+        'watchLiquidations': None,
+        'watchLiquidationsForSymbols': None,
+        'watchMyLiquidations': None,
+        'watchMyLiquidationsForSymbols': None,
         'watchOHLCV': None,
     }
     precisionMode = DECIMAL_PLACES
@@ -2125,6 +2131,22 @@ class Exchange(object):
     def fetch_trades_ws(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchTradesWs() is not supported yet')
 
+    def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+        if self.has['watchLiquidationsForSymbols']:
+            return self.watchLiquidationsForSymbols([symbol], since, limit, params)
+        raise NotSupported(self.id + ' watchLiquidations() is not supported yet')
+
+    def watch_liquidations_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' watchLiquidationsForSymbols() is not supported yet')
+
+    def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+        if self.has['watchMyLiquidationsForSymbols']:
+            return self.watchMyLiquidationsForSymbols([symbol], since, limit, params)
+        raise NotSupported(self.id + ' watchMyLiquidations() is not supported yet')
+
+    def watch_my_liquidations_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' watchMyLiquidationsForSymbols() is not supported yet')
+
     def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchTrades() is not supported yet')
 
@@ -2179,7 +2201,7 @@ class Exchange(object):
     def fetch_trading_limits(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchTradingLimits() is not supported yet')
 
-    def parse_market(self, market):
+    def parse_market(self, market: dict):
         raise NotSupported(self.id + ' parseMarket() is not supported yet')
 
     def parse_markets(self, markets):
@@ -3643,6 +3665,18 @@ class Exchange(object):
             params = self.omit(params, [paramName1, paramName2])
         return [value, params]
 
+    def handle_param_bool(self, params: object, paramName: str, defaultValue: Bool = None):
+        value = self.safe_bool(params, paramName, defaultValue)
+        if value is not None:
+            params = self.omit(params, paramName)
+        return [value, params]
+
+    def handle_param_bool_2(self, params: object, paramName1: str, paramName2: str, defaultValue: Bool = None):
+        value = self.safe_bool_2(params, paramName1, paramName2, defaultValue)
+        if value is not None:
+            params = self.omit(params, [paramName1, paramName2])
+        return [value, params]
+
     def resolve_path(self, path, params):
         return [
             self.implode_params(path, params),
@@ -4093,7 +4127,7 @@ class Exchange(object):
                     return key
         return None
 
-    def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody):
+    def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody: str, response, requestHeaders, requestBody):
         # it is a stub method that must be overrided in the derived exchange classes
         # raise NotSupported(self.id + ' handleErrors() not implemented yet')
         return None
