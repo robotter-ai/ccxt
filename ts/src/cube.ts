@@ -878,12 +878,10 @@ export default class cube extends Exchange {
         const result = {};
         for (let i = 0; i < rawTickers.length; i++) {
             const rawTicker = rawTickers[i];
-            const rawTickerId = this.safeString (rawTicker, 'ticker_id').toUpperCase ().replace ('/', '')
+            const rawTickerId = this.safeString (rawTicker, 'ticker_id').toUpperCase ().replace ('/', '');
             if (symbols !== undefined) {
-                let found = false;
                 for (let j = 0; j < symbols.length; j++) {
                     if (symbols[j].toUpperCase () === rawTickerId) {
-                        found = true;
                         break;
                     }
                 }
