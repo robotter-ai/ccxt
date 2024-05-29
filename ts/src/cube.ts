@@ -521,7 +521,9 @@ export default class cube extends Exchange {
             const name = this.safeString (this.safeDict (rawCurrency, 'metadata'), 'currencyName');
             const networkId = this.safeString (rawCurrency, 'sourceId');
             const networks = {};
-            networks[networkId] = networkId;
+            networks[networkId] = {
+                'id': networkId,
+            };
             const currency = this.safeCurrencyStructure ({
                 'info': rawCurrency,
                 'id': id,
@@ -531,10 +533,10 @@ export default class cube extends Exchange {
                 'type': this.safeStringLower (rawCurrency, 'assetType'),
                 'name': name,
                 'active': this.safeInteger (rawCurrency, 'status') === 1,
-                'deposit': false,
+                'deposit': true,
                 'withdraw': true,
-                'fee': undefined, // TODO: What kind of fee is this? !!!
-                'fees': {},
+                'fee': undefined, // TODO Check if it is possible to fill a withdraw fee!!!
+                'fees': {}, // TODO Check if it is possible to fill a withdraw fee!!!
                 'networks': networks,
                 'limits': {
                     'amount': {
