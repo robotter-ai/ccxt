@@ -1979,6 +1979,9 @@ export default class cube extends Exchange {
         //   },
         //
         const deposits = this.safeList (this.safeDict (this.safeDict (response, 'result'), subAccountId), 'inner', []);
+        for (let i = 0; i < deposits.length; i++) {
+            deposits[i]['type'] = 'deposit';
+        }
         return this.parseTransactions (deposits, currency, since, limit, params);
     }
 
@@ -2067,6 +2070,9 @@ export default class cube extends Exchange {
         //   },
         //
         const withdrawals = this.safeList (this.safeDict (this.safeDict (response, 'result'), subAccountId), 'inner', []);
+        for (let i = 0; i < withdrawals.length; i++) {
+            withdrawals[i]['type'] = 'withdrawal';
+        }
         return this.parseTransactions (withdrawals, currency, since, limit, params);
     }
 
@@ -2114,7 +2120,7 @@ export default class cube extends Exchange {
         //     },
         //   },
         //
-        // TODO Expose this object globally for the exchange so the currencies can be retrieved in O(1) time
+        // TODO Expose this object globally for the exchange so the currencies can be retrieved in O(1) time!!!
         const currenciesByNumericId = {};
         for (let i = 0; i < this.countItems (this.currencies); i++) {
             const currenciesKeysArray = Object.keys (this.currencies);
@@ -2130,6 +2136,7 @@ export default class cube extends Exchange {
         const updated = this.parse8601 (this.safeString (transaction, 'updatedAt'));
         const status = this.parseTransactionStatus (this.safeString (transaction, 'kytStatus'));
         const address = this.safeString (transaction, 'address');
+        const type = this.safeString (transaction, 'type', undefined);
         return {
             'info': transaction,
             'id': id,
@@ -2138,12 +2145,12 @@ export default class cube extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'network': undefined,
             'addressFrom': undefined,
-            'address': undefined,
+            'address': address,
             'addressTo': address,
             'tagFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
-            'type': undefined,
+            'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
