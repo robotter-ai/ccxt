@@ -636,6 +636,9 @@ export default class cube extends Exchange {
     parseMarkets (markets): Market[] {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
+            if (this.safeString (markets[i], 'status') !== '1') {
+                continue;
+            }
             const market = this.parseMarket (markets[i]);
             result.push (market);
         }
@@ -644,6 +647,7 @@ export default class cube extends Exchange {
 
     parseMarket (market): Market {
         const id = this.safeString (market, 'symbol').toUpperCase ();
+        // TODO Expose this object globally for the exchange so the currencies can be retrieved in O(1) time
         const currenciesByNumericId = {};
         for (let i = 0; i < this.countItems (this.currencies); i++) {
             const currenciesKeysArray = Object.keys (this.currencies);
@@ -874,7 +878,20 @@ export default class cube extends Exchange {
         const result = {};
         for (let i = 0; i < rawTickers.length; i++) {
             const rawTicker = rawTickers[i];
-            const marketId = this.marketId (this.safeString (rawTicker, 'ticker_id').toUpperCase ().replace ('/', ''));
+            const rawTickerId = this.safeString (rawTicker, 'ticker_id').toUpperCase ().replace ('/', '');
+            if (symbols !== undefined) {
+                for (let j = 0; j < symbols.length; j++) {
+                    if (symbols[j].toUpperCase () === rawTickerId) {
+                        break;
+                    }
+                }
+            }
+            let marketId = undefined;
+            try {
+                marketId = this.marketId (rawTickerId);
+            } catch (_exception) {
+                continue;
+            }
             const market = this.market (marketId);
             const symbol = this.safeString (market, 'symbol');
             const ticker = this.parseTicker (rawTicker, market);
@@ -899,15 +916,12 @@ export default class cube extends Exchange {
         const meta = await this.fetchMarketMeta (symbol);
         symbol = this.safeString (meta, 'symbol');
         const market = this.safeDict (meta, 'market');
-        const marketId = this.safeString (meta, 'marketId');
         const marketNumericId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
         const selectedTimeframe = this.timeframes[timeframe];
         const request = {
             'interval': selectedTimeframe,
         };
-        if (marketId !== undefined) {
-            request['marketId'] = marketId;
-        } else {
+        if (marketNumericId !== undefined) {
             request['marketId'] = marketNumericId;
         }
         if (since !== undefined) {
@@ -1697,7 +1711,8 @@ export default class cube extends Exchange {
             'parsedTrades': this.safeList (this.safeDict (parsedRecentTradesResponse, 'result'), 'trades'),
         };
         const rawTrades = [ tradesAndParsedTrades ];
-        return this.parseTrades (rawTrades, market);
+        const parsedTrades = this.parseTrades (rawTrades, market);
+        return this.filterBySymbolSinceLimit (parsedTrades, symbol, since, limit);
     }
 
     parseTrades (trades, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
@@ -1793,7 +1808,7 @@ export default class cube extends Exchange {
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name bitopro#fetchMyTrades
+         * @name cube#fetchMyTrades
          * @description fetch all trades made by the user
          * @see https://cubexch.gitbook.io/cube-api/rest-iridium-api#users-subaccount-subaccount_id-fills
          * @param {string} symbol unified market symbol
@@ -1802,29 +1817,32 @@ export default class cube extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
+        const meta = await this.fetchMarketMeta (symbol);
+        symbol = this.safeString (meta, 'symbol');
         const allOrders = await this.fetchOrders (symbol, since, limit, params);
         const myTrades = [];
         for (let i = 0; i < this.countItems (allOrders); i++) {
             const orderStatus = this.safeString (allOrders[i], 'status');
             if (orderStatus === 'filled') {
-                const orderFills = this.safeDict (this.safeDict (this.safeDict (allOrders[i], 'info'), 'fetchedOrder'), 'fills');
+                const orderFills = this.safeList (this.safeDict (this.safeDict (allOrders[i], 'info'), 'fetchedOrder'), 'fills');
                 const fillsLength = this.countItems (orderFills);
                 for (let j = 0; j < fillsLength; j++) {
                     const trade = orderFills[j];
-                    const parsedTrade = this.parseMyTrade (trade, allOrders[i]);
+                    const parsedTrade = await this.parseMyTrade (trade, allOrders[i]);
                     myTrades.push (parsedTrade);
                 }
             }
         }
-        return myTrades;
+        return this.filterBySymbolSinceLimit (myTrades, symbol, since, limit);
     }
 
-    parseMyTrade (trade, order) {
+    async parseMyTrade (trade, order) {
         const tradeId = this.safeString (trade, 'tradeId');
         const timestampInNanoseconds = this.safeInteger (trade, 'filledAt');
         const timestampInMilliseconds = this.parseToInt (timestampInNanoseconds / 1000000);
         const datetime = this.iso8601 (timestampInMilliseconds);
-        const marketSymbol = this.safeString (order, 'symbol');
+        const meta = await this.fetchMarketMeta (this.safeString (order, 'symbol'));
+        const marketSymbol = this.safeString (meta, 'symbol');
         const orderType = this.safeString (order, 'type');
         let orderId = undefined;
         if (orderType === 'limit') {
@@ -1934,6 +1952,8 @@ export default class cube extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        this.injectSubAccountId (request, params);
+        const subAccountId = this.safeString (request, 'subaccountId');
         const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdDeposits (this.extend (request, params));
         //
         // result: {
@@ -1956,8 +1976,8 @@ export default class cube extends Exchange {
         //     },
         //   },
         //
-        const deposits = this.safeList (response, 'inner', []);
-        return [ this.parseTransaction (deposits, currency) ];
+        const deposits = this.safeList (this.safeDict (this.safeDict (response, 'result'), subAccountId), 'inner', []);
+        return this.parseTransactions (deposits, currency, since, limit, params);
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
@@ -1975,20 +1995,13 @@ export default class cube extends Exchange {
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.fetchMarketMeta ();
-        const currenciesByNumericId = {};
-        for (let i = 0; i < this.countItems (this.currencies); i++) {
-            const currenciesKeysArray = Object.keys (this.currencies);
-            const targetCurrency = this.safeValue (this.currencies, currenciesKeysArray[i]);
-            const targetCurrencyNumericId = this.safeInteger (targetCurrency, 'numericId');
-            currenciesByNumericId[targetCurrencyNumericId] = targetCurrency;
-        }
-        const currency = currenciesByNumericId[code];
+        const currency = this.currency (code);
         const currencyPrecision = this.safeInteger (currency, 'precision');
         const exchangeAmount = amount * Math.pow (10, currencyPrecision);
         const request = {
             'amount': this.numberToString (exchangeAmount),
             'destination': address,
-            'assetId': code,
+            'assetId': this.safeInteger (currency, 'numericId'),
         };
         this.injectSubAccountId (request, params);
         const response = await this.restIridiumPrivatePostUsersWithdraw (this.extend (request, params));
@@ -2029,6 +2042,8 @@ export default class cube extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        this.injectSubAccountId (request, params);
+        const subAccountId = this.safeString (request, 'subaccountId');
         const response = await this.restIridiumPrivateGetUsersSubaccountSubaccountIdWithdrawals (this.extend (request, params));
         //
         // result: {
@@ -2049,8 +2064,8 @@ export default class cube extends Exchange {
         //     },
         //   },
         //
-        const result = this.safeValue (response, 'result', {});
-        return [ this.parseTransaction (result, currency) ];
+        const withdrawals = this.safeList (this.safeDict (this.safeDict (response, 'result'), subAccountId), 'inner', []);
+        return this.parseTransactions (withdrawals, currency, since, limit, params);
     }
 
     parseTransaction (transaction, currency: Currency = undefined): Transaction {
@@ -2097,8 +2112,17 @@ export default class cube extends Exchange {
         //     },
         //   },
         //
-        const currencyId = this.safeString (transaction, 'assetId');
-        const code = this.safeCurrencyCode (currencyId);
+        // TODO Expose this object globally for the exchange so the currencies can be retrieved in O(1) time
+        const currenciesByNumericId = {};
+        for (let i = 0; i < this.countItems (this.currencies); i++) {
+            const currenciesKeysArray = Object.keys (this.currencies);
+            const targetCurrency = this.safeValue (this.currencies, currenciesKeysArray[i]);
+            const targetCurrencyNumericId = this.safeInteger (targetCurrency, 'numericId');
+            currenciesByNumericId[targetCurrencyNumericId] = targetCurrency;
+        }
+        const id = this.safeString (transaction, 'attemptId');
+        const txId = this.safeString (transaction, 'txnHash');
+        const code = this.safeString (currenciesByNumericId[this.safeInteger (transaction, 'assetId')], 'code');
         const amount = this.safeNumber (transaction, 'amount');
         const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
         const updated = this.parse8601 (this.safeString (transaction, 'updatedAt'));
@@ -2106,8 +2130,8 @@ export default class cube extends Exchange {
         const address = this.safeString (transaction, 'address');
         return {
             'info': transaction,
-            'id': undefined,
-            'txid': undefined,
+            'id': id,
+            'txid': txId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'network': undefined,
