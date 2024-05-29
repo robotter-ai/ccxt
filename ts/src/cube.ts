@@ -1242,6 +1242,20 @@ export default class cube extends Exchange {
         };
         this.injectSubAccountId (request, params);
         const response = await this.restOsmiumPrivateDeleteOrder (this.extend (request, params));
+        let reason = undefined;
+        if (response['result']['Rej'] !== undefined) {
+            const reasonNumber = this.safeString (this.safeDict (this.safeDict (response, 'result'), 'Rej'), 'reason');
+            if (reasonNumber === '0') {
+                reason = 'Unclassified';
+            } else if (reasonNumber === '1') {
+                reason = 'Invalid market id';
+            } else if (reasonNumber === '2') {
+                reason = 'Order not found';
+            } else {
+                reason = 'Unknown';
+            }
+            throw new InvalidOrder ('Order cancellation rejected. Reason: "' + reason + '".');
+        }
         return this.parseOrder (
             {
                 'cancellationResponse': response,
