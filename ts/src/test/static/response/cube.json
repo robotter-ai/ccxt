@@ -2719,12 +2719,14 @@
           "type": "crypto",
           "name": "Bitcoin",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "101": "101"
+            "101": {
+              "id": "101"
+            }
           },
           "limits": {
             "amount": {
@@ -2764,12 +2766,14 @@
           "type": "crypto",
           "name": null,
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "102": "102"
+            "102": {
+              "id": "102"
+            }
           },
           "limits": {
             "amount": {
@@ -2812,12 +2816,14 @@
           "type": "crypto",
           "name": "Solana",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -2861,12 +2867,14 @@
           "type": "crypto",
           "name": "Tether",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -2909,12 +2917,14 @@
           "type": "crypto",
           "name": "Testnet USD Coin",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -2957,12 +2967,14 @@
           "type": "crypto",
           "name": "Bonk",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -3005,12 +3017,14 @@
           "type": "crypto",
           "name": "Render Token",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -3053,12 +3067,14 @@
           "type": "crypto",
           "name": "Helium",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -3101,12 +3117,14 @@
           "type": "crypto",
           "name": "Pyth Network",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -3149,12 +3167,14 @@
           "type": "crypto",
           "name": "GMT",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -3197,12 +3217,14 @@
           "type": "crypto",
           "name": "Euro Coin",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -3245,12 +3267,14 @@
           "type": "crypto",
           "name": "Hivemapper",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -3293,12 +3317,14 @@
           "type": "crypto",
           "name": "Helium Mobile",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -3341,12 +3367,14 @@
           "type": "crypto",
           "name": "Jito",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -3389,12 +3417,14 @@
           "type": "crypto",
           "name": "Marinade",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -3437,12 +3467,14 @@
           "type": "crypto",
           "name": "Marinade Staked SOL",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -3485,12 +3517,14 @@
           "type": "crypto",
           "name": "Jito Staked SOL",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -3533,12 +3567,14 @@
           "type": "crypto",
           "name": "Neon Labs",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -3580,12 +3616,14 @@
           "type": "crypto",
           "name": "Dogecoin",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "105": "105"
+            "105": {
+              "id": "105"
+            }
           },
           "limits": {
             "amount": {
@@ -3628,12 +3666,14 @@
           "type": "crypto",
           "name": "Helium IOT",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -3676,12 +3716,14 @@
           "type": "crypto",
           "name": "Orca",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -3724,12 +3766,14 @@
           "type": "crypto",
           "name": "Raydium",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -3772,12 +3816,14 @@
           "type": "crypto",
           "name": "Zebec Protocol",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -3820,12 +3866,14 @@
           "type": "crypto",
           "name": "dogwifhat",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -3868,12 +3916,14 @@
           "type": "crypto",
           "name": "Moutai",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -3916,12 +3966,14 @@
           "type": "crypto",
           "name": "Gecko",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -3964,12 +4016,14 @@
           "type": "crypto",
           "name": "Blaze",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -4012,12 +4066,14 @@
           "type": "crypto",
           "name": "Blaze Staked SOL",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -4060,12 +4116,14 @@
           "type": "crypto",
           "name": "Wen",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -4108,12 +4166,14 @@
           "type": "crypto",
           "name": "Taki Games",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -4156,12 +4216,14 @@
           "type": "crypto",
           "name": "Samoyedcoin",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -4204,12 +4266,14 @@
           "type": "crypto",
           "name": "Crown by Third Time Games",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -4252,12 +4316,14 @@
           "type": "crypto",
           "name": "MixMob",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -4299,12 +4365,14 @@
           "type": "crypto",
           "name": "Litecoin",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "107": "107"
+            "107": {
+              "id": "107"
+            }
           },
           "limits": {
             "amount": {
@@ -4346,12 +4414,14 @@
           "type": "crypto",
           "name": "Bittensor",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "106": "106"
+            "106": {
+              "id": "106"
+            }
           },
           "limits": {
             "amount": {
@@ -4394,12 +4464,14 @@
           "type": "crypto",
           "name": "Genopets",
           "active": false,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -4442,12 +4514,14 @@
           "type": "crypto",
           "name": "Peng",
           "active": false,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -4490,12 +4564,14 @@
           "type": "crypto",
           "name": "PONKE",
           "active": false,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -4533,12 +4609,14 @@
           "type": "crypto",
           "name": null,
           "active": false,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -4574,12 +4652,14 @@
           "type": "crypto",
           "name": null,
           "active": false,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "108": "108"
+            "108": {
+              "id": "108"
+            }
           },
           "limits": {
             "amount": {
@@ -4622,12 +4702,14 @@
           "type": "crypto",
           "name": "Testnet Blockasset",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -4666,12 +4748,14 @@
           "type": "crypto",
           "name": null,
           "active": false,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "101": "101"
+            "101": {
+              "id": "101"
+            }
           },
           "limits": {
             "amount": {
@@ -4714,12 +4798,14 @@
           "type": "crypto",
           "name": "Testnet Star Atlas DAO",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -4762,12 +4848,14 @@
           "type": "crypto",
           "name": "Testnet Shadow Token",
           "active": false,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -4810,12 +4898,14 @@
           "type": "crypto",
           "name": "Testnet Star Atlas",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -4858,12 +4948,14 @@
           "type": "crypto",
           "name": "Testnet Abble",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "103": "103"
+            "103": {
+              "id": "103"
+            }
           },
           "limits": {
             "amount": {
@@ -4899,12 +4991,14 @@
           "type": "crypto",
           "name": null,
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "109": "109"
+            "109": {
+              "id": "109"
+            }
           },
           "limits": {
             "amount": {
@@ -4940,12 +5034,14 @@
           "type": "crypto",
           "name": null,
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "104": "104"
+            "104": {
+              "id": "104"
+            }
           },
           "limits": {
             "amount": {
@@ -4987,12 +5083,14 @@
           "type": "fiat",
           "name": "United States Dollar",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5034,12 +5132,14 @@
           "type": "fiat",
           "name": "Euro",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5081,12 +5181,14 @@
           "type": "fiat",
           "name": "Japanese Yen",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5128,12 +5230,14 @@
           "type": "fiat",
           "name": "British Pound Sterling",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5175,12 +5279,14 @@
           "type": "fiat",
           "name": "Canadian Dollar",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5222,12 +5328,14 @@
           "type": "fiat",
           "name": "Australian Dollar",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5269,12 +5377,14 @@
           "type": "fiat",
           "name": "New Zealand Dollar",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5316,12 +5426,14 @@
           "type": "fiat",
           "name": "Indonesian Rupiah",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5363,12 +5475,14 @@
           "type": "fiat",
           "name": "Swiss Franc",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5410,12 +5524,14 @@
           "type": "fiat",
           "name": "Polish Zloty",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5457,12 +5573,14 @@
           "type": "fiat",
           "name": "Chinese Yuan",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5504,12 +5622,14 @@
           "type": "fiat",
           "name": "South Korean Won",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5551,12 +5671,14 @@
           "type": "fiat",
           "name": "Mexican Peso",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5598,12 +5720,14 @@
           "type": "fiat",
           "name": "Vietnamese Dong",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5645,12 +5769,14 @@
           "type": "fiat",
           "name": "United Arab Emirates Dirham",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5692,12 +5818,14 @@
           "type": "fiat",
           "name": "Indian Rupee",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5739,12 +5867,14 @@
           "type": "fiat",
           "name": "Brazilian Real",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5786,12 +5916,14 @@
           "type": "fiat",
           "name": "Argentine Peso",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5833,12 +5965,14 @@
           "type": "fiat",
           "name": "Egyptian Pound",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5880,12 +6014,14 @@
           "type": "fiat",
           "name": "South African Rand",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5927,12 +6063,14 @@
           "type": "fiat",
           "name": "Nigerian Naira",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -5974,12 +6112,14 @@
           "type": "fiat",
           "name": "Hong Kong Dollar",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6021,12 +6161,14 @@
           "type": "fiat",
           "name": "Angolan Kwanza",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6068,12 +6210,14 @@
           "type": "fiat",
           "name": "Bulgaria Lev",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6115,12 +6259,14 @@
           "type": "fiat",
           "name": "Chilean Peso",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6162,12 +6308,14 @@
           "type": "fiat",
           "name": "Chinese Yuan offshore",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6209,12 +6357,14 @@
           "type": "fiat",
           "name": "Colombian Peso",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6256,12 +6406,14 @@
           "type": "fiat",
           "name": "Czech Koruna",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6303,12 +6455,14 @@
           "type": "fiat",
           "name": "Danish Krone",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6350,12 +6504,14 @@
           "type": "fiat",
           "name": "Croatian Kuna",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6397,12 +6553,14 @@
           "type": "fiat",
           "name": "Hungarian Forint",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6444,12 +6602,14 @@
           "type": "fiat",
           "name": "Israeli New Sheqel",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6491,12 +6651,14 @@
           "type": "fiat",
           "name": "Icelandic Krona",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6538,12 +6700,14 @@
           "type": "fiat",
           "name": "Kuwaiti Dinar",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6585,12 +6749,14 @@
           "type": "fiat",
           "name": "Moroccan Dirham",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6632,12 +6798,14 @@
           "type": "fiat",
           "name": "Malaysian Ringgit",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6679,12 +6847,14 @@
           "type": "fiat",
           "name": "Norwegian Krone",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6726,12 +6896,14 @@
           "type": "fiat",
           "name": "Omani Rial",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6773,12 +6945,14 @@
           "type": "fiat",
           "name": "Peruvian Nuevo Sol",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6820,12 +6994,14 @@
           "type": "fiat",
           "name": "Philippine Peso",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6867,12 +7043,14 @@
           "type": "fiat",
           "name": "Romanian Leu",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6914,12 +7092,14 @@
           "type": "fiat",
           "name": "Russian Ruble",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -6961,12 +7141,14 @@
           "type": "fiat",
           "name": "Saudi Arabian Riyal",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -7008,12 +7190,14 @@
           "type": "fiat",
           "name": "Swedish Krona",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -7055,12 +7239,14 @@
           "type": "fiat",
           "name": "Singapore Dollar",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -7102,12 +7288,14 @@
           "type": "fiat",
           "name": "Thai Baht",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -7149,12 +7337,14 @@
           "type": "fiat",
           "name": "Turkish Lira",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
@@ -7196,12 +7386,14 @@
           "type": "fiat",
           "name": "Taiwanese Dollar",
           "active": true,
-          "deposit": false,
+          "deposit": true,
           "withdraw": true,
           "fee": null,
           "fees": {},
           "networks": {
-            "0": "0"
+            "0": {
+              "id": "0"
+            }
           },
           "limits": {
             "amount": {
