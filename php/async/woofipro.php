@@ -1657,7 +1657,9 @@ class woofipro extends Exchange {
             //     }
             // }
             //
-            return $response;
+            return array( $this->safe_order(array(
+                'info' => $response,
+            )) );
         }) ();
     }
 
@@ -1701,7 +1703,11 @@ class woofipro extends Exchange {
             //     }
             // }
             //
-            return $response;
+            return array(
+                array(
+                    'info' => $response,
+                ),
+            );
         }) ();
     }
 
@@ -2306,8 +2312,10 @@ class woofipro extends Exchange {
 
     public function sign_hash($hash, $privateKey) {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
+        $r = $signature['r'];
+        $s = $signature['s'];
         $v = $this->int_to_base16($this->sum(27, $signature['v']));
-        return '0x' . $signature['r'].padStart (64, '0') . $signature['s'].padStart (64, '0') . $v;
+        return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
     public function sign_message($message, $privateKey) {
