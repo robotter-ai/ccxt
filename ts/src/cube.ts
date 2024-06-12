@@ -2016,7 +2016,7 @@ export default class cube extends Exchange {
         await this.fetchMarketMeta ();
         const currency = this.currency (code);
         const currencyPrecision = this.safeInteger (currency, 'precision');
-        const exchangeAmount = amount * Math.pow (10, currencyPrecision);
+        const exchangeAmount = Math.round (amount * Math.pow (10, currencyPrecision));
         const request = {
             'amount': this.numberToString (exchangeAmount),
             'destination': address,
