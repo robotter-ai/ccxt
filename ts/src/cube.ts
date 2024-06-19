@@ -29,6 +29,7 @@ import {
     TradingFeeInterface,
     Transaction,
     Currency,
+    Dict,
 } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
@@ -1997,6 +1998,91 @@ export default class cube extends Exchange {
             deposits[i]['type'] = 'deposit';
         }
         return this.parseTransactions (deposits, currency, since, limit, params);
+    }
+
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name cube#fetchDepositAddresses
+         * @description fetch deposit addresses for multiple currencies and chain types
+         * @see https://cubexch.gitbook.io/cube-api/rest-iridium-api#users-info
+         * @param {string[]|undefined} codes list of unified currency codes, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.fetchMarketMeta ();
+        const rawUsersInfoResponse = await this.restPrivateGetUsersInfo (params);
+        const rawMarketsResponse = await this.restIridiumPublicGetMarkets (params);
+        //
+        // getUsersInfo
+        // "subaccounts": [
+        //    {
+        //        "id": 161,
+        //        "name": "primary",
+        //        "addresses": {
+        //            "101": "tb1p74t28ne95z0rptyhqfwzx8xh2xclw4t2ua46fyzqr6x76km7sp8qdy2n3e",
+        //            "103": "Cz3BnXPhYudZscqHHh5eDusYzVn4Bpb5EKBvrG4Zvaf3",
+        //            "105": "nf8FjTqGW4B7Bx5UZhkRUhaGGnMjZ7LUPw",
+        //            "106": "5G6AHKi87NCNkFvPfXx4aX3qLcoKzWRTK4KcHNPeVPB6qZyT",
+        //            "107": "tltc1qwlky3uxaygw4g3yr39cw0xvzw323xynmunuca3",
+        //            "108": "cosmos1wlky3uxaygw4g3yr39cw0xvzw323xynme8m7jx"
+        //        },
+        //        "hasOrderHistory": true
+        //    }
+        // ]
+        //
+        // getMarkets
+        // sources: [
+        //    {
+        //        sourceId: 1,
+        //        name: "bitcoin",
+        //        transactionExplorer: "https://mempool.space/tx/{}",
+        //        addressExplorer: "https://mempool.space/address/{}",
+        //        metadata: {
+        //          network: "Mainnet",
+        //          scope: "bitcoin",
+        //          type: "mainnet",
+        //       },
+        //    },
+        // ]
+        const userData = this.safeList (rawUsersInfoResponse, 'subaccounts', []);
+        const sources = this.safeList (rawMarketsResponse, 'sources', []);
+        const addresses = this.safeList (userData, 'addresses', {});
+        const metadata = this.safeList (sources, 'metadata', {});
+        const networks = this.safeString (metadata, 'network');
+        const addressKeys = Object.keys (addresses);
+        const result: Dict = {
+            'info': userData,
+        };
+        for (let i = 0; i < addressKeys.length; i++) {
+            const marketId = addressKeys[i];
+            const code = this.safeCurrencyCode (marketId);
+            const address = this.safeString (addresses, marketId);
+            if ((address !== undefined) && ((codes === undefined) || (this.inArray (code, codes)))) {
+                this.checkAddress (address);
+                let network = undefined;
+                if (marketId in networks) {
+                    const networkId = this.safeString (networks, marketId);
+                    if (networkId.indexOf (',') >= 0) {
+                        network = [];
+                        const networkIds = networkId.split (',');
+                        for (let j = 0; j < networkIds.length; j++) {
+                            network.push (this.networkIdToCode (networkIds[j]).toUpperCase ());
+                        }
+                    } else {
+                        network = this.networkIdToCode (networkId).toUpperCase ();
+                    }
+                }
+                result[code] = {
+                    'info': {},
+                    'currency': code,
+                    'address': address,
+                    'network': network,
+                    'tag': undefined,
+                };
+            }
+        }
+        return result;
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
