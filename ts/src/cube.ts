@@ -29,10 +29,8 @@ import {
     TradingFeeInterface,
     Transaction,
     Currency,
-    Dict,
 } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-
 // ---------------------------------------------------------------------------
 
 /**
@@ -2000,7 +1998,7 @@ export default class cube extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit, params);
     }
 
-    async fetchDepositAddresses (codes: Strings = undefined, params = {}) {
+    async fetchDepositAddresses (codes = undefined, params = {}) {
         /**
          * @method
          * @name cube#fetchDepositAddresses
@@ -2011,74 +2009,96 @@ export default class cube extends Exchange {
          * @returns {object} a list of [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.fetchMarketMeta ();
-        const rawUsersInfoResponse = await this.restPrivateGetUsersInfo (params);
+        const rawUsersInfoResponse = await this.restIridiumPrivateGetUsersInfo (params);
         const rawMarketsResponse = await this.restIridiumPublicGetMarkets (params);
         //
         // getUsersInfo
-        // "subaccounts": [
-        //    {
-        //        "id": 161,
-        //        "name": "primary",
-        //        "addresses": {
-        //            "101": "tb1p74t28ne95z0rptyhqfwzx8xh2xclw4t2ua46fyzqr6x76km7sp8qdy2n3e",
-        //            "103": "Cz3BnXPhYudZscqHHh5eDusYzVn4Bpb5EKBvrG4Zvaf3",
-        //            "105": "nf8FjTqGW4B7Bx5UZhkRUhaGGnMjZ7LUPw",
-        //            "106": "5G6AHKi87NCNkFvPfXx4aX3qLcoKzWRTK4KcHNPeVPB6qZyT",
-        //            "107": "tltc1qwlky3uxaygw4g3yr39cw0xvzw323xynmunuca3",
-        //            "108": "cosmos1wlky3uxaygw4g3yr39cw0xvzw323xynme8m7jx"
-        //        },
-        //        "hasOrderHistory": true
-        //    }
-        // ]
+        // {
+        //     ...
+        //     "subaccounts": [
+        //         {
+        //             "id": 161,
+        //             "name": "primary",
+        //             "addresses": {
+        //                 "101": "tb1p74t28ne95z0rptyhqfwzx8xh2xclw4t2ua46fyzqr6x76km7sp8qdy2n3e",
+        //                 "103": "Cz3BnXPhYudZscqHHh5eDusYzVn4Bpb5EKBvrG4Zvaf3",
+        //                 "105": "nf8FjTqGW4B7Bx5UZhkRUhaGGnMjZ7LUPw",
+        //                 "106": "5G6AHKi87NCNkFvPfXx4aX3qLcoKzWRTK4KcHNPeVPB6qZyT",
+        //                 "107": "tltc1qwlky3uxaygw4g3yr39cw0xvzw323xynmunuca3",
+        //                 "108": "cosmos1wlky3uxaygw4g3yr39cw0xvzw323xynme8m7jx"
+        //             },
+        //             "hasOrderHistory": true
+        //         }
+        //     ]
+        //     ...
+        // }
         //
         // getMarkets
-        // sources: [
-        //    {
-        //        sourceId: 1,
-        //        name: "bitcoin",
-        //        transactionExplorer: "https://mempool.space/tx/{}",
-        //        addressExplorer: "https://mempool.space/address/{}",
-        //        metadata: {
-        //          network: "Mainnet",
-        //          scope: "bitcoin",
-        //          type: "mainnet",
-        //       },
-        //    },
-        // ]
-        const userData = this.safeList (rawUsersInfoResponse, 'subaccounts', []);
+        // {
+        //     ...
+        //     sources: [
+        //        {
+        //            sourceId: 1,
+        //            name: "bitcoin",
+        //            transactionExplorer: "https://mempool.space/tx/{}",
+        //            addressExplorer: "https://mempool.space/address/{}",
+        //            metadata: {
+        //              network: "Mainnet",
+        //              scope: "bitcoin",
+        //              type: "mainnet",
+        //           },
+        //        },
+        //     ]
+        //     ...
+        // }
+        if (codes === undefined) {
+            codes = [];
+        }
+        const newCodes = [];
+        for (let i = 0; i < codes.lenth; i++) {
+            newCodes[i] = codes[i].toUpperCase ();
+        }
+        codes = newCodes;
+        const sourcesByIds = {};
         const sources = this.safeList (rawMarketsResponse, 'sources', []);
-        const addresses = this.safeList (userData, 'addresses', {});
-        const metadata = this.safeList (sources, 'metadata', {});
-        const networks = this.safeString (metadata, 'network');
-        const addressKeys = Object.keys (addresses);
-        const result: Dict = {
-            'info': userData,
+        for (let i = 0; i < sources.length; i++) {
+            const source = sources[i];
+            const sourceId = this.safeString (source, 'sourceId');
+            sourcesByIds[sourceId] = source;
+        }
+        const subAccounts = this.safeList (rawUsersInfoResponse, 'subaccounts', []);
+        const result = {
+            'info': {
+                'subaccounts': subAccounts,
+                'sources': sources,
+            },
         };
-        for (let i = 0; i < addressKeys.length; i++) {
-            const marketId = addressKeys[i];
-            const code = this.safeCurrencyCode (marketId);
-            const address = this.safeString (addresses, marketId);
-            if ((address !== undefined) && ((codes === undefined) || (this.inArray (code, codes)))) {
+        for (let i = 0; i < subAccounts.length; i++) {
+            const subAccount = subAccounts[i];
+            const subAccountId = this.safeString (subAccount, 'id');
+            const addresses = this.safeList (subAccount, 'addresses', []);
+            const sourcesIds = Object.keys (addresses);
+            for (let j = 0; j < sourcesIds.length; j++) {
+                const sourceId = sourcesIds[j];
+                const address = addresses[sourceId];
                 this.checkAddress (address);
-                let network = undefined;
-                if (marketId in networks) {
-                    const networkId = this.safeString (networks, marketId);
-                    if (networkId.indexOf (',') >= 0) {
-                        network = [];
-                        const networkIds = networkId.split (',');
-                        for (let j = 0; j < networkIds.length; j++) {
-                            network.push (this.networkIdToCode (networkIds[j]).toUpperCase ());
-                        }
-                    } else {
-                        network = this.networkIdToCode (networkId).toUpperCase ();
-                    }
+                const source = this.safeString (sourcesByIds, sourceId);
+                const currency = this.currency (this.safeString (source, 'name'));
+                const sourceMetaData = this.safeDict (source, 'metadata');
+                const network = this.safeString (sourceMetaData, 'scope') + '-' + this.safeString (sourceMetaData, 'type');
+                const currencyCode = currency.code;
+                if (!this.inArray (currencyCode, codes)) {
+                    continue;
                 }
-                result[code] = {
-                    'info': {},
-                    'currency': code,
+                result[currencyCode] = {
+                    'info': {
+                        'subaccount': subAccount,
+                        'source': source,
+                    },
+                    'currency': currencyCode,
                     'address': address,
                     'network': network,
-                    'tag': undefined,
+                    'tag': subAccountId,
                 };
             }
         }
