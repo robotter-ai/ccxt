@@ -2,10 +2,10 @@
 
 import Exchange from './abstract/cube.js';
 import {
-    InsufficientFunds,
     AuthenticationError,
     BadRequest,
     BadSymbol,
+    InsufficientFunds,
     InvalidOrder,
     OrderNotFound,
 } from './base/errors.js';
@@ -13,6 +13,7 @@ import { DECIMAL_PLACES } from './base/functions/number.js';
 import {
     Balances,
     Currencies,
+    Currency,
     IndexType,
     Int,
     Market,
@@ -23,12 +24,12 @@ import {
     OrderSide,
     OrderType,
     Str,
+    Strings,
     Ticker,
     Tickers,
     Trade,
     TradingFeeInterface,
     Transaction,
-    Currency,
 } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ---------------------------------------------------------------------------
@@ -1998,7 +1999,7 @@ export default class cube extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit, params);
     }
 
-    async fetchDepositAddresses (codes = undefined, params = {}) {
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name cube#fetchDepositAddresses
@@ -2055,7 +2056,7 @@ export default class cube extends Exchange {
             codes = [];
         }
         const newCodes = [];
-        for (let i = 0; i < codes.lenth; i++) {
+        for (let i = 0; i < codes.length; i++) {
             newCodes[i] = codes[i].toUpperCase ();
         }
         codes = newCodes;
