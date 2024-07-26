@@ -977,10 +977,10 @@ export default class cube extends Exchange {
         //     37.72941911    // (V)olume, float                        |   ohlcv[5]
         // ],
         return [
-            ohlcv[0],
-            ohlcv[1],
-            ohlcv[3],
-            ohlcv[4],
+            ohlcv[0] / 100,
+            ohlcv[1] / 100,
+            ohlcv[3] / 100,
+            ohlcv[4] / 100,
             ohlcv[2],
             this.parseToNumeric (ohlcv[5]),
         ];
