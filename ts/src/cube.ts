@@ -2087,7 +2087,7 @@ export default class cube extends Exchange {
                 const currency = this.currency (this.safeString (source, 'name'));
                 const sourceMetaData = this.safeDict (source, 'metadata');
                 const network = this.safeString (sourceMetaData, 'scope') + '-' + this.safeString (sourceMetaData, 'type');
-                const currencyCode = currency.code;
+                const currencyCode = this.safeString(currency, 'code');
                 if (!this.inArray (currencyCode, codes)) {
                     continue;
                 }
