@@ -285,6 +285,10 @@ export default class cube extends Exchange {
                 'legalMoney': {
                     'USD': true,
                 },
+                'mappings': {
+                    'rawMarketsIdsToMarkets': {},
+                    'rawCurrenciesIdsToCurrencies': {},
+                }
             },
             'pro': true,
             'fees': {
