@@ -288,7 +288,7 @@ export default class cube extends Exchange {
                 'mappings': {
                     'rawMarketsIdsToMarkets': {},
                     'rawCurrenciesIdsToCurrencies': {},
-                }
+                },
             },
             'pro': true,
             'fees': {
@@ -986,11 +986,11 @@ export default class cube extends Exchange {
         // ],
         const normalizer = Math.pow (10, this.safeInteger (this.safeDict (market, 'info'), 'priceDisplayDecimals'));
         return [
-            ohlcv[0],
-            ohlcv[1] / normalizer,
-            ohlcv[3] / normalizer,
-            ohlcv[4] / normalizer,
-            ohlcv[2] / normalizer,
+            this.parseToNumeric(ohlcv[0]),
+            this.parseToNumeric(ohlcv[1]) / normalizer,
+            this.parseToNumeric(ohlcv[3]) / normalizer,
+            this.parseToNumeric(ohlcv[4]) / normalizer,
+            this.parseToNumeric(ohlcv[2]) / normalizer,
             this.parseToNumeric (ohlcv[5]),
         ];
     }
