@@ -986,11 +986,11 @@ export default class cube extends Exchange {
         // ],
         const normalizer = Math.pow (10, this.safeInteger (this.safeDict (market, 'precision'), 'price'));
         return [
-            this.parseToNumeric(ohlcv[0]),
-            this.parseToNumeric(ohlcv[1]) / normalizer,
-            this.parseToNumeric(ohlcv[3]) / normalizer,
-            this.parseToNumeric(ohlcv[4]) / normalizer,
-            this.parseToNumeric(ohlcv[2]) / normalizer,
+            this.parseToNumeric (ohlcv[0]),
+            this.parseToNumeric (ohlcv[1]) / normalizer,
+            this.parseToNumeric (ohlcv[3]) / normalizer,
+            this.parseToNumeric (ohlcv[4]) / normalizer,
+            this.parseToNumeric (ohlcv[2]) / normalizer,
             this.parseToNumeric (ohlcv[5]),
         ];
     }
