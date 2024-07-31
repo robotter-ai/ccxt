@@ -1483,7 +1483,7 @@ export default class cube extends Exchange {
         }
         if (fetchedOrder !== undefined) {
             if (!market) {
-                market = this.options['mappings']['rawMarketsIdsToMarkets'][this.parseToNumeric(fetchedOrder['marketId'])];
+                market = this.options['mappings']['rawMarketsIdsToMarkets'][this.parseToNumeric (fetchedOrder['marketId'])];
             }
             const exchangeOrderId = this.safeString (fetchedOrder, 'exchangeOrderId');
             const clientOrderId = this.safeString (fetchedOrder, 'clientOrderId');
@@ -2099,7 +2099,7 @@ export default class cube extends Exchange {
                 const currency = this.currency (this.safeString (source, 'name'));
                 const sourceMetaData = this.safeDict (source, 'metadata');
                 const network = this.safeString (sourceMetaData, 'scope') + '-' + this.safeString (sourceMetaData, 'type');
-                const currencyCode = this.safeString(currency, 'code');
+                const currencyCode = this.safeString (currency, 'code');
                 if (!this.inArray (currencyCode, codes)) {
                     continue;
                 }
