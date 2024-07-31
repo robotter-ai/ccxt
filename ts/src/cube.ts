@@ -513,6 +513,7 @@ export default class cube extends Exchange {
     }
 
     parseCurrencies (assets): Currencies {
+        this.options['mappings']['rawCurrenciesIdsToCurrencies'] = {};
         const result = {};
         for (let i = 0; i < assets.length; i++) {
             const rawCurrency = assets[i];
@@ -554,6 +555,7 @@ export default class cube extends Exchange {
                 },
             });
             result[code] = currency;
+            this.options['mappings']['rawCurrenciesIdsToCurrencies'][this.safeInteger (currency, 'numericId')] = currency;
         }
         return result;
     }
@@ -636,6 +638,7 @@ export default class cube extends Exchange {
     }
 
     parseMarkets (markets): Market[] {
+        this.options['mappings']['rawMarketsIdsToMarkets'] = {};
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             if (this.safeString (markets[i], 'status') !== '1') {
@@ -643,6 +646,7 @@ export default class cube extends Exchange {
             }
             const market = this.parseMarket (markets[i]);
             result.push (market);
+            this.options['mappings']['rawMarketsIdsToMarkets'][this.safeInteger (this.safeDict (market, 'info'), 'marketId')] = market;
         }
         return result;
     }
@@ -976,12 +980,13 @@ export default class cube extends Exchange {
         //     4230.7,        // (C)losing price, float                 |   ohlcv[2]
         //     37.72941911    // (V)olume, float                        |   ohlcv[5]
         // ],
+        const normalizer = Math.pow (10, this.safeInteger (this.safeDict (market, 'info'), 'priceDisplayDecimals'));
         return [
             ohlcv[0],
-            ohlcv[1] / 100,
-            ohlcv[3] / 100,
-            ohlcv[4] / 100,
-            ohlcv[2] / 100,
+            ohlcv[1] / normalizer,
+            ohlcv[3] / normalizer,
+            ohlcv[4] / normalizer,
+            ohlcv[2] / normalizer,
             this.parseToNumeric (ohlcv[5]),
         ];
     }
@@ -1473,6 +1478,9 @@ export default class cube extends Exchange {
             orderStatus = this.safeString (fetchedOrder, 'status'); // The order status is present in the order body when fetching the endpoint of all orders
         }
         if (fetchedOrder !== undefined) {
+            if (!market) {
+                market = this.options['mappings']['rawMarketsIdsToMarkets'][fetchedOrder['marketId']];
+            }
             const exchangeOrderId = this.safeString (fetchedOrder, 'exchangeOrderId');
             const clientOrderId = this.safeString (fetchedOrder, 'clientOrderId');
             let timestampInNanoseconds = undefined;
