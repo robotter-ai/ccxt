@@ -984,7 +984,7 @@ export default class cube extends Exchange {
         //     4230.7,        // (C)losing price, float                 |   ohlcv[2]
         //     37.72941911    // (V)olume, float                        |   ohlcv[5]
         // ],
-        const normalizer = Math.pow (10, this.safeInteger (this.safeDict (market, 'info'), 'priceDisplayDecimals'));
+        const normalizer = Math.pow (10, this.safeInteger (this.safeDict (market, 'precision'), 'price'));
         return [
             this.parseToNumeric(ohlcv[0]),
             this.parseToNumeric(ohlcv[1]) / normalizer,
