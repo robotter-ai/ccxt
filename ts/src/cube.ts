@@ -1252,7 +1252,7 @@ export default class cube extends Exchange {
         this.injectSubAccountId (request, params);
         const response = await this.restOsmiumPrivateDeleteOrder (this.extend (request, params));
         let reason = undefined;
-        if (response['result']['Rej'] !== undefined) {
+        if (response['result'] !== undefined && response['result']['Rej'] !== undefined) {
             const reasonNumber = this.safeString (this.safeDict (this.safeDict (response, 'result'), 'Rej'), 'reason');
             if (reasonNumber === '0') {
                 reason = 'Unclassified';
