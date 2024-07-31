@@ -1483,7 +1483,7 @@ export default class cube extends Exchange {
         }
         if (fetchedOrder !== undefined) {
             if (!market) {
-                market = this.options['mappings']['rawMarketsIdsToMarkets'][fetchedOrder['marketId']];
+                market = this.options['mappings']['rawMarketsIdsToMarkets'][this.parseToNumeric(fetchedOrder['marketId'])];
             }
             const exchangeOrderId = this.safeString (fetchedOrder, 'exchangeOrderId');
             const clientOrderId = this.safeString (fetchedOrder, 'clientOrderId');
