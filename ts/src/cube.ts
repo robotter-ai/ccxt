@@ -85,6 +85,9 @@ export default class cube extends Exchange {
                             'get': {
                                 '/markets': 1,
                                 '/history/klines': 1,
+                                '/points/loyalty-leaderboard': 1,
+                                '/points/referral-leaderboard': 1,
+                                '/points/blocks-leaderboard': 1,
                             },
                         },
                         'private': {
@@ -102,6 +105,10 @@ export default class cube extends Exchange {
                                 '/users/fee-estimate/{market_id}': 1,
                                 '/users/address': 1,
                                 '/users/address/settings': 1,
+                                '/users/loot-boxes': 1,
+                                '/users/invites': 1,
+                                '/users/daily-loyalty': 1,
+                                '/users/user-tier': 1,
                             },
                             'post': {
                                 '/users/withdraw': 1,

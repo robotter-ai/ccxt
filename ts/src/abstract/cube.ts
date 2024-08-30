@@ -24,9 +24,16 @@ interface Exchange {
     restIridiumPrivateGetUsersFeeEstimateMarketId (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersAddress (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersAddressSettings (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivateGetUsersLootBoxes (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivateGetUsersInvites (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivateGetUsersDailyLoyalty (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivateGetUsersUserTier (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivatePostUsersWithdraw (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivatePostUsersSubaccounts (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivatePatchUsersSubaccountSubaccountId (params?: {}): Promise<implicitReturnType>;
+    restIridiumPublicPointsLoyaltyLeaderboard (params?: {}): Promise<implicitReturnType>;
+    restIridiumPublicPointsReferralLeaderboard (params?: {}): Promise<implicitReturnType>;
+    restIridiumPublicPointsBlocksLeaderboard (params?: {}): Promise<implicitReturnType>;
     restMendelevPublicGetBookMarketIdSnapshot (params?: {}): Promise<implicitReturnType>;
     restMendelevPublicGetParsedBookMarketSymbolSnapshot (params?: {}): Promise<implicitReturnType>;
     restMendelevPublicGetBookMarketIdRecentTrades (params?: {}): Promise<implicitReturnType>;
