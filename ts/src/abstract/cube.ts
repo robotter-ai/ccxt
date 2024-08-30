@@ -31,9 +31,9 @@ interface Exchange {
     restIridiumPrivatePostUsersWithdraw (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivatePostUsersSubaccounts (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivatePatchUsersSubaccountSubaccountId (params?: {}): Promise<implicitReturnType>;
-    restIridiumPublicPointsLoyaltyLeaderboard (params?: {}): Promise<implicitReturnType>;
-    restIridiumPublicPointsReferralLeaderboard (params?: {}): Promise<implicitReturnType>;
-    restIridiumPublicPointsBlocksLeaderboard (params?: {}): Promise<implicitReturnType>;
+    restIridiumPublicGetPointsLoyaltyLeaderboard (params?: {}): Promise<implicitReturnType>;
+    restIridiumPublicGetPointsReferralLeaderboard (params?: {}): Promise<implicitReturnType>;
+    restIridiumPublicGetPointsBlocksLeaderboard (params?: {}): Promise<implicitReturnType>;
     restMendelevPublicGetBookMarketIdSnapshot (params?: {}): Promise<implicitReturnType>;
     restMendelevPublicGetParsedBookMarketSymbolSnapshot (params?: {}): Promise<implicitReturnType>;
     restMendelevPublicGetBookMarketIdRecentTrades (params?: {}): Promise<implicitReturnType>;
