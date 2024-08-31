@@ -11,6 +11,9 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     restIridiumPublicGetMarkets (params?: {}): Promise<implicitReturnType>;
     restIridiumPublicGetHistoryKlines (params?: {}): Promise<implicitReturnType>;
+    restIridiumPublicGetPointsLoyaltyLeaderboard (params?: {}): Promise<implicitReturnType>;
+    restIridiumPublicGetPointsReferralLeaderboard (params?: {}): Promise<implicitReturnType>;
+    restIridiumPublicGetPointsBlocksLeaderboard (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersCheck (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersInfo (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersSubaccounts (params?: {}): Promise<implicitReturnType>;
@@ -31,9 +34,6 @@ interface Exchange {
     restIridiumPrivatePostUsersWithdraw (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivatePostUsersSubaccounts (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivatePatchUsersSubaccountSubaccountId (params?: {}): Promise<implicitReturnType>;
-    restIridiumPublicGetPointsLoyaltyLeaderboard (params?: {}): Promise<implicitReturnType>;
-    restIridiumPublicGetPointsReferralLeaderboard (params?: {}): Promise<implicitReturnType>;
-    restIridiumPublicGetPointsBlocksLeaderboard (params?: {}): Promise<implicitReturnType>;
     restMendelevPublicGetBookMarketIdSnapshot (params?: {}): Promise<implicitReturnType>;
     restMendelevPublicGetParsedBookMarketSymbolSnapshot (params?: {}): Promise<implicitReturnType>;
     restMendelevPublicGetBookMarketIdRecentTrades (params?: {}): Promise<implicitReturnType>;

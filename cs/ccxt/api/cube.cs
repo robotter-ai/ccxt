@@ -21,6 +21,21 @@ public partial class cube : Exchange
         return await this.callAsync ("restIridiumPublicGetHistoryKlines",parameters);
     }
 
+    public async Task<object> restIridiumPublicGetPointsLoyaltyLeaderboard (object parameters = null)
+    {
+        return await this.callAsync ("restIridiumPublicGetPointsLoyaltyLeaderboard",parameters);
+    }
+
+    public async Task<object> restIridiumPublicGetPointsReferralLeaderboard (object parameters = null)
+    {
+        return await this.callAsync ("restIridiumPublicGetPointsReferralLeaderboard",parameters);
+    }
+
+    public async Task<object> restIridiumPublicGetPointsBlocksLeaderboard (object parameters = null)
+    {
+        return await this.callAsync ("restIridiumPublicGetPointsBlocksLeaderboard",parameters);
+    }
+
     public async Task<object> restIridiumPrivateGetUsersCheck (object parameters = null)
     {
         return await this.callAsync ("restIridiumPrivateGetUsersCheck",parameters);
@@ -84,6 +99,26 @@ public partial class cube : Exchange
     public async Task<object> restIridiumPrivateGetUsersAddressSettings (object parameters = null)
     {
         return await this.callAsync ("restIridiumPrivateGetUsersAddressSettings",parameters);
+    }
+
+    public async Task<object> restIridiumPrivateGetUsersLootBoxes (object parameters = null)
+    {
+        return await this.callAsync ("restIridiumPrivateGetUsersLootBoxes",parameters);
+    }
+
+    public async Task<object> restIridiumPrivateGetUsersInvites (object parameters = null)
+    {
+        return await this.callAsync ("restIridiumPrivateGetUsersInvites",parameters);
+    }
+
+    public async Task<object> restIridiumPrivateGetUsersDailyLoyalty (object parameters = null)
+    {
+        return await this.callAsync ("restIridiumPrivateGetUsersDailyLoyalty",parameters);
+    }
+
+    public async Task<object> restIridiumPrivateGetUsersUserTier (object parameters = null)
+    {
+        return await this.callAsync ("restIridiumPrivateGetUsersUserTier",parameters);
     }
 
     public async Task<object> restIridiumPrivatePostUsersWithdraw (object parameters = null)

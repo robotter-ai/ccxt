@@ -17,7 +17,7 @@ class cube extends Exchange {
             'countries' => array(),
             'urls' => array(
                 'referral' => '',
-                'logo' => '', // TODO Add Cube logo URL.
+                'logo' => 'https://www.cube.exchange/assets/cube-logo-180x180.png',
                 'api' => array(
                     'rest' => array(
                         'production' => array(
@@ -56,6 +56,9 @@ class cube extends Exchange {
                             'get' => array(
                                 '/markets' => 1,
                                 '/history/klines' => 1,
+                                '/points/loyalty-leaderboard' => 1,
+                                '/points/referral-leaderboard' => 1,
+                                '/points/blocks-leaderboard' => 1,
                             ),
                         ),
                         'private' => array(
@@ -73,6 +76,10 @@ class cube extends Exchange {
                                 '/users/fee-estimate/{market_id}' => 1,
                                 '/users/address' => 1,
                                 '/users/address/settings' => 1,
+                                '/users/loot-boxes' => 1,
+                                '/users/invites' => 1,
+                                '/users/daily-loyalty' => 1,
+                                '/users/user-tier' => 1,
                             ),
                             'post' => array(
                                 '/users/withdraw' => 1,
@@ -137,7 +144,7 @@ class cube extends Exchange {
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
-                'fetchAccounts' => true,
+                'fetchAccounts' => false,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
                 'fetchBorrowRateHistory' => false,
@@ -173,7 +180,7 @@ class cube extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
-                'fetchOrders' => false,
+                'fetchOrders' => true,
                 'fetchOrderTrades' => false,
                 'fetchPermissions' => false,
                 'fetchPosition' => false,
@@ -183,7 +190,7 @@ class cube extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
-                'fetchTickers' => false,
+                'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingLimits' => false,
@@ -221,7 +228,7 @@ class cube extends Exchange {
                 'M15' => '15m',
                 'H1' => '1h',
                 'H4' => '4h',
-                '1y' => '1d',
+                'D1' => '1d',
             ),
             'timeout' => 10000,
             'rateLimit' => 100,
@@ -256,6 +263,10 @@ class cube extends Exchange {
                 'legalMoney' => array(
                     'USD' => true,
                 ),
+                'mappings' => array(
+                    'rawMarketsIdsToMarkets' => array(),
+                    'rawCurrenciesIdsToCurrencies' => array(),
+                ),
             ),
             'pro' => true,
             'fees' => array(
@@ -277,10 +288,21 @@ class cube extends Exchange {
         ));
     }
 
-    public function generate_signature(): mixed {
+    public function remove_non_base16_chars(string $input): string {
+        $base16Chars = '0123456789abcdefABCDEF';
+        $result = '';
+        for ($i = 0; $i < $this->count_items($input); $i++) {
+            if (mb_strpos($base16Chars, $input[$i]) !== -1) {
+                $result .= $input[$i];
+            }
+        }
+        return $result;
+    }
+
+    public function generate_signature() {
         $timestamp = $this->seconds();
         $timestampBytes = $this->number_to_le($timestamp, 8);
-        $secretKeyBytes = $this->base16_to_binary($this->secret);
+        $secretKeyBytes = $this->base16_to_binary($this->remove_non_base16_chars($this->secret));
         $message = $this->binary_concat($this->encode('cube.xyz'), $timestampBytes);
         $signature = $this->hmac($message, $secretKeyBytes, 'sha256', 'base64');
         return array( $signature, $timestamp );
@@ -295,13 +317,13 @@ class cube extends Exchange {
         );
     }
 
-    public function authenticate_request(mixed $request): mixed {
+    public function authenticate_request($request) {
         $headers = $this->safe_dict($request, 'headers', array());
-        $request['headers'] = array_merge($headers, $this->generate_authentication_headers());
+        $request['headers'] = $this->extend($headers, $this->generate_authentication_headers());
         return $request;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $environment = $this->options['environment'];
         $endpoint = null;
         $apiArray = null;
@@ -367,7 +389,7 @@ class cube extends Exchange {
         }
     }
 
-    public function fetch_market_meta(mixed $symbolOrSymbols = null) {
+    public function fetch_market_meta($symbolOrSymbols = null) {
         $symbol = null;
         $marketId = null;
         $market = null;
@@ -470,7 +492,8 @@ class cube extends Exchange {
         return $this->parse_currencies($assets);
     }
 
-    public function parse_currencies(array $assets): array {
+    public function parse_currencies($assets): ?array {
+        $this->options['mappings']['rawCurrenciesIdsToCurrencies'] = array();
         $result = array();
         for ($i = 0; $i < count($assets); $i++) {
             $rawCurrency = $assets[$i];
@@ -479,7 +502,9 @@ class cube extends Exchange {
             $name = $this->safe_string($this->safe_dict($rawCurrency, 'metadata'), 'currencyName');
             $networkId = $this->safe_string($rawCurrency, 'sourceId');
             $networks = array();
-            $networks[$networkId] = $networkId;
+            $networks[$networkId] = array(
+                'id' => $networkId,
+            );
             $currency = $this->safe_currency_structure(array(
                 'info' => $rawCurrency,
                 'id' => $id,
@@ -489,10 +514,10 @@ class cube extends Exchange {
                 'type' => $this->safe_string_lower($rawCurrency, 'assetType'),
                 'name' => $name,
                 'active' => $this->safe_integer($rawCurrency, 'status') === 1,
-                'deposit' => false,
+                'deposit' => true,
                 'withdraw' => true,
-                'fee' => null, // TODO => What kind of fee is this? !!!
-                'fees' => array(),
+                'fee' => null, // TODO Check if it is possible to fill a withdraw fee!!!
+                'fees' => array(), // TODO Check if it is possible to fill a withdraw fee!!!
                 'networks' => $networks,
                 'limits' => array(
                     'amount' => array(
@@ -510,6 +535,7 @@ class cube extends Exchange {
                 ),
             ));
             $result[$code] = $currency;
+            $this->options['mappings']['rawCurrenciesIdsToCurrencies'][$this->safe_integer($currency, 'numericId')] = $currency;
         }
         return $result;
     }
@@ -589,17 +615,23 @@ class cube extends Exchange {
         return $this->parse_markets($rawMarkets);
     }
 
-    public function parse_markets(array $markets): array {
+    public function parse_markets($markets): array {
+        $this->options['mappings']['rawMarketsIdsToMarkets'] = array();
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
+            if ($this->safe_string($markets[$i], 'status') !== '1') {
+                continue;
+            }
             $market = $this->parse_market($markets[$i]);
             $result[] = $market;
+            $this->options['mappings']['rawMarketsIdsToMarkets'][$this->safe_integer($this->safe_dict($market, 'info'), 'marketId')] = $market;
         }
         return $result;
     }
 
-    public function parse_market(array $market): array {
+    public function parse_market($market): array {
         $id = strtoupper($this->safe_string($market, 'symbol'));
+        // TODO Expose this object globally for the exchange so the currencies can be retrieved in O(1) time
         $currenciesByNumericId = array();
         for ($i = 0; $i < $this->count_items($this->currencies); $i++) {
             $currenciesKeysArray = is_array($this->currencies) ? array_keys($this->currencies) : array();
@@ -640,8 +672,8 @@ class cube extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => $this->count_decimal_places($this->safe_string($market, 'quantityTickSize')),
-                'price' => $this->count_decimal_places($this->safe_string($market, 'priceTickSize')),
+                'amount' => $this->precision_from_string($this->safe_string($market, 'quantityTickSize')),
+                'price' => $this->precision_from_string($this->safe_string($market, 'priceTickSize')),
                 'cost' => null,
                 'base' => null,
                 'quote' => null,
@@ -677,12 +709,12 @@ class cube extends Exchange {
          * @param {string} $symbol unified $symbol of the market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
          */
         $meta = $this->fetch_market_meta($symbol);
         $symbol = $this->safe_string($meta, 'symbol');
         $request = array( 'market_symbol' => $symbol );
-        $response = $this->restMendelevPublicGetParsedBookMarketSymbolSnapshot (array_merge($request, $params));
+        $response = $this->restMendelevPublicGetParsedBookMarketSymbolSnapshot ($this->extend($request, $params));
         //
         // {
         //   "result":{
@@ -725,7 +757,7 @@ class cube extends Exchange {
         return $this->parse_order_book($rawOrderbook, $symbol, $timestamp, 'bids', 'asks');
     }
 
-    public function parse_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2): array {
+    public function parse_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         return $bidasks;
     }
 
@@ -747,7 +779,7 @@ class cube extends Exchange {
         return $ticker;
     }
 
-    public function parse_ticker(array $ticker, ?array $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //       {
         //         ticker_id => "JTOUSDC",
@@ -824,7 +856,20 @@ class cube extends Exchange {
         $result = array();
         for ($i = 0; $i < count($rawTickers); $i++) {
             $rawTicker = $rawTickers[$i];
-            $marketId = str_replace('/', '', strtoupper($this->market_id($this->safe_string($rawTicker, 'ticker_id'))));
+            $rawTickerId = str_replace('/', '', strtoupper($this->safe_string($rawTicker, 'ticker_id')));
+            if ($symbols !== null) {
+                for ($j = 0; $j < count($symbols); $j++) {
+                    if (strtoupper($symbols[$j]) === $rawTickerId) {
+                        break;
+                    }
+                }
+            }
+            $marketId = null;
+            try {
+                $marketId = $this->market_id($rawTickerId);
+            } catch (Exception $_exception) {
+                continue;
+            }
             $market = $this->market($marketId);
             $symbol = $this->safe_string($market, 'symbol');
             $ticker = $this->parse_ticker($rawTicker, $market);
@@ -852,15 +897,13 @@ class cube extends Exchange {
         $request = array(
             'interval' => $selectedTimeframe,
         );
-        if ($params['marketId'] !== null) {
-            $request['marketId'] = $params['marketId'];
-        } else {
+        if ($marketNumericId !== null) {
             $request['marketId'] = $marketNumericId;
         }
         if ($since !== null) {
             $request['start_time'] = $since; // The unix nanosecond timestamp that this kline covers.
         }
-        $response = $this->restIridiumPublicGetHistoryKlines (array_merge($request, $params));
+        $response = $this->restIridiumPublicGetHistoryKlines ($this->extend($request, $params));
         $data = $this->safe_value($response, 'result', array());
         //
         //  {
@@ -907,12 +950,13 @@ class cube extends Exchange {
         //     4230.7,        // (C)losing price, float                 |   $ohlcv[2]
         //     37.72941911    // (V)olume, float                        |   $ohlcv[5]
         // ],
+        $normalizer = pow(10, $this->safe_integer($this->safe_dict($market, 'precision'), 'price'));
         return [
-            $ohlcv[0],
-            $ohlcv[1],
-            $ohlcv[3],
-            $ohlcv[4],
-            $ohlcv[2],
+            $this->parse_to_numeric($ohlcv[0]),
+            $this->parse_to_numeric($ohlcv[1]) / $normalizer,
+            $this->parse_to_numeric($ohlcv[3]) / $normalizer,
+            $this->parse_to_numeric($ohlcv[4]) / $normalizer,
+            $this->parse_to_numeric($ohlcv[2]) / $normalizer,
             $this->parse_to_numeric($ohlcv[5]),
         ];
     }
@@ -927,16 +971,16 @@ class cube extends Exchange {
         $this->fetch_market_meta();
         $request = array();
         $this->inject_sub_account_id($request, $params);
-        $response = $this->restIridiumPrivateGetUsersSubaccountSubaccountIdPositions (array_merge($request, $params));
+        $response = $this->restIridiumPrivateGetUsersSubaccountSubaccountIdPositions ($this->extend($request, $params));
         $subaccountId = $this->safe_string($this->options, 'subaccountId');
         $allOrders = $this->fetch_raw_orders();
         $result = $this->safe_list($this->safe_dict($this->safe_dict($response, 'result'), $subaccountId), 'inner');
         return $this->parse_balance(array( 'result' => $result, 'allOrders' => $allOrders ));
     }
 
-    public function parse_balance(mixed $response): array {
-        $result = $this->safe_dict($response, 'result');
-        $allOrders = $this->safe_dict($response, 'allOrders');
+    public function parse_balance($response): array {
+        $result = $this->safe_value($response, 'result');
+        $allOrders = $this->safe_value($response, 'allOrders');
         $openOrders = array();
         $filledUnsettledOrders = array();
         $allMarketsByNumericId = array();
@@ -1062,7 +1106,10 @@ class cube extends Exchange {
         $market = $this->safe_dict($meta, 'market');
         $rawMarketId = $this->safe_integer($this->safe_dict($market, 'info'), 'marketId');
         $quantityTickSize = $this->safe_number($this->safe_dict($market, 'info'), 'quantityTickSize');
-        $exchangeAmount = $this->parse_to_int($amount * 1 / $quantityTickSize);
+        $exchangeAmount = null;
+        if ($quantityTickSize && $quantityTickSize !== 0) {
+            $exchangeAmount = $this->parse_to_int($amount / $quantityTickSize);
+        }
         $exchangeOrderType = null;
         if ($type === 'limit') {
             $exchangeOrderType = 0;
@@ -1101,12 +1148,16 @@ class cube extends Exchange {
             'postOnly' => $this->safe_integer($params, 'postOnly', 0),
             'cancelOnDisconnect' => $this->safe_bool($params, 'cancelOnDisconnect', false),
         );
-        $priceTickSize = $this->safe_number($this->safe_dict($market, 'info'), 'priceTickSize');
+        $priceTickSize = $this->parse_to_numeric($this->safe_value($this->safe_dict($market, 'info'), 'priceTickSize'));
         if ($price !== null) {
-            $request['price'] = $this->parse_to_int($price * 1 / $priceTickSize);
+            $lamportPrice = null;
+            if ($priceTickSize && $priceTickSize !== 0) {
+                $lamportPrice = $this->parse_to_int($price / $priceTickSize);
+            }
+            $request['price'] = $lamportPrice;
         }
         $this->inject_sub_account_id($request, $params);
-        $response = $this->restOsmiumPrivatePostOrder (array_merge($request, $params));
+        $response = $this->restOsmiumPrivatePostOrder ($this->extend($request, $params));
         $order = $this->safe_dict($this->safe_dict($response, 'result'), 'Ack');
         if ($order === null) {
             $order = $this->safe_dict($this->safe_dict($response, 'result'), 'Rej');
@@ -1159,7 +1210,21 @@ class cube extends Exchange {
             'marketId' => $rawMarketId,
         );
         $this->inject_sub_account_id($request, $params);
-        $response = $this->restOsmiumPrivateDeleteOrder (array_merge($request, $params));
+        $response = $this->restOsmiumPrivateDeleteOrder ($this->extend($request, $params));
+        $reason = null;
+        if ($this->safe_dict($this->safe_dict($response, 'result'), 'Rej')) {
+            $reasonNumber = $this->safe_string($this->safe_dict($this->safe_dict($response, 'result'), 'Rej'), 'reason');
+            if ($reasonNumber === '0') {
+                $reason = 'Unclassified';
+            } elseif ($reasonNumber === '1') {
+                $reason = 'Invalid $market id';
+            } elseif ($reasonNumber === '2') {
+                $reason = 'Order not found';
+            } else {
+                $reason = 'Unknown';
+            }
+            throw new InvalidOrder('Order cancellation rejected. Reason => "' . $reason . '".');
+        }
         return $this->parse_order(
             array(
                 'cancellationResponse' => $response,
@@ -1188,7 +1253,7 @@ class cube extends Exchange {
             'side' => $this->safe_integer($params, 'side', null),
         );
         $this->inject_sub_account_id($request, $params);
-        $response = $this->restOsmiumPrivateDeleteOrders (array_merge($request, $params));
+        $response = $this->restOsmiumPrivateDeleteOrders ($this->extend($request, $params));
         return array(
             'info' => $this->safe_dict($response, 'result'),
             'market' => $market,
@@ -1252,7 +1317,7 @@ class cube extends Exchange {
         $symbol = $this->safe_string($meta, 'symbol');
         $request = array();
         $this->inject_sub_account_id($request, $params);
-        $rawResponse = $this->restOsmiumPrivateGetOrders (array_merge($request, $params));
+        $rawResponse = $this->restOsmiumPrivateGetOrders ($this->extend($request, $params));
         //
         // {
         //    "result" => {
@@ -1330,14 +1395,14 @@ class cube extends Exchange {
         $results = array();
         if (gettype($orders) === 'array' && array_keys($orders) === array_keys(array_keys($orders))) {
             for ($i = 0; $i < count($orders); $i++) {
-                $order = array_merge($this->parse_order(array( 'fetchedOrder' => $orders[$i], 'transactionType' => 'fetching_all' ), $market), $params);
+                $order = $this->extend($this->parse_order(array( 'fetchedOrder' => $orders[$i], 'transactionType' => 'fetching_all' ), $market), $params);
                 $results[] = $order;
             }
         } else {
             $ids = is_array($orders) ? array_keys($orders) : array();
             for ($i = 0; $i < count($ids); $i++) {
                 $id = $ids[$i];
-                $order = array_merge($this->parse_order(array( 'fetchedOrder' => $orders[$id], 'transactionType' => 'fetching_all' ), $market), $params);
+                $order = $this->extend($this->parse_order(array( 'fetchedOrder' => $orders[$id], 'transactionType' => 'fetching_all' ), $market), $params);
                 $results[] = $order;
             }
         }
@@ -1356,9 +1421,7 @@ class cube extends Exchange {
         if ($transactionType === 'creation') {
             $orderStatus = $this->safe_string($order, 'orderStatus');
             if ($orderStatus === 'rejected') {
-                return $this->safe_order(array(
-                    'status' => $orderStatus,
-                ));
+                throw new InvalidOrder('Order was rejected');
             }
             if ($orderStatus === 'filled') {
                 $fetchedOrder = $this->safe_dict($order, 'order');
@@ -1371,6 +1434,9 @@ class cube extends Exchange {
             $orderStatus = $this->safe_string($fetchedOrder, 'status'); // The $order status is present in the $order body when fetching the endpoint of all orders
         }
         if ($fetchedOrder !== null) {
+            if (!$market) {
+                $market = $this->options['mappings']['rawMarketsIdsToMarkets'][$this->parse_to_numeric($fetchedOrder['marketId'])];
+            }
             $exchangeOrderId = $this->safe_string($fetchedOrder, 'exchangeOrderId');
             $clientOrderId = $this->safe_string($fetchedOrder, 'clientOrderId');
             $timestampInNanoseconds = null;
@@ -1420,13 +1486,15 @@ class cube extends Exchange {
             } elseif ($timeInForceRaw === 2) {
                 $timeInForce = 'FOK';
             }
-            $priceTickSize = $this->safe_number($this->safe_dict($market, 'info'), 'priceTickSize');
+            $priceTickSize = $this->parse_to_numeric($this->safe_value($this->safe_dict($market, 'info'), 'priceTickSize'));
             $rawPrice = $this->safe_integer($fetchedOrder, 'price');
             $price = null;
             if ($rawPrice === null || $orderType === 'market') {
                 $price = 0;
             } else {
-                $price = $rawPrice / (1 / $priceTickSize);
+                if ($priceTickSize && $priceTickSize !== 0) {
+                    $price = $rawPrice * $priceTickSize;
+                }
             }
             $amount = null;
             $amount = $this->safe_integer($fetchedOrder, 'quantity');
@@ -1452,13 +1520,24 @@ class cube extends Exchange {
             } elseif ($orderSide === 'sell') {
                 $rate = $this->safe_number($tradeFeeRatios, 'taker');
             }
-            $quantityTickSize = $this->safe_number($this->safe_dict($market, 'info'), 'quantityTickSize');
-            $decimalAmount = $amount / (1 / $quantityTickSize);
-            $decimalFilledAmount = $filledAmount / (1 / $quantityTickSize);
-            $decimalRemainingAmount = $remainingAmount / (1 / $quantityTickSize);
+            $quantityTickSize = $this->parse_to_numeric($this->safe_value($this->safe_dict($market, 'info'), 'quantityTickSize'));
+            $decimalAmount = 0;
+            $decimalFilledAmount = 0;
+            $decimalRemainingAmount = 0;
+            if ($quantityTickSize && $quantityTickSize !== 0) {
+                $decimalAmount = $amount * $quantityTickSize;
+                $decimalFilledAmount = $filledAmount * $quantityTickSize;
+                $decimalRemainingAmount = $remainingAmount * $quantityTickSize;
+            }
             $cost = $decimalFilledAmount * $price;
             $feeCost = $decimalAmount * $rate;
-            return $this->safe_order(array(
+            // $average = null;
+            // if ($price !== null && (string) explode('.', strlen($price)) === 1) {
+            //     $average = (string) $this->parse_to_numeric($price . '.0000001');
+            // } else {
+            //     $average = $price;
+            // }
+            $finalOrder = array(
                 'id' => $exchangeOrderId,
                 'clientOrderId' => $clientOrderId,
                 'datetime' => $this->iso8601($timestampInMilliseconds),
@@ -1484,9 +1563,11 @@ class cube extends Exchange {
                 'info' => array(
                     'fetchedOrder' => $fetchedOrder,
                 ),
-            ));
+            );
+            $finalOrder['fees'] = $this->safe_dict($finalOrder, 'fee');
+            return $this->safe_order($finalOrder);
         } else {
-            return $this->safe_order(array());
+            throw new OrderNotFound('Order not found');
         }
     }
 
@@ -1503,7 +1584,7 @@ class cube extends Exchange {
         $market = $this->safe_dict($meta, 'market');
         $request = array();
         $this->inject_sub_account_id($request, $params);
-        $response = $this->restOsmiumPrivateGetOrders (array_merge($request, $params));
+        $response = $this->restOsmiumPrivateGetOrders ($this->extend($request, $params));
         $rawOrders = $this->safe_list($this->safe_dict($response, 'result'), 'orders');
         return $this->parse_orders($rawOrders, $market, $since, $limit);
     }
@@ -1519,7 +1600,7 @@ class cube extends Exchange {
          */
         $request = array();
         $this->inject_sub_account_id($request, array());
-        $response = $this->restIridiumPrivateGetUsersSubaccountSubaccountIdOrders (array_merge($request));
+        $response = $this->restIridiumPrivateGetUsersSubaccountSubaccountIdOrders ($this->extend($request));
         $rawOrders = $this->safe_list($this->safe_dict($response, 'result'), 'orders');
         return $rawOrders;
     }
@@ -1545,7 +1626,7 @@ class cube extends Exchange {
         $request = array(
             'market_id' => $rawMarketId,
         );
-        $recentTradesResponse = $this->restMendelevPublicGetBookMarketIdRecentTrades (array_merge($request, $params));
+        $recentTradesResponse = $this->restMendelevPublicGetBookMarketIdRecentTrades ($this->extend($request, $params));
         //
         // {
         //     "result":{
@@ -1575,7 +1656,7 @@ class cube extends Exchange {
         $request = array(
             'market_symbol' => $rawMarketSymbol,
         );
-        $parsedRecentTradesResponse = $this->restMendelevPublicGetParsedBookMarketSymbolRecentTrades (array_merge($request, $params));
+        $parsedRecentTradesResponse = $this->restMendelevPublicGetParsedBookMarketSymbolRecentTrades ($this->extend($request, $params));
         //
         // {
         //     "result":{
@@ -1599,14 +1680,16 @@ class cube extends Exchange {
         //     }
         // }
         //
-        $rawTrades => anyarray() = array( {
+        $tradesAndParsedTrades = array(
             'trades' => $this->safe_list($this->safe_dict($recentTradesResponse, 'result'), 'trades'),
             'parsedTrades' => $this->safe_list($this->safe_dict($parsedRecentTradesResponse, 'result'), 'trades'),
-        } );
-        return $this->parse_trades($rawTrades, $market);
+        );
+        $rawTrades = array( $tradesAndParsedTrades );
+        $parsedTrades = $this->parse_trades($rawTrades, $market);
+        return $this->filter_by_symbol_since_limit($parsedTrades, $symbol, $since, $limit);
     }
 
-    public function parse_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function parse_trades($trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         $parsedTrades = $this->safe_value($trades[0], 'parsedTrades');
         $finalTrades = array();
         if ($parsedTrades !== null && $this->count_items($parsedTrades) > 0) {
@@ -1676,7 +1759,7 @@ class cube extends Exchange {
         $request = array(
             'market_id' => $rawMarketId,
         );
-        $response = $this->restIridiumPrivateGetUsersFeeEstimateMarketId (array_merge($request, $params));
+        $response = $this->restIridiumPrivateGetUsersFeeEstimateMarketId ($this->extend($request, $params));
         // {
         //     "result" => {
         //         "userKey" => "123e4567-e89b-12d3-a456-426614174000",
@@ -1695,12 +1778,23 @@ class cube extends Exchange {
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetch all trades made by the user
+         * @see https://cubexch.gitbook.io/cube-api/rest-iridium-api#users-subaccount-subaccount_id-fills
+         * @param {string} $symbol unified market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=$trade-structure $trade structures~
+         */
+        $meta = $this->fetch_market_meta($symbol);
+        $symbol = $this->safe_string($meta, 'symbol');
         $allOrders = $this->fetch_orders($symbol, $since, $limit, $params);
         $myTrades = array();
         for ($i = 0; $i < $this->count_items($allOrders); $i++) {
             $orderStatus = $this->safe_string($allOrders[$i], 'status');
             if ($orderStatus === 'filled') {
-                $orderFills = $this->safe_dict($this->safe_dict($this->safe_dict($allOrders[$i], 'info'), 'fetchedOrder'), 'fills');
+                $orderFills = $this->safe_list($this->safe_dict($this->safe_dict($allOrders[$i], 'info'), 'fetchedOrder'), 'fills');
                 $fillsLength = $this->count_items($orderFills);
                 for ($j = 0; $j < $fillsLength; $j++) {
                     $trade = $orderFills[$j];
@@ -1709,15 +1803,16 @@ class cube extends Exchange {
                 }
             }
         }
-        return $myTrades;
+        return $this->filter_by_symbol_since_limit($myTrades, $symbol, $since, $limit);
     }
 
-    public function parse_my_trade(mixed $trade, mixed $order) {
+    public function parse_my_trade($trade, $order) {
         $tradeId = $this->safe_string($trade, 'tradeId');
         $timestampInNanoseconds = $this->safe_integer($trade, 'filledAt');
         $timestampInMilliseconds = $this->parse_to_int($timestampInNanoseconds / 1000000);
         $datetime = $this->iso8601($timestampInMilliseconds);
-        $marketSymbol = $this->safe_string($order, 'symbol');
+        $meta = $this->fetch_market_meta($this->safe_string($order, 'symbol'));
+        $marketSymbol = $this->safe_string($meta, 'symbol');
         $orderType = $this->safe_string($order, 'type');
         $orderId = null;
         if ($orderType === 'limit') {
@@ -1760,6 +1855,12 @@ class cube extends Exchange {
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetches a list of closed (or canceled) orders
+         * @see https://github.com/ccxt/ccxt/wiki/Manual#understanding-the-orders-api-design
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
         $allOrders = $this->fetch_orders($symbol, $since, $limit, $params);
         $closedOrders = array();
         for ($i = 0; $i < $this->count_items($allOrders); $i++) {
@@ -1771,7 +1872,7 @@ class cube extends Exchange {
         return $closedOrders;
     }
 
-    public function fetch_status($params = array ()): mixed {
+    public function fetch_status($params = array ()) {
         /**
          * the latest known information on the availability of the exchange API
          * @see https://binance-docs.github.io/apidocs/spot/en/#system-status-system
@@ -1810,12 +1911,14 @@ class cube extends Exchange {
         $currency = null;
         if ($symbol !== null) {
             $currency = $this->currency($symbol);
-            $request['asset_symbol'] = $currency['assetId'];
+            $request['asset_symbol'] = $this->safe_string($this->safe_dict($currency, 'info'), 'assetId');
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->restIridiumPrivateGetUsersSubaccountSubaccountIdDeposits (array_merge($request, $params));
+        $this->inject_sub_account_id($request, $params);
+        $subAccountId = $this->safe_string($request, 'subaccountId');
+        $response = $this->restIridiumPrivateGetUsersSubaccountSubaccountIdDeposits ($this->extend($request, $params));
         //
         // result => array(
         //     "161" => array(
@@ -1837,15 +1940,123 @@ class cube extends Exchange {
         //     ),
         //   ),
         //
-        $deposits = $this->safe_list($response, 'inner', array());
-        return array( $this->parse_transaction($deposits, $currency) );
+        $deposits = $this->safe_list($this->safe_dict($this->safe_dict($response, 'result'), $subAccountId), 'inner', array());
+        for ($i = 0; $i < count($deposits); $i++) {
+            $deposits[$i]['type'] = 'deposit';
+        }
+        return $this->parse_transactions($deposits, $currency, $since, $limit, $params);
+    }
+
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
+        /**
+         * fetch deposit $addresses for multiple currencies and chain types
+         * @see https://cubexch.gitbook.io/cube-api/rest-iridium-api#users-info
+         * @param {string[]|null} $codes list of unified $currency $codes, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+         */
+        $this->fetch_market_meta();
+        $rawUsersInfoResponse = $this->restIridiumPrivateGetUsersInfo ($params);
+        $rawMarketsResponse = $this->restIridiumPublicGetMarkets ($params);
+        //
+        // getUsersInfo
+        // {
+        //     ...
+        //     "subaccounts" => array(
+        //         {
+        //             "id" => 161,
+        //             "name" => "primary",
+        //             "addresses" => array(
+        //                 "101" => "tb1p74t28ne95z0rptyhqfwzx8xh2xclw4t2ua46fyzqr6x76km7sp8qdy2n3e",
+        //                 "103" => "Cz3BnXPhYudZscqHHh5eDusYzVn4Bpb5EKBvrG4Zvaf3",
+        //                 "105" => "nf8FjTqGW4B7Bx5UZhkRUhaGGnMjZ7LUPw",
+        //                 "106" => "5G6AHKi87NCNkFvPfXx4aX3qLcoKzWRTK4KcHNPeVPB6qZyT",
+        //                 "107" => "tltc1qwlky3uxaygw4g3yr39cw0xvzw323xynmunuca3",
+        //                 "108" => "cosmos1wlky3uxaygw4g3yr39cw0xvzw323xynme8m7jx"
+        //             ),
+        //             "hasOrderHistory" => true
+        //         }
+        //     )
+        //     ...
+        // }
+        //
+        // getMarkets
+        // {
+        //     ...
+        //     $sources => array(
+        //        array(
+        //            $sourceId => 1,
+        //            name => "bitcoin",
+        //            transactionExplorer => "https://mempool.space/tx/array()",
+        //            addressExplorer => "https://mempool.space/address/array()",
+        //            metadata => array(
+        //              $network => "Mainnet",
+        //              scope => "bitcoin",
+        //              type => "mainnet",
+        //           ),
+        //        ),
+        //     )
+        //     ...
+        // }
+        if ($codes === null) {
+            $codes = array();
+        }
+        $newCodes = array();
+        for ($i = 0; $i < count($codes); $i++) {
+            $newCodes[$i] = strtoupper($codes[$i]);
+        }
+        $codes = $newCodes;
+        $sourcesByIds = array();
+        $sources = $this->safe_list($rawMarketsResponse, 'sources', array());
+        for ($i = 0; $i < count($sources); $i++) {
+            $source = $sources[$i];
+            $sourceId = $this->safe_string($source, 'sourceId');
+            $sourcesByIds[$sourceId] = $source;
+        }
+        $subAccounts = $this->safe_list($rawUsersInfoResponse, 'subaccounts', array());
+        $result = array(
+            'info' => array(
+                'subaccounts' => $subAccounts,
+                'sources' => $sources,
+            ),
+        );
+        for ($i = 0; $i < count($subAccounts); $i++) {
+            $subAccount = $subAccounts[$i];
+            $subAccountId = $this->safe_string($subAccount, 'id');
+            $addresses = $this->safe_list($subAccount, 'addresses', array());
+            $sourcesIds = is_array($addresses) ? array_keys($addresses) : array();
+            for ($j = 0; $j < count($sourcesIds); $j++) {
+                $sourceId = $sourcesIds[$j];
+                $address = $addresses[$sourceId];
+                $this->check_address($address);
+                $source = $this->safe_string($sourcesByIds, $sourceId);
+                $currency = $this->currency($this->safe_string($source, 'name'));
+                $sourceMetaData = $this->safe_dict($source, 'metadata');
+                $network = $this->safe_string($sourceMetaData, 'scope') . '-' . $this->safe_string($sourceMetaData, 'type');
+                $currencyCode = $this->safe_string($currency, 'code');
+                if (!$this->in_array($currencyCode, $codes)) {
+                    continue;
+                }
+                $result[$currencyCode] = array(
+                    'info' => array(
+                        'subaccount' => $subAccount,
+                        'source' => $source,
+                    ),
+                    'currency' => $currencyCode,
+                    'address' => $address,
+                    'network' => $network,
+                    'tag' => $subAccountId,
+                );
+            }
+        }
+        return $result;
     }
 
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://cubexch.gitbook.io/cube-api/rest-iridium-api#users-withdraw
-         * @param {string} $code unified currency $code
+         * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
@@ -1854,13 +2065,16 @@ class cube extends Exchange {
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->fetch_market_meta();
+        $currency = $this->currency($code);
+        $currencyPrecision = $this->safe_integer($currency, 'precision');
+        $exchangeAmount = (int) round($amount * pow(10, $currencyPrecision));
         $request = array(
-            'amount' => (string) $amount,
+            'amount' => $this->number_to_string($exchangeAmount),
             'destination' => $address,
-            'assetId' => $code,
+            'assetId' => $this->safe_integer($currency, 'numericId'),
         );
         $this->inject_sub_account_id($request, $params);
-        $response = $this->restIridiumPrivatePostUsersWithdraw (array_merge($request, $params));
+        $response = $this->restIridiumPrivatePostUsersWithdraw ($this->extend($request, $params));
         //
         // {
         //     "result" => {
@@ -1879,10 +2093,10 @@ class cube extends Exchange {
 
     public function fetch_withdrawals(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * fetch all withdrawals made from an account
+         * fetch all $withdrawals made from an account
          * @param {string} code unified $currency code
-         * @param {int} [$since] the earliest time in ms to fetch withdrawals for
-         * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
+         * @param {int} [$since] the earliest time in ms to fetch $withdrawals for
+         * @param {int} [$limit] the maximum number of $withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
@@ -1896,9 +2110,11 @@ class cube extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->restIridiumPrivateGetUsersSubaccountSubaccountIdWithdrawals (array_merge($request, $params));
+        $this->inject_sub_account_id($request, $params);
+        $subAccountId = $this->safe_string($request, 'subaccountId');
+        $response = $this->restIridiumPrivateGetUsersSubaccountSubaccountIdWithdrawals ($this->extend($request, $params));
         //
-        // $result => array(
+        // result => array(
         //     "161" => array(
         //       name => "primary",
         //       inner => array(
@@ -1916,11 +2132,14 @@ class cube extends Exchange {
         //     ),
         //   ),
         //
-        $result = $this->safe_value($response, 'result', array());
-        return array( $this->parse_transaction($result, $currency) );
+        $withdrawals = $this->safe_list($this->safe_dict($this->safe_dict($response, 'result'), $subAccountId), 'inner', array());
+        for ($i = 0; $i < count($withdrawals); $i++) {
+            $withdrawals[$i]['type'] = 'withdrawal';
+        }
+        return $this->parse_transactions($withdrawals, $currency, $since, $limit, $params);
     }
 
-    public function parse_transaction(mixed $transaction, ?array $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1964,27 +2183,41 @@ class cube extends Exchange {
         //     ),
         //   ),
         //
-        $currencyId = $this->safe_string($transaction, 'assetId');
-        $code = $this->safe_currency_code($currencyId);
-        $amount = $this->safe_number($transaction, 'amount');
+        // TODO Expose this object globally for the exchange so the currencies can be retrieved in O(1) time!!!
+        $currenciesByNumericId = array();
+        for ($i = 0; $i < $this->count_items($this->currencies); $i++) {
+            $currenciesKeysArray = is_array($this->currencies) ? array_keys($this->currencies) : array();
+            $targetCurrency = $this->safe_value($this->currencies, $currenciesKeysArray[$i]);
+            $targetCurrencyNumericId = $this->safe_integer($targetCurrency, 'numericId');
+            $currenciesByNumericId[$targetCurrencyNumericId] = $targetCurrency;
+        }
+        $id = $this->safe_string($transaction, 'attemptId');
+        $txId = $this->safe_string($transaction, 'txnHash');
+        $code = $this->safe_string($currenciesByNumericId[$this->safe_integer($transaction, 'assetId')], 'code');
         $timestamp = $this->parse8601($this->safe_string($transaction, 'createdAt'));
         $updated = $this->parse8601($this->safe_string($transaction, 'updatedAt'));
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'kytStatus'));
         $address = $this->safe_string($transaction, 'address');
+        $type = $this->safe_string($transaction, 'type', null);
+        $assetAmount = $this->parse_to_numeric($this->safe_string($transaction, 'amount'));
+        $assetNumericId = $this->parse_to_int($this->safe_string($transaction, 'assetId'));
+        $currency = $currenciesByNumericId[$assetNumericId];
+        $currencyPrecision = $this->safe_integer($currency, 'precision');
+        $amount = $assetAmount / pow(10, $currencyPrecision);
         return array(
             'info' => $transaction,
-            'id' => null,
-            'txid' => null,
+            'id' => $id,
+            'txid' => $txId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'network' => null,
             'addressFrom' => null,
-            'address' => null,
+            'address' => $address,
             'addressTo' => $address,
             'tagFrom' => null,
             'tag' => null,
             'tagTo' => null,
-            'type' => null,
+            'type' => $type,
             'amount' => $amount,
             'currency' => $code,
             'status' => $status,
@@ -1995,7 +2228,7 @@ class cube extends Exchange {
         );
     }
 
-    public function parse_transaction_status(mixed $status) {
+    public function parse_transaction_status($status) {
         $statuses = array(
             // what are other $statuses here?
             'WITHHOLD' => 'ok',
@@ -2008,30 +2241,23 @@ class cube extends Exchange {
     }
 
     public function count_with_loop($items) {
-        $count = 0;
-        for ($i = 0; $i < $count($items); $i++) {
-            $count += 1;
+        $counter = 0;
+        for ($i = 0; $i < count($items); $i++) {
+            $counter += 1;
         }
-        return $count;
+        return $counter;
     }
 
     public function count_items($input) {
-        $count = 0;
+        $counter = 0;
         if (gettype($input) === 'array' && array_keys($input) === array_keys(array_keys($input))) {
-            $count = $this->count_with_loop($input);
+            $counter = $this->count_with_loop($input);
         } elseif (gettype($input) === 'array' && $input !== null) {
             $keys = is_array($input) ? array_keys($input) : array();
-            $count = $this->count_with_loop($keys);
+            $counter = $this->count_with_loop($keys);
+        } elseif (gettype($input) === 'string') {
+            $counter = $this->count_with_loop($this->string_to_chars_array($input));
         }
-        return $count;
-    }
-
-    public function count_decimal_places(mixed $number) {
-        $numberString = (string) $number;
-        if (mb_strpos($numberString, '.') === -1) {
-            return 0;
-        }
-        $parts = explode('.', $numberString);
-        return count($parts[1]);
+        return $counter;
     }
 }
