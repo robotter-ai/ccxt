@@ -1,20 +1,21 @@
 import Exchange from './abstract/cube.js';
-import { Balances, Currencies, Dictionary, IndexType, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, Currency } from './base/types.js';
+import { Balances, Currencies, Currency, IndexType, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction } from './base/types.js';
 /**
  * @class cube
  * @augments Exchange
  */
 export default class cube extends Exchange {
     describe(): any;
-    generateSignature(): any;
+    removeNonBase16Chars(input: string): string;
+    generateSignature(): any[];
     generateAuthenticationHeaders(): {
         'x-api-key': string;
         'x-api-signature': any;
         'x-api-timestamp': any;
     };
     authenticateRequest(request: any): any;
-    sign(path: string, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
-        url: any;
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+        url: string;
         method: string;
         body: any;
         headers: any;
@@ -30,14 +31,14 @@ export default class cube extends Exchange {
     }>;
     injectSubAccountId(request: any, params: any): void;
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrencies(assets: Dictionary<any>): Currencies;
+    parseCurrencies(assets: any): Currencies;
     fetchMarkets(params?: {}): Promise<Market[]>;
-    parseMarkets(markets: Dictionary<any>): Market[];
-    parseMarket(market: Dictionary<any>): Market;
+    parseMarkets(markets: any): Market[];
+    parseMarket(market: any): Market;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): any[];
+    parseBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): any;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    parseTicker(ticker: Dictionary<any>, market?: Market): Ticker;
+    parseTicker(ticker: any, market?: Market): Ticker;
     fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
@@ -46,8 +47,8 @@ export default class cube extends Exchange {
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<{
-        info: Dictionary<any>;
-        market: Dictionary<any>;
+        info: import("./base/types.js").Dictionary<any>;
+        market: import("./base/types.js").Dictionary<any>;
     }>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchRawOrder(id: string, symbol?: any, params?: {}): Promise<any>;
@@ -57,11 +58,11 @@ export default class cube extends Exchange {
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchRawOrders(): Promise<any[]>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseTrades(trades: any[], market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
+    parseTrades(trades: any, market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
     parseTrade(trade: any, market?: any): Trade;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseMyTrade(trade: any, order: any): {
+    parseMyTrade(trade: any, order: any): Promise<{
         id: string;
         timestamp: number;
         datetime: string;
@@ -73,18 +74,29 @@ export default class cube extends Exchange {
         price: number;
         amount: number;
         cost: any;
-        fee: Dictionary<any>;
+        fee: import("./base/types.js").Dictionary<any>;
         fees: any[];
         info: any;
-    };
+    }>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchStatus(params?: {}): Promise<any>;
+    fetchStatus(params?: {}): Promise<{
+        status: any;
+        updated: any;
+        eta: any;
+        url: any;
+        info: any;
+    }>;
     fetchDeposits(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDepositAddresses(codes?: Strings, params?: {}): Promise<{
+        info: {
+            subaccounts: any[];
+            sources: any[];
+        };
+    }>;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     fetchWithdrawals(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;
     countWithLoop(items: any): number;
     countItems(input: any): number;
-    countDecimalPlaces(number: any): any;
 }
