@@ -548,6 +548,9 @@ public partial class okcoin : Exchange
                 { "defaultNetwork", "ERC20" },
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "Ethereum" },
+                    { "BTC", "Bitcoin" },
+                    { "OMNI", "Omni" },
+                    { "TRC20", "TRON" },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -689,16 +692,6 @@ public partial class okcoin : Exchange
         });
     }
 
-    public virtual object safeNetwork(object networkId)
-    {
-        object networksById = new Dictionary<string, object>() {
-            { "Bitcoin", "BTC" },
-            { "Omni", "OMNI" },
-            { "TRON", "TRC20" },
-        };
-        return this.safeString(networksById, networkId, networkId);
-    }
-
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         /**
@@ -749,7 +742,7 @@ public partial class okcoin : Exchange
                     {
                         object parts = ((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                         object chainPart = this.safeString(parts, 1, networkId);
-                        object networkCode = this.safeNetwork(chainPart);
+                        object networkCode = this.networkIdToCode(chainPart);
                         object precision = this.parsePrecision(this.safeString(chain, "wdTickSz"));
                         if (isTrue(isEqual(maxPrecision, null)))
                         {
@@ -1372,7 +1365,7 @@ public partial class okcoin : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {bool} [params.reduceOnly] MARGIN orders only, or swap/future orders in net mode
         * @param {bool} [params.postOnly] true to place a post only order

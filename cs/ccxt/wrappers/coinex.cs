@@ -329,7 +329,7 @@ public partial class coinex
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -447,7 +447,7 @@ public partial class coinex
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -533,10 +533,10 @@ public partial class coinex
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// fetches information on an order made by the user
@@ -1111,12 +1111,12 @@ public partial class coinex
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
-    public async Task<TransferEntries> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<TransferEntry>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
-        return new TransferEntries(res);
+        return ((IList<object>)res).Select(item => new TransferEntry(item)).ToList<TransferEntry>();
     }
     /// <summary>
     /// fetch all withdrawals made from an account
@@ -1337,12 +1337,12 @@ public partial class coinex
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
-    public async Task<Position> FetchPositionHistory(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Position>> FetchPositionHistory(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchPositionHistory(symbol, since, limit, parameters);
-        return new Position(res);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
     /// <summary>
     /// fetches the history of margin added or reduced from contract isolated positions

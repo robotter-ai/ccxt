@@ -27,6 +27,26 @@ public partial class kraken
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
+    /// the latest known information on the availability of the exchange API
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.kraken.com/api/docs/rest-api/get-system-status/"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchStatus(parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
@@ -183,6 +203,12 @@ public partial class kraken
     /// int : timestamp in ms of the latest ledger entry
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.end</term>
+    /// <description>
+    /// int : timestamp in seconds of the latest ledger entry
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
@@ -261,7 +287,7 @@ public partial class kraken
     /// create a market order by providing the symbol, side and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Trading/operation/addOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -281,7 +307,7 @@ public partial class kraken
     /// create a market buy order by providing the symbol, side and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Trading/operation/addOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -301,12 +327,12 @@ public partial class kraken
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Trading/operation/addOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -376,12 +402,12 @@ public partial class kraken
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Trading/operation/editOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/editOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -534,6 +560,18 @@ public partial class kraken
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest trade entry
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.end</term>
+    /// <description>
+    /// int : timestamp in seconds of the latest trade entry
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
@@ -548,7 +586,7 @@ public partial class kraken
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -559,16 +597,16 @@ public partial class kraken
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Order(res);
     }
     /// <summary>
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrderBatch"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrderBatch"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -579,16 +617,16 @@ public partial class kraken
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrders(object ids, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelOrders(object ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// cancel all open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Trading/operation/cancelAllOrders"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -599,10 +637,10 @@ public partial class kraken
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// dead man's switch, cancel all orders after the given timeout
@@ -722,6 +760,18 @@ public partial class kraken
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest transaction entry
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.end</term>
+    /// <description>
+    /// int : timestamp in seconds of the latest transaction entry
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
@@ -777,15 +827,21 @@ public partial class kraken
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest transaction entry
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.end</term>
     /// <description>
-    /// object : End timestamp, withdrawals created strictly after will be not be included in the response
+    /// int : timestamp in seconds of the latest transaction entry
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean :  default false, when true will automatically paginate by calling this endpoint multiple times
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times
     /// </description>
     /// </item>
     /// </list>

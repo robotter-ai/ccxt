@@ -11,6 +11,13 @@ export default class kraken extends Exchange {
     fetchMarkets(params?: {}): Promise<Market[]>;
     safeCurrency(currencyId: any, currency?: Currency): import("./base/types.js").CurrencyInterface;
     appendInactiveMarkets(result: any): any;
+    fetchStatus(params?: {}): Promise<{
+        status: string;
+        updated: any;
+        eta: any;
+        url: any;
+        info: any;
+    }>;
     fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     parseTradingFee(response: any, market: any): {
@@ -70,9 +77,9 @@ export default class kraken extends Exchange {
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOrdersByIds(ids: any, symbol?: Str, params?: {}): Promise<any[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
-    cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any>;
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

@@ -10,6 +10,8 @@ public partial class mexc
     /// the latest known information on the availability of the exchange API
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#test-connectivity"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +31,8 @@ public partial class mexc
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#check-server-time"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -48,6 +52,8 @@ public partial class mexc
     /// retrieves data on all markets for mexc
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -278,7 +284,7 @@ public partial class mexc
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -1099,12 +1105,12 @@ public partial class mexc
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
-    public async Task<TransferEntries> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<TransferEntry>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
-        return new TransferEntries(res);
+        return ((IList<object>)res).Select(item => new TransferEntry(item)).ToList<TransferEntry>();
     }
     /// <summary>
     /// transfer currency internally between wallets on the same account
@@ -1136,7 +1142,7 @@ public partial class mexc
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

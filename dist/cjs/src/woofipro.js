@@ -25,6 +25,7 @@ class woofipro extends woofipro$1 {
             'version': 'v1',
             'certified': true,
             'pro': true,
+            'dex': true,
             'hostname': 'dex.woo.org',
             'has': {
                 'CORS': undefined,
@@ -679,6 +680,10 @@ class woofipro extends woofipro$1 {
         const amount = this.safeString(trade, 'executed_quantity');
         const order_id = this.safeString(trade, 'order_id');
         const fee = this.parseTokenAndFeeTemp(trade, 'fee_asset', 'fee');
+        const feeCost = this.safeString(fee, 'cost');
+        if (feeCost !== undefined) {
+            fee['cost'] = feeCost;
+        }
         const cost = Precise["default"].stringMul(price, amount);
         const side = this.safeStringLower(trade, 'side');
         const id = this.safeString(trade, 'id');
@@ -1231,7 +1236,7 @@ class woofipro extends woofipro$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
@@ -1333,7 +1338,7 @@ class woofipro extends woofipro$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] The price a trigger order is triggered at
          * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
@@ -1458,7 +1463,7 @@ class woofipro extends woofipro$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] The price a trigger order is triggered at
          * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
@@ -1647,7 +1652,9 @@ class woofipro extends woofipro$1 {
         //     }
         // }
         //
-        return response;
+        return [this.safeOrder({
+                'info': response,
+            })];
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -1691,7 +1698,11 @@ class woofipro extends woofipro$1 {
         //     }
         // }
         //
-        return response;
+        return [
+            {
+                'info': response,
+            },
+        ];
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
@@ -1702,6 +1713,7 @@ class woofipro extends woofipro$1 {
          * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
          * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.trigger] whether the order is a stop/algo order
@@ -2277,8 +2289,10 @@ class woofipro extends woofipro$1 {
     }
     signHash(hash, privateKey) {
         const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1.secp256k1, undefined);
+        const r = signature['r'];
+        const s = signature['s'];
         const v = this.intToBase16(this.sum(27, signature['v']));
-        return '0x' + signature['r'].padStart(64, '0') + signature['s'].padStart(64, '0') + v;
+        return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }
     signMessage(message, privateKey) {
         return this.signHash(this.hashMessage(message), privateKey.slice(-64));

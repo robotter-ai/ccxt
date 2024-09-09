@@ -816,8 +816,23 @@ class whitebit extends Exchange {
         //        "change" => "2.12" // in percent
         //    }
         //
+        // WS market_update
+        //
+        //     {
+        //         "open" => "52853.04",
+        //         "close" => "55913.88",
+        //         "high" => "56272",
+        //         "low" => "49549.67",
+        //         "volume" => "57331.067185",
+        //         "deal" => "3063860382.42985338",
+        //         "last" => "55913.88",
+        //         "period" => 86400
+        //     }
         $market = $this->safe_market(null, $market);
-        $last = $this->safe_string($ticker, 'last_price');
+        // $last price is provided as "last" or "last_price"
+        $last = $this->safe_string_2($ticker, 'last', 'last_price');
+        // if "close" is provided, use it, otherwise use <$last>
+        $close = $this->safe_string($ticker, 'close', $last);
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => null,
@@ -830,7 +845,7 @@ class whitebit extends Exchange {
             'askVolume' => null,
             'vwap' => null,
             'open' => $this->safe_string($ticker, 'open'),
-            'close' => $last,
+            'close' => $close,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
@@ -1263,7 +1278,7 @@ class whitebit extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->cost] *$market orders only* the $cost of the order in units of the base currency
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -1360,7 +1375,7 @@ class whitebit extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+             * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
@@ -1431,7 +1446,27 @@ class whitebit extends Exchange {
                 'market' => $market['id'],
                 'orderId' => intval($id),
             );
-            return Async\await($this->v4PrivatePostOrderCancel ($this->extend($request, $params)));
+            $response = Async\await($this->v4PrivatePostOrderCancel ($this->extend($request, $params)));
+            //
+            //    {
+            //        "orderId" => 4180284841, // order $id
+            //        "clientOrderId" => "customId11", // custom order identifier; "clientOrderId" => "" - if not specified.
+            //        "market" => "BTC_USDT", // deal $market
+            //        "side" => "buy", // order side
+            //        "type" => "stop $market", // order type
+            //        "timestamp" => 1595792396.165973, // current timestamp
+            //        "dealMoney" => "0", // if order finished - amount in money currency that is finished
+            //        "dealStock" => "0", // if order finished - amount in stock currency that is finished
+            //        "amount" => "0.001", // amount
+            //        "takerFee" => "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+            //        "makerFee" => "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+            //        "left" => "0.001", // if order not finished - rest of the amount that must be finished
+            //        "dealFee" => "0", // fee in money that you pay if order is finished
+            //        "price" => "40000", // price if price isset
+            //        "activation_price" => "40000" // activation price if activation price is set
+            //    }
+            //
+            return $this->parse_order($response);
         }) ();
     }
 
@@ -1474,7 +1509,7 @@ class whitebit extends Exchange {
             //
             // array()
             //
-            return $response;
+            return $this->parse_orders($response, $market);
         }) ();
     }
 
@@ -1598,20 +1633,19 @@ class whitebit extends Exchange {
             /**
              * fetch all unfilled currently open orders
              * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
-             * @param {string} $symbol unified $market $symbol
+             * @param {string} [$symbol] unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of open order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $request = array(
-                'market' => $market['id'],
-            );
+            $market = null;
+            $request = array();
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['market'] = $market['id'];
+            }
             if ($limit !== null) {
                 $request['limit'] = min ($limit, 100);
             }
@@ -1712,7 +1746,7 @@ class whitebit extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         //
-        // createOrder, fetchOpenOrders
+        // createOrder, fetchOpenOrders, cancelOrder
         //
         //      {
         //          "orderId":105687928629,
@@ -1727,6 +1761,7 @@ class whitebit extends Exchange {
         //          "takerFee":"0.001",
         //          "makerFee":"0",
         //          "left":"100",
+        //          "price" => "40000", // $price if $price isset
         //          "dealFee":"0",
         //          "activation_price":"0.065"      // stop $price (if stop limit or stop $market)
         //      }
@@ -2568,7 +2603,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function is_fiat($currency) {
+    public function is_fiat(string $currency): bool {
         $fiatCurrencies = $this->safe_value($this->options, 'fiatCurrencies', array());
         return $this->in_array($currency, $fiatCurrencies);
     }
@@ -2629,9 +2664,11 @@ class whitebit extends Exchange {
                 if ($hasErrorStatus) {
                     $errorInfo = $status;
                 } else {
-                    $errorObject = $this->safe_value($response, 'errors');
-                    if ($errorObject !== null) {
-                        $errorKey = is_array($errorObject) ? array_keys($errorObject) : array()[0];
+                    $errorObject = $this->safe_dict($response, 'errors', array());
+                    $errorKeys = is_array($errorObject) ? array_keys($errorObject) : array();
+                    $errorsLength = count($errorKeys);
+                    if ($errorsLength > 0) {
+                        $errorKey = $errorKeys[0];
                         $errorMessageArray = $this->safe_value($errorObject, $errorKey, array());
                         $errorMessageLength = count($errorMessageArray);
                         $errorInfo = ($errorMessageLength > 0) ? $errorMessageArray[0] : $body;

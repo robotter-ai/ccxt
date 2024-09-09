@@ -582,6 +582,9 @@ class okcoin extends Exchange {
                 'defaultNetwork' => 'ERC20',
                 'networks' => array(
                     'ERC20' => 'Ethereum',
+                    'BTC' => 'Bitcoin',
+                    'OMNI' => 'Omni',
+                    'TRC20' => 'TRON',
                 ),
             ),
             'commonCurrencies' => array(
@@ -718,15 +721,6 @@ class okcoin extends Exchange {
         ));
     }
 
-    public function safe_network($networkId) {
-        $networksById = array(
-            'Bitcoin' => 'BTC',
-            'Omni' => 'OMNI',
-            'TRON' => 'TRC20',
-        );
-        return $this->safe_string($networksById, $networkId, $networkId);
-    }
-
     public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
@@ -768,7 +762,7 @@ class okcoin extends Exchange {
                         if (($networkId !== null) && (mb_strpos($networkId, '-') !== false)) {
                             $parts = explode('-', $networkId);
                             $chainPart = $this->safe_string($parts, 1, $networkId);
-                            $networkCode = $this->safe_network($chainPart);
+                            $networkCode = $this->network_id_to_code($chainPart);
                             $precision = $this->parse_precision($this->safe_string($chain, 'wdTickSz'));
                             if ($maxPrecision === null) {
                                 $maxPrecision = $precision;
@@ -1345,7 +1339,7 @@ class okcoin extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} $price the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->reduceOnly] MARGIN orders only, or swap/future orders in net mode
              * @param {bool} [$params->postOnly] true to place a post only $order

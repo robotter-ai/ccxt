@@ -1,5 +1,5 @@
 import Exchange from './abstract/kucoin.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, TradingFeeInterface, Currencies, Dict, int } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, Dict, TradingFeeInterface, Currencies, int } from './base/types.js';
 /**
  * @class kucoin
  * @augments Exchange
@@ -16,6 +16,8 @@ export default class kucoin extends Exchange {
         info: any;
     }>;
     fetchMarkets(params?: {}): Promise<Market[]>;
+    loadMigrationStatus(force?: boolean): Promise<void>;
+    handleHfAndParams(params?: {}): {}[];
     fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchAccounts(params?: {}): Promise<Account[]>;
     fetchTransactionFee(code: string, params?: {}): Promise<{
@@ -63,7 +65,7 @@ export default class kucoin extends Exchange {
     marketOrderAmountToPrecision(symbol: string, amount: any): string;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -176,6 +178,7 @@ export default class kucoin extends Exchange {
         info: any;
     };
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
+    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

@@ -1,5 +1,5 @@
 import Exchange from './abstract/hyperliquid.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers } from './base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
@@ -14,6 +14,8 @@ export default class hyperliquid extends Exchange {
     parseMarket(market: Dict): Market;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -36,7 +38,7 @@ export default class hyperliquid extends Exchange {
     };
     actionHash(action: any, vaultAddress: any, nonce: any): any;
     signL1Action(action: any, nonce: any, vaultAdress?: any): object;
-    buildSig(chainId: any, messageTypes: any, message: any): {
+    signUserSignedAction(messageTypes: any, message: any): {
         r: string;
         s: string;
         v: any;
@@ -53,14 +55,19 @@ export default class hyperliquid extends Exchange {
     };
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
-    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<any>;
+    createOrdersRequest(orders: any, params?: {}): Dict;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
+    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<any[]>;
     cancelOrdersForSymbols(orders: CancellationRequest[], params?: {}): Promise<any>;
     cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
+    editOrderRequest(id: string, symbol: string, type: string, side: string, amount?: Num, price?: Num, params?: {}): Dict;
     editOrder(id: string, symbol: string, type: string, side: string, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchCanceledAndClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): string;
@@ -77,7 +84,32 @@ export default class hyperliquid extends Exchange {
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
+    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
+    parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseLedgerEntry(item: Dict, currency?: Currency): {
+        id: string;
+        direction: any;
+        account: any;
+        referenceAccount: string;
+        referenceId: string;
+        type: string;
+        currency: any;
+        amount: number;
+        timestamp: number;
+        datetime: string;
+        before: any;
+        after: any;
+        status: any;
+        fee: any;
+        info: Dict;
+    };
+    parseLedgerEntryType(type: any): string;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    extractTypeFromDelta(data?: any[]): any[];
     formatVaultAddress(address?: Str): string;
     handlePublicAddress(methodName: string, params: Dict): any[];
     coinToMarketId(coin: Str): string;
@@ -88,4 +120,5 @@ export default class hyperliquid extends Exchange {
         body: any;
         headers: any;
     };
+    parseCreateOrderArgs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): {}[];
 }

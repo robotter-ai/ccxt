@@ -354,9 +354,9 @@ class bitfinex2(Exchange, ImplicitAPI):
                 # convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 # everything else remains uppercase
                 'exchangeTypes': {
-                    # 'MARKET': None,
+                    'MARKET': 'market',
                     'EXCHANGE MARKET': 'market',
-                    # 'LIMIT': None,
+                    'LIMIT': 'limit',
                     'EXCHANGE LIMIT': 'limit',
                     # 'STOP': None,
                     'EXCHANGE STOP': 'market',
@@ -396,6 +396,25 @@ class bitfinex2(Exchange, ImplicitAPI):
                 },
                 'withdraw': {
                     'includeFee': False,
+                },
+                'networks': {
+                    'BTC': 'BITCOIN',
+                    'LTC': 'LITECOIN',
+                    'ERC20': 'ETHEREUM',
+                    'OMNI': 'TETHERUSO',
+                    'LIQUID': 'TETHERUSL',
+                    'TRC20': 'TETHERUSX',
+                    'EOS': 'TETHERUSS',
+                    'AVAX': 'TETHERUSDTAVAX',
+                    'SOL': 'TETHERUSDTSOL',
+                    'ALGO': 'TETHERUSDTALG',
+                    'BCH': 'TETHERUSDTBCH',
+                    'KSM': 'TETHERUSDTKSM',
+                    'DVF': 'TETHERUSDTDVF',
+                    'OMG': 'TETHERUSDTOMG',
+                },
+                'networksById': {
+                    'TETHERUSE': 'ERC20',
                 },
             },
             'exceptions': {
@@ -515,12 +534,13 @@ class bitfinex2(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        spotMarketsInfo = self.publicGetConfPubInfoPair(params)
-        futuresMarketsInfo = self.publicGetConfPubInfoPairFutures(params)
-        spotMarketsInfo = self.safe_value(spotMarketsInfo, 0, [])
-        futuresMarketsInfo = self.safe_value(futuresMarketsInfo, 0, [])
+        spotMarketsInfoPromise = self.publicGetConfPubInfoPair(params)
+        futuresMarketsInfoPromise = self.publicGetConfPubInfoPairFutures(params)
+        marginIdsPromise = self.publicGetConfPubListPairMargin(params)
+        spotMarketsInfo, futuresMarketsInfo, marginIds = [spotMarketsInfoPromise, futuresMarketsInfoPromise, marginIdsPromise]
+        spotMarketsInfo = self.safe_list(spotMarketsInfo, 0, [])
+        futuresMarketsInfo = self.safe_list(futuresMarketsInfo, 0, [])
         markets = self.array_concat(spotMarketsInfo, futuresMarketsInfo)
-        marginIds = self.publicGetConfPubListPairMargin(params)
         marginIds = self.safe_value(marginIds, 0, [])
         #
         #    [
@@ -791,7 +811,7 @@ class bitfinex2(Exchange, ImplicitAPI):
                 networkId = self.safe_string(pair, 0)
                 currencyId = self.safe_string(self.safe_value(pair, 1, []), 0)
                 if currencyId == cleanId:
-                    network = self.safe_network(networkId)
+                    network = self.network_id_to_code(networkId)
                     networks[network] = {
                         'info': networkId,
                         'id': networkId.lower(),
@@ -813,26 +833,6 @@ class bitfinex2(Exchange, ImplicitAPI):
             if networksLength > 0:
                 result[code]['networks'] = networks
         return result
-
-    def safe_network(self, networkId):
-        networksById: dict = {
-            'BITCOIN': 'BTC',
-            'LITECOIN': 'LTC',
-            'ETHEREUM': 'ERC20',
-            'TETHERUSE': 'ERC20',
-            'TETHERUSO': 'OMNI',
-            'TETHERUSL': 'LIQUID',
-            'TETHERUSX': 'TRC20',
-            'TETHERUSS': 'EOS',
-            'TETHERUSDTAVAX': 'AVAX',
-            'TETHERUSDTSOL': 'SOL',
-            'TETHERUSDTALG': 'ALGO',
-            'TETHERUSDTBCH': 'BCH',
-            'TETHERUSDTKSM': 'KSM',
-            'TETHERUSDTDVF': 'DVF',
-            'TETHERUSDTOMG': 'OMG',
-        }
-        return self.safe_string(networksById, networkId, networkId)
 
     def fetch_balance(self, params={}) -> Balances:
         """
@@ -1655,7 +1655,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + response[6] + ': ' + errorText + '(#' + errorCode + ')')
         orders = self.safe_list(response, 4, [])
         order = self.safe_list(orders, 0)
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({'result': order}), market)
 
     def create_orders(self, orders: List[OrderRequest], params={}):
         """
@@ -2237,7 +2237,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             if feeCost is not None:
                 feeCost = Precise.string_abs(feeCost)
             amount = self.safe_number(data, 5)
-            id = self.safe_string(data, 0)
+            id = self.safe_integer(data, 0)
             status = 'ok'
             if id == 0:
                 id = None
@@ -2249,7 +2249,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             currencyId = self.safe_string(transaction, 1)
             code = self.safe_currency_code(currencyId, currency)
             networkId = self.safe_string(transaction, 2)
-            network = self.safe_network(networkId)
+            network = self.network_id_to_code(networkId)
             timestamp = self.safe_integer(transaction, 5)
             updated = self.safe_integer(transaction, 6)
             status = self.parse_transaction_status(self.safe_string(transaction, 9))
@@ -3447,7 +3447,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.stopPrice]: the price that triggers a trigger order
         :param boolean [params.postOnly]: set to True if you want to make a post only order

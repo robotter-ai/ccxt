@@ -635,7 +635,7 @@ class bitbank(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -669,13 +669,37 @@ class bitbank(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         response = await self.privatePostUserSpotCancelOrder(self.extend(request, params))
+        #
+        #    {
+        #        "success": 1,
+        #        "data": {
+        #            "order_id": 0,
+        #            "pair": "string",
+        #            "side": "string",
+        #            "type": "string",
+        #            "start_amount": "string",
+        #            "remaining_amount": "string",
+        #            "executed_amount": "string",
+        #            "price": "string",
+        #            "post_only": False,
+        #            "average_price": "string",
+        #            "ordered_at": 0,
+        #            "expire_at": 0,
+        #            "canceled_at": 0,
+        #            "triggered_at": 0,
+        #            "trigger_price": "string",
+        #            "status": "string"
+        #        }
+        #    }
+        #
         data = self.safe_value(response, 'data')
-        return data
+        return self.parse_order(data)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-order-information
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -687,6 +711,28 @@ class bitbank(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         response = await self.privateGetUserSpotOrder(self.extend(request, params))
+        #
+        #    {
+        #        "success": 1,
+        #        "data": {
+        #          "order_id": 0,
+        #          "pair": "string",
+        #          "side": "string",
+        #          "type": "string",
+        #          "start_amount": "string",
+        #          "remaining_amount": "string",
+        #          "executed_amount": "string",
+        #          "price": "string",
+        #          "post_only": False,
+        #          "average_price": "string",
+        #          "ordered_at": 0,
+        #          "expire_at": 0,
+        #          "triggered_at": 0,
+        #          "triger_price": "string",
+        #          "status": "string"
+        #        }
+        #    }
+        #
         data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 

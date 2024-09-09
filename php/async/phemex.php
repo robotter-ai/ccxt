@@ -13,7 +13,6 @@ use ccxt\BadRequest;
 use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
 use ccxt\OrderNotFound;
-use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -2496,7 +2495,7 @@ class phemex extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->trigger] trigger $price for conditional orders
              * @param {array} [$params->takeProfit] *swap only* *$takeProfit object in $params* containing the $triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
@@ -2793,7 +2792,7 @@ class phemex extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->posSide] either 'Merged' or 'Long' or 'Short'
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -2926,19 +2925,48 @@ class phemex extends Exchange {
             $response = null;
             if ($market['settle'] === 'USDT') {
                 $response = Async\await($this->privateDeleteGOrdersAll ($this->extend($request, $params)));
+                //
+                //    {
+                //        code => '0',
+                //        msg => '',
+                //        data => '1'
+                //    }
+                //
             } elseif ($market['swap']) {
                 $response = Async\await($this->privateDeleteOrdersAll ($this->extend($request, $params)));
+                //
+                //    {
+                //        code => '0',
+                //        msg => '',
+                //        data => '1'
+                //    }
+                //
             } else {
                 $response = Async\await($this->privateDeleteSpotOrdersAll ($this->extend($request, $params)));
+                //
+                //    {
+                //        code => '0',
+                //        msg => '',
+                //        data => {
+                //            total => '1'
+                //        }
+                //    }
+                //
             }
-            return $response;
+            return array(
+                $this->safe_order(array(
+                    'info' => $response,
+                )),
+            );
         }) ();
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
+             * @see https://phemex-docs.github.io/#query-orders-by-ids
              * fetches information on an $order made by the user
+             * @param {string} $id the $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -2948,9 +2976,6 @@ class phemex extends Exchange {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            if ($market['settle'] === 'USDT') {
-                throw new NotSupported($this->id . 'fetchOrder() is not supported yet for USDT settled swap markets'); // https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-user-$order-by-orderid-or-query-user-$order-by-client-$order-$id
-            }
             $request = array(
                 'symbol' => $market['id'],
             );
@@ -2962,8 +2987,10 @@ class phemex extends Exchange {
                 $request['orderID'] = $id;
             }
             $response = null;
-            if ($market['spot']) {
-                $response = Async\await($this->privateGetSpotOrdersActive ($this->extend($request, $params)));
+            if ($market['settle'] === 'USDT') {
+                $response = Async\await($this->privateGetApiDataGFuturesOrdersByOrderId ($this->extend($request, $params)));
+            } elseif ($market['spot']) {
+                $response = Async\await($this->privateGetApiDataSpotsOrdersByOrderId ($this->extend($request, $params)));
             } else {
                 $response = Async\await($this->privateGetExchangeOrder ($this->extend($request, $params)));
             }
@@ -2978,7 +3005,10 @@ class phemex extends Exchange {
                         throw new OrderNotFound($this->id . ' fetchOrder() ' . $symbol . ' $order with $id ' . $id . ' not found');
                     }
                 }
-                $order = $this->safe_value($data, 0, array());
+                $order = $this->safe_dict($data, 0, array());
+            } elseif ($market['spot']) {
+                $rows = $this->safe_list($data, 'rows', array());
+                $order = $this->safe_dict($rows, 0, array());
             }
             return $this->parse_order($order, $market);
         }) ();
@@ -3016,7 +3046,7 @@ class phemex extends Exchange {
             } elseif ($market['swap']) {
                 $response = Async\await($this->privateGetExchangeOrderList ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privateGetSpotOrders ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetApiDataSpotsOrders ($this->extend($request, $params)));
             }
             $data = $this->safe_value($response, 'data', array());
             $rows = $this->safe_list($data, 'rows', $data);

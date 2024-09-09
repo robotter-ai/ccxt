@@ -730,8 +730,23 @@ public partial class whitebit : Exchange
         //        "change": "2.12" // in percent
         //    }
         //
+        // WS market_update
+        //
+        //     {
+        //         "open": "52853.04",
+        //         "close": "55913.88",
+        //         "high": "56272",
+        //         "low": "49549.67",
+        //         "volume": "57331.067185",
+        //         "deal": "3063860382.42985338",
+        //         "last": "55913.88",
+        //         "period": 86400
+        //     }
         market = this.safeMarket(null, market);
-        object last = this.safeString(ticker, "last_price");
+        // last price is provided as "last" or "last_price"
+        object last = this.safeString2(ticker, "last", "last_price");
+        // if "close" is provided, use it, otherwise use <last>
+        object close = this.safeString(ticker, "close", last);
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "timestamp", null },
@@ -744,7 +759,7 @@ public partial class whitebit : Exchange
             { "askVolume", null },
             { "vwap", null },
             { "open", this.safeString(ticker, "open") },
-            { "close", last },
+            { "close", close },
             { "last", last },
             { "previousClose", null },
             { "change", null },
@@ -1204,7 +1219,7 @@ public partial class whitebit : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1329,7 +1344,7 @@ public partial class whitebit : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1414,7 +1429,27 @@ public partial class whitebit : Exchange
             { "market", getValue(market, "id") },
             { "orderId", parseInt(id) },
         };
-        return await this.v4PrivatePostOrderCancel(this.extend(request, parameters));
+        object response = await this.v4PrivatePostOrderCancel(this.extend(request, parameters));
+        //
+        //    {
+        //        "orderId": 4180284841, // order id
+        //        "clientOrderId": "customId11", // custom order identifier; "clientOrderId": "" - if not specified.
+        //        "market": "BTC_USDT", // deal market
+        //        "side": "buy", // order side
+        //        "type": "stop market", // order type
+        //        "timestamp": 1595792396.165973, // current timestamp
+        //        "dealMoney": "0", // if order finished - amount in money currency that is finished
+        //        "dealStock": "0", // if order finished - amount in stock currency that is finished
+        //        "amount": "0.001", // amount
+        //        "takerFee": "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //        "makerFee": "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //        "left": "0.001", // if order not finished - rest of the amount that must be finished
+        //        "dealFee": "0", // fee in money that you pay if order is finished
+        //        "price": "40000", // price if price isset
+        //        "activation_price": "40000" // activation price if activation price is set
+        //    }
+        //
+        return this.parseOrder(response);
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -1469,7 +1504,7 @@ public partial class whitebit : Exchange
         //
         // []
         //
-        return response;
+        return this.parseOrders(response, market);
     }
 
     public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
@@ -1610,22 +1645,21 @@ public partial class whitebit : Exchange
         * @name whitebit#fetchOpenOrders
         * @description fetch all unfilled currently open orders
         * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
-        * @param {string} symbol unified market symbol
+        * @param {string} [symbol] unified market symbol
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of open order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
-        }
         await this.loadMarkets();
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
-        };
+        object market = null;
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+        }
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
@@ -1738,7 +1772,7 @@ public partial class whitebit : Exchange
     public override object parseOrder(object order, object market = null)
     {
         //
-        // createOrder, fetchOpenOrders
+        // createOrder, fetchOpenOrders, cancelOrder
         //
         //      {
         //          "orderId":105687928629,
@@ -1753,6 +1787,7 @@ public partial class whitebit : Exchange
         //          "takerFee":"0.001",
         //          "makerFee":"0",
         //          "left":"100",
+        //          "price": "40000", // price if price isset
         //          "dealFee":"0",
         //          "activation_price":"0.065"      // stop price (if stop limit or stop market)
         //      }
@@ -2728,10 +2763,12 @@ public partial class whitebit : Exchange
                     errorInfo = status;
                 } else
                 {
-                    object errorObject = this.safeValue(response, "errors");
-                    if (isTrue(!isEqual(errorObject, null)))
+                    object errorObject = this.safeDict(response, "errors", new Dictionary<string, object>() {});
+                    object errorKeys = new List<object>(((IDictionary<string,object>)errorObject).Keys);
+                    object errorsLength = getArrayLength(errorKeys);
+                    if (isTrue(isGreaterThan(errorsLength, 0)))
                     {
-                        object errorKey = getValue(new List<object>(((IDictionary<string,object>)errorObject).Keys), 0);
+                        object errorKey = getValue(errorKeys, 0);
                         object errorMessageArray = this.safeValue(errorObject, errorKey, new List<object>() {});
                         object errorMessageLength = getArrayLength(errorMessageArray);
                         errorInfo = ((bool) isTrue((isGreaterThan(errorMessageLength, 0)))) ? getValue(errorMessageArray, 0) : body;

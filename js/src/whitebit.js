@@ -807,8 +807,23 @@ export default class whitebit extends Exchange {
         //        "change": "2.12" // in percent
         //    }
         //
+        // WS market_update
+        //
+        //     {
+        //         "open": "52853.04",
+        //         "close": "55913.88",
+        //         "high": "56272",
+        //         "low": "49549.67",
+        //         "volume": "57331.067185",
+        //         "deal": "3063860382.42985338",
+        //         "last": "55913.88",
+        //         "period": 86400
+        //     }
         market = this.safeMarket(undefined, market);
-        const last = this.safeString(ticker, 'last_price');
+        // last price is provided as "last" or "last_price"
+        const last = this.safeString2(ticker, 'last', 'last_price');
+        // if "close" is provided, use it, otherwise use <last>
+        const close = this.safeString(ticker, 'close', last);
         return this.safeTicker({
             'symbol': market['symbol'],
             'timestamp': undefined,
@@ -821,7 +836,7 @@ export default class whitebit extends Exchange {
             'askVolume': undefined,
             'vwap': undefined,
             'open': this.safeString(ticker, 'open'),
-            'close': last,
+            'close': close,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
@@ -1244,7 +1259,7 @@ export default class whitebit extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1349,7 +1364,7 @@ export default class whitebit extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1422,7 +1437,27 @@ export default class whitebit extends Exchange {
             'market': market['id'],
             'orderId': parseInt(id),
         };
-        return await this.v4PrivatePostOrderCancel(this.extend(request, params));
+        const response = await this.v4PrivatePostOrderCancel(this.extend(request, params));
+        //
+        //    {
+        //        "orderId": 4180284841, // order id
+        //        "clientOrderId": "customId11", // custom order identifier; "clientOrderId": "" - if not specified.
+        //        "market": "BTC_USDT", // deal market
+        //        "side": "buy", // order side
+        //        "type": "stop market", // order type
+        //        "timestamp": 1595792396.165973, // current timestamp
+        //        "dealMoney": "0", // if order finished - amount in money currency that is finished
+        //        "dealStock": "0", // if order finished - amount in stock currency that is finished
+        //        "amount": "0.001", // amount
+        //        "takerFee": "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //        "makerFee": "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //        "left": "0.001", // if order not finished - rest of the amount that must be finished
+        //        "dealFee": "0", // fee in money that you pay if order is finished
+        //        "price": "40000", // price if price isset
+        //        "activation_price": "40000" // activation price if activation price is set
+        //    }
+        //
+        return this.parseOrder(response);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -1467,7 +1502,7 @@ export default class whitebit extends Exchange {
         //
         // []
         //
-        return response;
+        return this.parseOrders(response, market);
     }
     async cancelAllOrdersAfter(timeout, params = {}) {
         /**
@@ -1591,20 +1626,19 @@ export default class whitebit extends Exchange {
          * @name whitebit#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
-         * @param {string} symbol unified market symbol
+         * @param {string} [symbol] unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
-        }
         await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
-            'market': market['id'],
-        };
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['market'] = market['id'];
+        }
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 100);
         }
@@ -1701,7 +1735,7 @@ export default class whitebit extends Exchange {
     }
     parseOrder(order, market = undefined) {
         //
-        // createOrder, fetchOpenOrders
+        // createOrder, fetchOpenOrders, cancelOrder
         //
         //      {
         //          "orderId":105687928629,
@@ -1716,6 +1750,7 @@ export default class whitebit extends Exchange {
         //          "takerFee":"0.001",
         //          "makerFee":"0",
         //          "left":"100",
+        //          "price": "40000", // price if price isset
         //          "dealFee":"0",
         //          "activation_price":"0.065"      // stop price (if stop limit or stop market)
         //      }
@@ -2600,9 +2635,11 @@ export default class whitebit extends Exchange {
                     errorInfo = status;
                 }
                 else {
-                    const errorObject = this.safeValue(response, 'errors');
-                    if (errorObject !== undefined) {
-                        const errorKey = Object.keys(errorObject)[0];
+                    const errorObject = this.safeDict(response, 'errors', {});
+                    const errorKeys = Object.keys(errorObject);
+                    const errorsLength = errorKeys.length;
+                    if (errorsLength > 0) {
+                        const errorKey = errorKeys[0];
                         const errorMessageArray = this.safeValue(errorObject, errorKey, []);
                         const errorMessageLength = errorMessageArray.length;
                         errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;

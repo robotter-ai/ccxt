@@ -414,7 +414,7 @@ class bit2c(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -448,7 +448,8 @@ class bit2c(Exchange, ImplicitAPI):
         request: dict = {
             'id': id,
         }
-        return await self.privatePostOrderCancelOrder(self.extend(request, params))
+        response = await self.privatePostOrderCancelOrder(self.extend(request, params))
+        return self.parse_order(response)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -477,6 +478,7 @@ class bit2c(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://bit2c.co.il/home/api#getoid
+        :param str id: the order id
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

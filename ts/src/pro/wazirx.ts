@@ -17,6 +17,7 @@ export default class wazirx extends wazirxRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': true,
                 'watchOrders': true,
                 'watchOrderBook': true,
@@ -297,6 +298,7 @@ export default class wazirx extends wazirxRest {
          * @method
          * @name wazirx#watchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.wazirx.com/#trade-streams
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -397,6 +399,7 @@ export default class wazirx extends wazirxRest {
          * @method
          * @name wazirx#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.wazirx.com/#kline-candlestick-stream
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -542,20 +545,20 @@ export default class wazirx extends wazirxRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        const currentOrderBook = this.safeValue (this.orderbooks, symbol);
-        if (currentOrderBook === undefined) {
+        // const currentOrderBook = this.safeValue (this.orderbooks, symbol);
+        if (!(symbol in this.orderbooks)) {
             const snapshot = this.parseOrderBook (data, symbol, timestamp, 'b', 'a');
-            const orderBook = this.orderBook (snapshot);
-            this.orderbooks[symbol] = orderBook;
+            this.orderbooks[symbol] = this.orderBook (snapshot);
         } else {
-            const asks = this.safeValue (data, 'a', []);
-            const bids = this.safeValue (data, 'b', []);
-            this.handleDeltas (currentOrderBook['asks'], asks);
-            this.handleDeltas (currentOrderBook['bids'], bids);
-            currentOrderBook['nonce'] = timestamp;
-            currentOrderBook['timestamp'] = timestamp;
-            currentOrderBook['datetime'] = this.iso8601 (timestamp);
-            this.orderbooks[symbol] = currentOrderBook;
+            const orderbook = this.orderbooks[symbol];
+            const asks = this.safeList (data, 'a', []);
+            const bids = this.safeList (data, 'b', []);
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
+            orderbook['nonce'] = timestamp;
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
+            this.orderbooks[symbol] = orderbook;
         }
         client.resolve (this.orderbooks[symbol], messageHash);
     }

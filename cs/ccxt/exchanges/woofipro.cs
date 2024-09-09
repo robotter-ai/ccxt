@@ -15,6 +15,7 @@ public partial class woofipro : Exchange
             { "version", "v1" },
             { "certified", true },
             { "pro", true },
+            { "dex", true },
             { "hostname", "dex.woo.org" },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
@@ -690,6 +691,11 @@ public partial class woofipro : Exchange
         object amount = this.safeString(trade, "executed_quantity");
         object order_id = this.safeString(trade, "order_id");
         object fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
+        object feeCost = this.safeString(fee, "cost");
+        if (isTrue(!isEqual(feeCost, null)))
+        {
+            ((IDictionary<string,object>)fee)["cost"] = feeCost;
+        }
         object cost = Precise.stringMul(price, amount);
         object side = this.safeStringLower(trade, "side");
         object id = this.safeString(trade, "id");
@@ -1288,7 +1294,7 @@ public partial class woofipro : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} request to be sent to the exchange
         */
@@ -1402,7 +1408,7 @@ public partial class woofipro : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] The price a trigger order is triggered at
         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
@@ -1509,7 +1515,7 @@ public partial class woofipro : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] The price a trigger order is triggered at
         * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
@@ -1721,7 +1727,9 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -1770,7 +1778,9 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        return response;
+        return new List<object>() {new Dictionary<string, object>() {
+    { "info", response },
+}};
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -1783,6 +1793,7 @@ public partial class woofipro : Exchange
         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
         * @description fetches information on an order made by the user
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.trigger] whether the order is a stop/algo order
@@ -2445,8 +2456,10 @@ public partial class woofipro : Exchange
     public virtual object signHash(object hash, object privateKey)
     {
         object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
+        object r = getValue(signature, "r");
+        object s = getValue(signature, "s");
         object v = this.intToBase16(this.sum(27, getValue(signature, "v")));
-        return add(add(add("0x", (getValue(signature, "r") as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (getValue(signature, "s") as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
+        return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
     }
 
     public virtual object signMessage(object message, object privateKey)

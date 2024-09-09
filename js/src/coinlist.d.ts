@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinlist.js';
-import type { Account, Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntries, TransferEntry, int } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
 /**
  * @class coinlist
  * @augments Exchange
@@ -42,14 +42,14 @@ export default class coinlist extends Exchange {
     fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any>;
+    cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any[]>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): string;
     parseOrderType(status: any): string;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntries>;
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;

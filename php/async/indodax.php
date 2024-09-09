@@ -9,6 +9,8 @@ use Exception; // a common import
 use ccxt\async\abstract\indodax as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\InvalidOrder;
+use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -669,6 +671,24 @@ class indodax extends Exchange {
         //       "order_xrp" => "30.45000000",
         //       "remain_xrp" => "0.00000000"
         //     }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        "order_id" => 666883,
+        //        "client_order_id" => "clientx-sj82ks82j",
+        //        "type" => "sell",
+        //        "pair" => "btc_idr",
+        //        "balance" => {
+        //            "idr" => "33605800",
+        //            "btc" => "0.00000000",
+        //            ...
+        //            "frozen_idr" => "0",
+        //            "frozen_btc" => "0.00000000",
+        //            ...
+        //        }
+        //    }
+        //
         $side = null;
         if (is_array($order) && array_key_exists('type', $order)) {
             $side = $order['type'];
@@ -679,6 +699,8 @@ class indodax extends Exchange {
         $price = $this->safe_string($order, 'price');
         $amount = null;
         $remaining = null;
+        $marketId = $this->safe_string($order, 'pair');
+        $market = $this->safe_market($marketId, $market);
         if ($market !== null) {
             $symbol = $market['symbol'];
             $quoteId = $market['quoteId'];
@@ -701,7 +723,7 @@ class indodax extends Exchange {
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
-            'clientOrderId' => null,
+            'clientOrderId' => $this->safe_string($order, 'client_order_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -826,14 +848,11 @@ class indodax extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of $currency you want to trade in units of base $currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote $currency, ignored in $market orders
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
-            if ($type !== 'limit') {
-                throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
-            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -841,13 +860,44 @@ class indodax extends Exchange {
                 'type' => $side,
                 'price' => $price,
             );
-            $currency = $market['baseId'];
-            if ($side === 'buy') {
-                $request[$market['quoteId']] = $amount * $price;
-            } else {
-                $request[$market['baseId']] = $amount;
+            $priceIsRequired = false;
+            $quantityIsRequired = false;
+            if ($type === 'market') {
+                if ($side === 'buy') {
+                    $quoteAmount = null;
+                    $cost = $this->safe_number($params, 'cost');
+                    $params = $this->omit($params, 'cost');
+                    if ($cost !== null) {
+                        $quoteAmount = $this->cost_to_precision($symbol, $cost);
+                    } else {
+                        if ($price === null) {
+                            throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price).');
+                        }
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $costRequest = Precise::string_mul($amountString, $priceString);
+                        $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
+                    }
+                    $request[$market['quoteId']] = $quoteAmount;
+                } else {
+                    $quantityIsRequired = true;
+                }
+            } elseif ($type === 'limit') {
+                $priceIsRequired = true;
+                $quantityIsRequired = true;
+                if ($side === 'buy') {
+                    $request[$market['quoteId']] = $this->parse_to_numeric(Precise::string_mul($this->number_to_string($amount), $this->number_to_string($price)));
+                }
             }
-            $request[$currency] = $amount;
+            if ($priceIsRequired) {
+                if ($price === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for a ' . $type . ' order');
+                }
+                $request['price'] = $price;
+            }
+            if ($quantityIsRequired) {
+                $request[$market['baseId']] = $this->amount_to_precision($symbol, $amount);
+            }
             $result = Async\await($this->privatePostTrade ($this->extend($request, $params)));
             $data = $this->safe_value($result, 'return', array());
             $id = $this->safe_string($data, 'order_id');
@@ -882,7 +932,28 @@ class indodax extends Exchange {
                 'pair' => $market['id'],
                 'type' => $side,
             );
-            return Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
+            //
+            //    {
+            //        "success" => 1,
+            //        "return" => {
+            //            "order_id" => 666883,
+            //            "client_order_id" => "clientx-sj82ks82j",
+            //            "type" => "sell",
+            //            "pair" => "btc_idr",
+            //            "balance" => {
+            //                "idr" => "33605800",
+            //                "btc" => "0.00000000",
+            //                ...
+            //                "frozen_idr" => "0",
+            //                "frozen_btc" => "0.00000000",
+            //                ...
+            //            }
+            //        }
+            //    }
+            //
+            $data = $this->safe_dict($response, 'return');
+            return $this->parse_order($data);
         }) ();
     }
 
