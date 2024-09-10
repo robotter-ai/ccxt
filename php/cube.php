@@ -1089,79 +1089,72 @@ class cube extends Exchange {
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
-        try {
-            $meta = $this->fetch_market_meta($symbol);
-            $symbol = $this->safe_string($meta, 'symbol');
-            $marketId = $this->safe_string($meta, 'marketId');
-            $market = $this->safe_dict($meta, 'market');
-            $rawMarketId = $this->safe_integer($this->safe_dict($market, 'info'), 'marketId');
-            $quantityTickSize = $this->safe_number($this->safe_dict($market, 'info'), 'quantityTickSize');
-            $exchangeAmount = null;
-            if ($quantityTickSize && $quantityTickSize !== 0) {
-                $exchangeAmount = $this->parse_to_int($amount / $quantityTickSize);
-            }
-            $exchangeOrderType = null;
-            if ($type === 'limit') {
-                $exchangeOrderType = 0;
-            } elseif ($type === 'market') {
-                $exchangeOrderType = 1;
-            } elseif ($type === 'MARKET_WITH_PROTECTION') {
-                $exchangeOrderType = 2;
-            } else {
-                throw new InvalidOrder('OrderType was not recognized => ' . $type);
-            }
-            $exchangeOrderSide = null;
-            if ($side === 'buy') {
-                $exchangeOrderSide = 0;
-            } elseif ($side === 'sell') {
-                $exchangeOrderSide = 1;
-            } else {
-                throw new InvalidOrder('OrderSide was not recognized => ' . $side);
-            }
-            $timestamp = $this->milliseconds();
-            $clientOrderId = $this->safe_integer($params, 'clientOrderId', $timestamp);
-            $request = array(
-                'clientOrderId' => $clientOrderId,
-                'requestId' => $this->safe_integer($params, 'requestId', 1),
-                'marketId' => $rawMarketId,
-                'quantity' => $exchangeAmount,
-                'side' => $exchangeOrderSide,
-                'timeInForce' => $this->safe_integer($params, 'timeInForce', 1),
-                'orderType' => $exchangeOrderType,
-                'selfTradePrevention' => $this->safe_integer($params, 'selfTradePrevention', 0),
-                'postOnly' => $this->safe_integer($params, 'postOnly', 0),
-                'cancelOnDisconnect' => $this->safe_bool($params, 'cancelOnDisconnect', false),
-            );
-            $priceTickSize = $this->parse_to_numeric($this->safe_value($this->safe_dict($market, 'info'), 'priceTickSize'));
-            if ($price !== null) {
-                $lamportPrice = null;
-                if ($priceTickSize && $priceTickSize !== 0) {
-                    $lamportPrice = $this->parse_to_int($price / $priceTickSize);
-                }
-                $request['price'] = $lamportPrice;
-            }
-            $this->inject_sub_account_id($request, $params);
-            $response = $this->restOsmiumPrivatePostOrder ($this->extend($request, $params));
-            $this->validate_create_order_response($response);
-            $order = $this->safe_dict($this->safe_dict($response, 'result'), 'Ack');
-            $exchangeOrderId = $this->safe_string($order, 'exchangeOrderId');
-            $fetchedOrder = $this->fetch_raw_order($exchangeOrderId, $marketId);
-            $orderStatus = 'open';
-            if (!$fetchedOrder) {
-                $orderStatus = $order ? 'filled' : 'rejected';
-            }
-            return $this->parse_order(array(
-                'order' => $order,
-                'fetchedOrder' => $fetchedOrder,
-                'orderStatus' => $orderStatus,
-                'transactionType' => 'creation',
-            ), $market);
-        } catch (Exception $error) {
-            if ($error instanceof Error) {
-                throw new \Exception(`Failed to create $order => $array($error->message)`);
-            }
-            throw new \Exception('Failed to create $order => An unknown $error occurred.');
+        $meta = $this->fetch_market_meta($symbol);
+        $symbol = $this->safe_string($meta, 'symbol');
+        $marketId = $this->safe_string($meta, 'marketId');
+        $market = $this->safe_dict($meta, 'market');
+        $rawMarketId = $this->safe_integer($this->safe_dict($market, 'info'), 'marketId');
+        $quantityTickSize = $this->safe_number($this->safe_dict($market, 'info'), 'quantityTickSize');
+        $exchangeAmount = null;
+        if ($quantityTickSize && $quantityTickSize !== 0) {
+            $exchangeAmount = $this->parse_to_int($amount / $quantityTickSize);
         }
+        $exchangeOrderType = null;
+        if ($type === 'limit') {
+            $exchangeOrderType = 0;
+        } elseif ($type === 'market') {
+            $exchangeOrderType = 1;
+        } elseif ($type === 'MARKET_WITH_PROTECTION') {
+            $exchangeOrderType = 2;
+        } else {
+            throw new InvalidOrder('OrderType was not recognized => ' . $type);
+        }
+        $exchangeOrderSide = null;
+        if ($side === 'buy') {
+            $exchangeOrderSide = 0;
+        } elseif ($side === 'sell') {
+            $exchangeOrderSide = 1;
+        } else {
+            throw new InvalidOrder('OrderSide was not recognized => ' . $side);
+        }
+        $timestamp = $this->milliseconds();
+        $clientOrderId = $this->safe_integer($params, 'clientOrderId', $timestamp);
+        $request = array(
+            'clientOrderId' => $clientOrderId,
+            'requestId' => $this->safe_integer($params, 'requestId', 1),
+            'marketId' => $rawMarketId,
+            'quantity' => $exchangeAmount,
+            'side' => $exchangeOrderSide,
+            'timeInForce' => $this->safe_integer($params, 'timeInForce', 1),
+            'orderType' => $exchangeOrderType,
+            'selfTradePrevention' => $this->safe_integer($params, 'selfTradePrevention', 0),
+            'postOnly' => $this->safe_integer($params, 'postOnly', 0),
+            'cancelOnDisconnect' => $this->safe_bool($params, 'cancelOnDisconnect', false),
+        );
+        $priceTickSize = $this->parse_to_numeric($this->safe_value($this->safe_dict($market, 'info'), 'priceTickSize'));
+        if ($price !== null) {
+            $lamportPrice = null;
+            if ($priceTickSize && $priceTickSize !== 0) {
+                $lamportPrice = $this->parse_to_int($price / $priceTickSize);
+            }
+            $request['price'] = $lamportPrice;
+        }
+        $this->inject_sub_account_id($request, $params);
+        $response = $this->restOsmiumPrivatePostOrder ($this->extend($request, $params));
+        $this->validate_create_order_response($response);
+        $order = $this->safe_dict($this->safe_dict($response, 'result'), 'Ack');
+        $exchangeOrderId = $this->safe_string($order, 'exchangeOrderId');
+        $fetchedOrder = $this->fetch_raw_order($exchangeOrderId, $marketId);
+        $orderStatus = 'open';
+        if (!$fetchedOrder) {
+            $orderStatus = $order ? 'filled' : 'rejected';
+        }
+        return $this->parse_order(array(
+            'order' => $order,
+            'fetchedOrder' => $fetchedOrder,
+            'orderStatus' => $orderStatus,
+            'transactionType' => 'creation',
+        ), $market);
     }
 
     public function validate_create_order_response(array $response) {
@@ -1170,16 +1163,18 @@ class cube extends Exchange {
             return;
         }
         $rejection = $this->safe_dict($result, 'Rej');
-        if ($rejection) {
+        if ($rejection !== null) {
             $rejectReason = $this->safe_string($rejection, 'reason');
-            $this->handle_create_order_reject($rejectReason, $rejection);
+            if ($rejectReason !== null) {
+                $this->handle_create_order_reject($rejectReason, $rejection);
+            }
         }
-        throw new \Exception('Order $response is invalid => No Ack or Rej found.');
+        throw new InvalidOrder('Order $response is invalid => No Ack or Rej found.');
     }
 
     public function handle_create_order_reject(string $reason, array $order) {
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
-        $errorMessage = `Order rejected for $clientOrderId ${$clientOrderId}. Reason => `;
+        $errorMessage = 'Order rejected for $clientOrderId ' . $clientOrderId . '. Reason => ';
         switch ($reason) {
         case '0':
             $errorMessage .= 'Unclassified error occurred.';
@@ -1251,40 +1246,33 @@ class cube extends Exchange {
             $errorMessage .= `Unknown $reason code => ${$reason}.`;
             break;
         }
-        throw new \Exception($errorMessage);
+        throw new InvalidOrder($errorMessage);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
-        try {
-            $meta = $this->fetch_market_meta($symbol);
-            $symbol = $this->safe_string($meta, 'symbol');
-            $marketId = $this->safe_string($meta, 'marketId');
-            $market = $this->safe_dict($meta, 'market');
-            $rawMarketId = $this->safe_integer($this->safe_dict($market, 'info'), 'marketId');
-            $fetchedOrder = $this->fetch_raw_order($id, $marketId);
-            if (!$fetchedOrder) {
-                $fetchedOrder = array();
-            }
-            $clientOrderId = $this->safe_integer($fetchedOrder, 'clientOrderId');
-            $request = array(
-                'clientOrderId' => $clientOrderId,
-                'requestId' => $this->safe_integer($params, 'requestId', 1),
-                'marketId' => $rawMarketId,
-            );
-            $this->inject_sub_account_id($request, $params);
-            $response = $this->restOsmiumPrivateDeleteOrder ($this->extend($request, $params));
-            $this->validate_cancel_order_response($response, $fetchedOrder);
-            return $this->parse_order(array(
-                'cancellationResponse' => $response,
-                'fetchedOrder' => $fetchedOrder,
-                'transactionType' => 'cancellation',
-            ), $market);
-        } catch (Exception $error) {
-            if ($error instanceof Error) {
-                throw new \Exception(`Failed to cancel order => $array($error->message)`);
-            }
-            throw new \Exception('Failed to cancel order => An unknown $error occurred.');
+        $meta = $this->fetch_market_meta($symbol);
+        $symbol = $this->safe_string($meta, 'symbol');
+        $marketId = $this->safe_string($meta, 'marketId');
+        $market = $this->safe_dict($meta, 'market');
+        $rawMarketId = $this->safe_integer($this->safe_dict($market, 'info'), 'marketId');
+        $fetchedOrder = $this->fetch_raw_order($id, $marketId);
+        if (!$fetchedOrder) {
+            $fetchedOrder = array();
         }
+        $clientOrderId = $this->safe_integer($fetchedOrder, 'clientOrderId');
+        $request = array(
+            'clientOrderId' => $clientOrderId,
+            'requestId' => $this->safe_integer($params, 'requestId', 1),
+            'marketId' => $rawMarketId,
+        );
+        $this->inject_sub_account_id($request, $params);
+        $response = $this->restOsmiumPrivateDeleteOrder ($this->extend($request, $params));
+        $this->validate_cancel_order_response($response, $fetchedOrder);
+        return $this->parse_order(array(
+            'cancellationResponse' => $response,
+            'fetchedOrder' => $fetchedOrder,
+            'transactionType' => 'cancellation',
+        ), $market);
     }
 
     public function validate_cancel_order_response(array $response, array $order) {
@@ -1292,20 +1280,24 @@ class cube extends Exchange {
         if (is_array($result) && array_key_exists('Ack', $result)) {
             $ack = $this->safe_dict($result, 'Ack');
             $reason = $this->safe_string($ack, 'reason');
-            $this->handle_cancel_order_ack($reason, $ack);
+            if ($reason !== null) {
+                $this->handle_cancel_order_ack($reason, $ack);
+            }
             return;
         }
         $rejection = $this->safe_dict($result, 'Rej');
         if ($rejection) {
             $rejectReason = $this->safe_string($rejection, 'reason');
-            $this->handle_cancel_order_reject($rejectReason, $order);
+            if ($rejectReason !== null) {
+                $this->handle_cancel_order_reject($rejectReason, $order);
+            }
         }
-        throw new \Exception('Cancel $order $response is invalid => No Ack or Rej found.');
+        throw new InvalidOrder('Cancel $order $response is invalid => No Ack or Rej found.');
     }
 
     public function handle_cancel_order_reject(string $reason, array $order) {
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
-        $errorMessage = `Order cancellation rejected for $clientOrderId ${$clientOrderId}. Reason => `;
+        $errorMessage = 'Order cancellation rejected for clientOrderId' . $clientOrderId . 'Reason => ';
         switch ($reason) {
         case '0':
             $errorMessage .= 'Unclassified error occurred.';
@@ -1325,7 +1317,7 @@ class cube extends Exchange {
 
     public function handle_cancel_order_ack(string $reason, array $ack) {
         $clientOrderId = $this->safe_string($ack, 'clientOrderId');
-        $message = `Order cancellation acknowledged for $clientOrderId ${$clientOrderId}. Reason => `;
+        $message = 'Order rejected for $clientOrderId ' . $clientOrderId . '. Reason => ';
         switch ($reason) {
         case '0':
             $message .= 'Unclassified acknowledgment.';
@@ -1352,7 +1344,7 @@ class cube extends Exchange {
             $message .= 'Order was canceled because asset position limits would be otherwise breached.';
             break;
         default:
-            $message .= `Unknown acknowledgment $reason code => ${$reason}.`;
+            $message .= 'Unknown acknowledgment $reason code:' . $reason;
             break;
         }
         throw new InvalidOrder($message);

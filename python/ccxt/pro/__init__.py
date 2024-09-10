@@ -43,6 +43,7 @@ from ccxt.pro.coincheck import coincheck                                  # noqa
 from ccxt.pro.coinex import coinex                                        # noqa: F401
 from ccxt.pro.coinone import coinone                                      # noqa: F401
 from ccxt.pro.cryptocom import cryptocom                                  # noqa: F401
+from ccxt.pro.cube import cube                                            # noqa: F401
 from ccxt.pro.currencycom import currencycom                              # noqa: F401
 from ccxt.pro.deribit import deribit                                      # noqa: F401
 from ccxt.pro.exmo import exmo                                            # noqa: F401
@@ -116,6 +117,7 @@ exchanges = [
     'coinex',
     'coinone',
     'cryptocom',
+    'cube',
     'currencycom',
     'deribit',
     'exmo',
