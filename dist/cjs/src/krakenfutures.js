@@ -81,6 +81,7 @@ class krakenfutures extends krakenfutures$1 {
                     'public': 'https://demo-futures.kraken.com/derivatives/api/',
                     'private': 'https://demo-futures.kraken.com/derivatives/api/',
                     'charts': 'https://demo-futures.kraken.com/api/charts/',
+                    'history': 'https://demo-futures.kraken.com/api/history/',
                     'www': 'https://demo-futures.kraken.com',
                 },
                 'logo': 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
@@ -121,6 +122,8 @@ class krakenfutures extends krakenfutures$1 {
                         'transfers',
                         'leveragepreferences',
                         'pnlpreferences',
+                        'assignmentprogram/current',
+                        'assignmentprogram/history',
                     ],
                     'post': [
                         'sendorder',
@@ -130,7 +133,9 @@ class krakenfutures extends krakenfutures$1 {
                         'batchorder',
                         'cancelallorders',
                         'cancelallordersafter',
-                        'withdrawal', // for futures wallet -> kraken spot wallet
+                        'withdrawal',
+                        'assignmentprogram/add',
+                        'assignmentprogram/delete',
                     ],
                     'put': [
                         'leveragepreferences',
@@ -1762,17 +1767,19 @@ class krakenfutures extends krakenfutures$1 {
                 }
                 // Final order (after placement / editing / execution / canceling)
                 const orderTrigger = this.safeValue(item, 'orderTrigger');
-                details = this.safeValue2(item, 'new', 'order', orderTrigger);
-                if (details !== undefined) {
-                    isPrior = false;
-                    fixed = true;
-                }
-                else if (!fixed) {
-                    const orderPriorExecution = this.safeValue(item, 'orderPriorExecution');
-                    details = this.safeValue2(item, 'orderPriorExecution', 'orderPriorEdit');
-                    price = this.safeString(orderPriorExecution, 'limitPrice');
+                if (details === undefined) {
+                    details = this.safeValue2(item, 'new', 'order', orderTrigger);
                     if (details !== undefined) {
-                        isPrior = true;
+                        isPrior = false;
+                        fixed = true;
+                    }
+                    else if (!fixed) {
+                        const orderPriorExecution = this.safeValue(item, 'orderPriorExecution');
+                        details = this.safeValue2(item, 'orderPriorExecution', 'orderPriorEdit');
+                        price = this.safeString(orderPriorExecution, 'limitPrice');
+                        if (details !== undefined) {
+                            isPrior = true;
+                        }
                     }
                 }
             }
@@ -1871,7 +1878,7 @@ class krakenfutures extends krakenfutures$1 {
             'type': this.parseOrderType(type),
             'timeInForce': timeInForce,
             'postOnly': type === 'post',
-            'reduceOnly': this.safeValue(details, 'reduceOnly'),
+            'reduceOnly': this.safeBool2(details, 'reduceOnly', 'reduce_only'),
             'side': this.safeString(details, 'side'),
             'price': price,
             'stopPrice': this.safeString(details, 'triggerPrice'),

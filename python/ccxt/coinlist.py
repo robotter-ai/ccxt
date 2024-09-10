@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinlist import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, TransferEntries
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1425,7 +1425,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately(default False)
         :param float [params.triggerPrice]: only for the 'stop_market', 'stop_limit', 'take_market' or 'take_limit' orders(the price at which an order is triggered)
@@ -1491,7 +1491,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1703,7 +1703,7 @@ class coinlist(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(response, currency)
         return transfer
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers between CoinList.co and CoinList Pro. It does not return external deposits or withdrawals
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-transfers

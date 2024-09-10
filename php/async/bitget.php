@@ -1236,7 +1236,9 @@ class bitget extends Exchange {
                     '40713' => '\\ccxt\\ExchangeError', // Cannot exceed the maximum transferable margin amount
                     '40714' => '\\ccxt\\ExchangeError', // No direct margin call is allowed
                     '40762' => '\\ccxt\\InsufficientFunds', // array("code":"40762","msg":"The order amount exceeds the balance","requestTime":1716572156622,"data":null)
-                    '40768' => '\\ccxt\\OrderNotFound', // Order does not exist"
+                    '40768' => '\\ccxt\\OrderNotFound', // Order does not exist
+                    '40808' => '\\ccxt\\InvalidOrder', // array("code":"40808","msg":"Parameter verification exception size checkBDScale error value=2293.577 checkScale=2","requestTime":1725638500052,"data":null)
+                    '41103' => '\\ccxt\\InvalidOrder', // array("code":"41103","msg":"param price scale error error","requestTime":1725635883561,"data":null)
                     '41114' => '\\ccxt\\OnMaintenance', // array("code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null)
                     '43011' => '\\ccxt\\InvalidOrder', // The parameter does not meet the specification executePrice <= 0
                     '43012' => '\\ccxt\\InsufficientFunds', // array("code":"43012","msg":"Insufficient balance","requestTime":1711648951774,"data":null)
@@ -1313,8 +1315,10 @@ class bitget extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'commonCurrencies' => array(
-                'JADE' => 'Jade Protocol',
+                'APX' => 'AstroPepeX',
                 'DEGEN' => 'DegenReborn',
+                'JADE' => 'Jade Protocol',
+                'OMNI' => 'omni', // conflict with Omni Network
                 'TONCOIN' => 'TON',
             ),
             'options' => array(
@@ -3988,7 +3992,7 @@ class bitget extends Exchange {
         if ($feeCostString !== null) {
             // swap
             $fee = array(
-                'cost' => $this->parse_number(Precise::string_abs($feeCostString)),
+                'cost' => $this->parse_number(Precise::string_neg($feeCostString)),
                 'currency' => $market['settle'],
             );
         }
@@ -4005,7 +4009,7 @@ class bitget extends Exchange {
                 }
             }
             $fee = array(
-                'cost' => $this->parse_number(Precise::string_abs($this->safe_string($feeObject, 'totalFee'))),
+                'cost' => $this->parse_number(Precise::string_neg($this->safe_string($feeObject, 'totalFee'))),
                 'currency' => $this->safe_currency_code($this->safe_string($feeObject, 'feeCoinCode')),
             );
         }
@@ -4116,7 +4120,7 @@ class bitget extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->cost] *spot only* how much you want to trade in units of the quote currency, for $market buy orders only
              * @param {float} [$params->triggerPrice] *swap only* The $price at which a trigger order is triggered at
@@ -4138,6 +4142,7 @@ class bitget extends Exchange {
              * @param {string} [$params->trailingTriggerPrice] *swap and future only* the $price to trigger a trailing stop order, default uses the $price argument
              * @param {string} [$params->triggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
              * @param {boolean} [$params->oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this in hedge_mode, can adjust the mode using the setPositionMode() method
+             * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -4379,7 +4384,7 @@ class bitget extends Exchange {
             }
             if ($marginMode !== null) {
                 $request['loanType'] = 'normal';
-                if ($createMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
+                if ($isMarketOrder && ($side === 'buy')) {
                     $request['quoteSize'] = $quantity;
                 } else {
                     $request['baseSize'] = $quantity;
@@ -4523,7 +4528,7 @@ class bitget extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] the $price that a trigger order is triggered at
              * @param {float} [$params->stopLossPrice] *swap only* The $price at which a stop loss order is triggered at
@@ -4949,6 +4954,22 @@ class bitget extends Exchange {
                     } else {
                         $response = Async\await($this->privateMarginPostMarginV1IsolatedOrderBatchCancelOrder ($this->extend($request, $params)));
                     }
+                    //
+                    //     {
+                    //         "code" => "00000",
+                    //         "msg" => "success",
+                    //         "requestTime" => 1700717155622,
+                    //         "data" => {
+                    //             "resultList" => array(
+                    //                 array(
+                    //                     "orderId" => "1111453253721796609",
+                    //                     "clientOid" => "2ae7fc8a4ff949b6b60d770ca3950e2d"
+                    //                 ),
+                    //             ),
+                    //             "failure" => array()
+                    //         }
+                    //     }
+                    //
                 } else {
                     if ($stop) {
                         $stopRequest = array(
@@ -4958,6 +4979,27 @@ class bitget extends Exchange {
                     } else {
                         $response = Async\await($this->privateSpotPostV2SpotTradeCancelSymbolOrder ($this->extend($request, $params)));
                     }
+                    //
+                    //     {
+                    //         "code" => "00000",
+                    //         "msg" => "success",
+                    //         "requestTime" => 1700716953996,
+                    //         "data" => {
+                    //             "symbol" => "BTCUSDT"
+                    //         }
+                    //     }
+                    //
+                    $timestamp = $this->safe_integer($response, 'requestTime');
+                    $responseData = $this->safe_dict($response, 'data');
+                    $marketId = $this->safe_string($responseData, 'symbol');
+                    return array(
+                        $this->safe_order(array(
+                            'info' => $response,
+                            'symbol' => $this->safe_symbol($marketId, null, null, 'spot'),
+                            'timestamp' => $timestamp,
+                            'datetime' => $this->iso8601($timestamp),
+                        )),
+                    );
                 }
             } else {
                 $productType = null;
@@ -4968,54 +5010,26 @@ class bitget extends Exchange {
                 } else {
                     $response = Async\await($this->privateMixPostV2MixOrderBatchCancelOrders ($this->extend($request, $params)));
                 }
+                //     {
+                //         "code" => "00000",
+                //         "msg" => "success",
+                //         "requestTime" => "1680008815965",
+                //         "data" => {
+                //             "successList" => array(
+                //                 array(
+                //                     "orderId" => "1024598257429823488",
+                //                     "clientOid" => "876493ce-c287-4bfc-9f4a-8b1905881313"
+                //                 ),
+                //             ),
+                //             "failureList" => array()
+                //         }
+                //     }
             }
-            //
-            // spot
-            //
-            //     {
-            //         "code" => "00000",
-            //         "msg" => "success",
-            //         "requestTime" => 1700716953996,
-            //         "data" => {
-            //             "symbol" => "BTCUSDT"
-            //         }
-            //     }
-            //
-            // swap
-            //
-            //     {
-            //         "code" => "00000",
-            //         "msg" => "success",
-            //         "requestTime" => "1680008815965",
-            //         "data" => {
-            //             "successList" => array(
-            //                 array(
-            //                     "orderId" => "1024598257429823488",
-            //                     "clientOid" => "876493ce-c287-4bfc-9f4a-8b1905881313"
-            //                 ),
-            //             ),
-            //             "failureList" => array()
-            //         }
-            //     }
-            //
-            // spot margin
-            //
-            //     {
-            //         "code" => "00000",
-            //         "msg" => "success",
-            //         "requestTime" => 1700717155622,
-            //         "data" => {
-            //             "resultList" => array(
-            //                 array(
-            //                     "orderId" => "1111453253721796609",
-            //                     "clientOid" => "2ae7fc8a4ff949b6b60d770ca3950e2d"
-            //                 ),
-            //             ),
-            //             "failure" => array()
-            //         }
-            //     }
-            //
-            return $response;
+            $data = $this->safe_dict($response, 'data');
+            $resultList = $this->safe_list_2($data, 'resultList', 'successList');
+            $failureList = $this->safe_list_2($data, 'failure', 'failureList');
+            $responseList = $this->array_concat($resultList, $failureList);
+            return $this->parse_orders($responseList);
         }) ();
     }
 
@@ -5025,6 +5039,7 @@ class bitget extends Exchange {
              * fetches information on an order made by the user
              * @see https://www.bitget.com/api-doc/spot/trade/Get-Order-Info
              * @see https://www.bitget.com/api-doc/contract/trade/Get-Order-Details
+             * @param {string} $id the order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -5127,8 +5142,10 @@ class bitget extends Exchange {
                 $response = json_decode($response, $as_associative_array = true);
             }
             $data = $this->safe_dict($response, 'data');
-            if (($data !== null) && gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
-                return $this->parse_order($data, $market);
+            if (($data !== null)) {
+                if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
+                    return $this->parse_order($data, $market);
+                }
             }
             $dataList = $this->safe_list($response, 'data', array());
             $first = $this->safe_dict($dataList, 0, array());
@@ -7944,7 +7961,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null): array {
+    public function parse_isolated_borrow_rate(array $info, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTCUSDT",
@@ -8619,7 +8636,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): array {
         //
         // fetchConvertQuote
         //

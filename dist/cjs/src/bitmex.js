@@ -5,6 +5,7 @@ var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var totp = require('./base/functions/totp.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -883,6 +884,7 @@ class bitmex extends bitmex$1 {
          * @name bitmex#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1862,7 +1864,7 @@ class bitmex extends bitmex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {object} [params.triggerPrice] the price at which a trigger order is triggered at
          * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'above' or 'below'
@@ -2455,6 +2457,9 @@ class bitmex extends bitmex$1 {
             // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
             // 'fee': 0.001, // bitcoin network fee
         };
+        if (this.twofa !== undefined) {
+            request['otpToken'] = totp.totp(this.twofa);
+        }
         const response = await this.privatePostUserRequestWithdrawal(this.extend(request, params));
         //
         //     {

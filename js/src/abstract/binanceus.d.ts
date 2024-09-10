@@ -574,6 +574,8 @@ interface binance {
     fapiPrivateGetTradeAsyn(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetTradeAsynId(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetFeeBurn(params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetSymbolConfig(params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetAccountConfig(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostBatchOrders(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostPositionSideDual(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostPositionMargin(params?: {}): Promise<implicitReturnType>;
@@ -597,6 +599,9 @@ interface binance {
     fapiPrivateV2GetAccount(params?: {}): Promise<implicitReturnType>;
     fapiPrivateV2GetBalance(params?: {}): Promise<implicitReturnType>;
     fapiPrivateV2GetPositionRisk(params?: {}): Promise<implicitReturnType>;
+    fapiPrivateV3GetAccount(params?: {}): Promise<implicitReturnType>;
+    fapiPrivateV3GetBalance(params?: {}): Promise<implicitReturnType>;
+    fapiPrivateV3GetPositionRisk(params?: {}): Promise<implicitReturnType>;
     eapiPublicGetPing(params?: {}): Promise<implicitReturnType>;
     eapiPublicGetTime(params?: {}): Promise<implicitReturnType>;
     eapiPublicGetExchangeInfo(params?: {}): Promise<implicitReturnType>;
@@ -667,6 +672,8 @@ interface binance {
     privateGetAccountCommission(params?: {}): Promise<implicitReturnType>;
     privatePostOrderOco(params?: {}): Promise<implicitReturnType>;
     privatePostOrderListOco(params?: {}): Promise<implicitReturnType>;
+    privatePostOrderListOto(params?: {}): Promise<implicitReturnType>;
+    privatePostOrderListOtoco(params?: {}): Promise<implicitReturnType>;
     privatePostSorOrder(params?: {}): Promise<implicitReturnType>;
     privatePostSorOrderTest(params?: {}): Promise<implicitReturnType>;
     privatePostOrder(params?: {}): Promise<implicitReturnType>;

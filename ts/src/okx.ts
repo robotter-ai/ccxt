@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, TransferEntries, LeverageTier, int } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -111,7 +111,6 @@ export default class okx extends Exchange {
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
-                'fetchPermissions': undefined,
                 'fetchPosition': true,
                 'fetchPositionHistory': 'emulated',
                 'fetchPositions': true,
@@ -326,6 +325,7 @@ export default class okx extends Exchange {
                         'account/account-position-risk': 2,
                         'account/bills': 5 / 3,
                         'account/bills-archive': 5 / 3,
+                        'account/bills-history-archive': 2,
                         'account/config': 4,
                         'account/max-size': 1,
                         'account/max-avail-size': 1,
@@ -433,6 +433,7 @@ export default class okx extends Exchange {
                         'sprd/cancel-order': 1,
                         'sprd/mass-cancel': 1,
                         'sprd/amend-order': 1,
+                        'sprd/cancel-all-after': 10,
                         // trade
                         'trade/order': 1 / 3,
                         'trade/batch-orders': 1 / 15,
@@ -479,6 +480,7 @@ export default class okx extends Exchange {
                         'account/fixed-loan/amend-borrowing-order': 5,
                         'account/fixed-loan/manual-reborrow': 5,
                         'account/fixed-loan/repay-borrowing-order': 5,
+                        'account/bills-history-archive': 72000, // 12 req/day
                         // subaccount
                         'users/subaccount/modify-apikey': 10,
                         'asset/subaccount/transfer': 10,
@@ -926,6 +928,15 @@ export default class okx extends Exchange {
                     '70010': BadRequest, // Timestamp parameters need to be in Unix timestamp format in milliseconds.
                     '70013': BadRequest, // endTs needs to be bigger than or equal to beginTs.
                     '70016': BadRequest, // Please specify your instrument settings for at least one instType.
+                    '1009': BadRequest,  // Request message exceeds the maximum frame length
+                    '4001': AuthenticationError,  // Login Failed
+                    '4002': BadRequest,  // Invalid Request
+                    '4003': RateLimitExceeded,  // APIKey subscription amount exceeds the limit 100
+                    '4004': NetworkError,  // No data received in 30s
+                    '4005': ExchangeNotAvailable,  // Buffer is full, cannot write data
+                    '4006': BadRequest,  // Abnormal disconnection
+                    '4007': AuthenticationError,  // API key has been updated or deleted. Please reconnect.
+                    '4008': RateLimitExceeded,  // The number of subscribed channels exceeds the maximum limit.
                 },
                 'broad': {
                     'Internal Server Error': ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error"}
@@ -1030,6 +1041,7 @@ export default class okx extends Exchange {
                     'ZEC': 'Zcash',
                     'ZIL': 'Zilliqa',
                     'ZKSYNC': 'ZKSYNC',
+                    'OMNI': 'Omni',
                     // 'NEON3': 'N3', // tbd
                     // undetermined : "CELO-TOKEN", "Digital Cash", Khala
                     // todo: uncomment below after consensus
@@ -1588,15 +1600,6 @@ export default class okx extends Exchange {
         //
         const dataResponse = this.safeList (response, 'data', []);
         return this.parseMarkets (dataResponse);
-    }
-
-    safeNetwork (networkId) {
-        const networksById: Dict = {
-            'Bitcoin': 'BTC',
-            'Omni': 'OMNI',
-            'TRON': 'TRC20',
-        };
-        return this.safeString (networksById, networkId, networkId);
     }
 
     async fetchCurrencies (params = {}): Promise<Currencies> {
@@ -2467,6 +2470,7 @@ export default class okx extends Exchange {
          * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-balance
          * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-balance
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] wallet type, ['funding' or 'trading'] default is 'trading'
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
@@ -2900,7 +2904,7 @@ export default class okx extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
          * @param {bool} [params.postOnly] true to place a post only order
@@ -3107,7 +3111,7 @@ export default class okx extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.clientOrderId] client order id, uses id if not passed
          * @param {float} [params.stopLossPrice] stop loss trigger price
@@ -3330,7 +3334,7 @@ export default class okx extends Exchange {
          * @description cancel multiple orders for multiple symbols
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
-         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.trigger] whether the order is a stop/trigger order
          * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
@@ -5509,7 +5513,7 @@ export default class okx extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             result.push (this.parsePosition (positions[i]));
         }
-        return this.filterByArrayPositions (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', this.marketSymbols (symbols), false);
     }
 
     async fetchPositionsForSymbol (symbol: string, params = {}) {
@@ -5873,7 +5877,7 @@ export default class okx extends Exchange {
         return this.parseTransfer (transfer);
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         /**
          * @method
          * @name okx#fetchTransfers
@@ -7356,6 +7360,9 @@ export default class okx extends Exchange {
                 }
                 depositWithdrawFees[code]['info'][currencyId] = feeInfo;
                 const chain = this.safeString (feeInfo, 'chain');
+                if (chain === undefined) {
+                    continue;
+                }
                 const chainSplit = chain.split ('-');
                 const networkId = this.safeValue (chainSplit, 1);
                 const withdrawFee = this.safeNumber (feeInfo, 'minFee');

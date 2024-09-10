@@ -340,6 +340,12 @@ public partial class okx
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : wallet type, ['funding' or 'trading'] default is 'trading'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
@@ -405,7 +411,7 @@ public partial class okx
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -500,7 +506,7 @@ public partial class okx
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -1394,12 +1400,12 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
-    public async Task<TransferEntries> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<TransferEntry>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
-        return new TransferEntries(res);
+        return ((IList<object>)res).Select(item => new TransferEntry(item)).ToList<TransferEntry>();
     }
     /// <summary>
     /// fetch the current funding rate

@@ -1233,6 +1233,8 @@ export default class bitget extends Exchange {
                     '40714': ExchangeError,
                     '40762': InsufficientFunds,
                     '40768': OrderNotFound,
+                    '40808': InvalidOrder,
+                    '41103': InvalidOrder,
                     '41114': OnMaintenance,
                     '43011': InvalidOrder,
                     '43012': InsufficientFunds,
@@ -1309,8 +1311,10 @@ export default class bitget extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {
-                'JADE': 'Jade Protocol',
+                'APX': 'AstroPepeX',
                 'DEGEN': 'DegenReborn',
+                'JADE': 'Jade Protocol',
+                'OMNI': 'omni',
                 'TONCOIN': 'TON',
             },
             'options': {
@@ -4003,7 +4007,7 @@ export default class bitget extends Exchange {
         if (feeCostString !== undefined) {
             // swap
             fee = {
-                'cost': this.parseNumber(Precise.stringAbs(feeCostString)),
+                'cost': this.parseNumber(Precise.stringNeg(feeCostString)),
                 'currency': market['settle'],
             };
         }
@@ -4020,7 +4024,7 @@ export default class bitget extends Exchange {
                 }
             }
             fee = {
-                'cost': this.parseNumber(Precise.stringAbs(this.safeString(feeObject, 'totalFee'))),
+                'cost': this.parseNumber(Precise.stringNeg(this.safeString(feeObject, 'totalFee'))),
                 'currency': this.safeCurrencyCode(this.safeString(feeObject, 'feeCoinCode')),
             };
         }
@@ -4132,7 +4136,7 @@ export default class bitget extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] *spot only* how much you want to trade in units of the quote currency, for market buy orders only
          * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
@@ -4154,6 +4158,7 @@ export default class bitget extends Exchange {
          * @param {string} [params.trailingTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
          * @param {string} [params.triggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
          * @param {boolean} [params.oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method
+         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -4414,7 +4419,7 @@ export default class bitget extends Exchange {
             }
             if (marginMode !== undefined) {
                 request['loanType'] = 'normal';
-                if (createMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
+                if (isMarketOrder && (side === 'buy')) {
                     request['quoteSize'] = quantity;
                 }
                 else {
@@ -4566,7 +4571,7 @@ export default class bitget extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
          * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
@@ -5014,6 +5019,22 @@ export default class bitget extends Exchange {
                 else {
                     response = await this.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder(this.extend(request, params));
                 }
+                //
+                //     {
+                //         "code": "00000",
+                //         "msg": "success",
+                //         "requestTime": 1700717155622,
+                //         "data": {
+                //             "resultList": [
+                //                 {
+                //                     "orderId": "1111453253721796609",
+                //                     "clientOid": "2ae7fc8a4ff949b6b60d770ca3950e2d"
+                //                 },
+                //             ],
+                //             "failure": []
+                //         }
+                //     }
+                //
             }
             else {
                 if (stop) {
@@ -5025,6 +5046,27 @@ export default class bitget extends Exchange {
                 else {
                     response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder(this.extend(request, params));
                 }
+                //
+                //     {
+                //         "code": "00000",
+                //         "msg": "success",
+                //         "requestTime": 1700716953996,
+                //         "data": {
+                //             "symbol": "BTCUSDT"
+                //         }
+                //     }
+                //
+                const timestamp = this.safeInteger(response, 'requestTime');
+                const responseData = this.safeDict(response, 'data');
+                const marketId = this.safeString(responseData, 'symbol');
+                return [
+                    this.safeOrder({
+                        'info': response,
+                        'symbol': this.safeSymbol(marketId, undefined, undefined, 'spot'),
+                        'timestamp': timestamp,
+                        'datetime': this.iso8601(timestamp),
+                    }),
+                ];
             }
         }
         else {
@@ -5037,54 +5079,26 @@ export default class bitget extends Exchange {
             else {
                 response = await this.privateMixPostV2MixOrderBatchCancelOrders(this.extend(request, params));
             }
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": "1680008815965",
+            //         "data": {
+            //             "successList": [
+            //                 {
+            //                     "orderId": "1024598257429823488",
+            //                     "clientOid": "876493ce-c287-4bfc-9f4a-8b1905881313"
+            //                 },
+            //             ],
+            //             "failureList": []
+            //         }
+            //     }
         }
-        //
-        // spot
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700716953996,
-        //         "data": {
-        //             "symbol": "BTCUSDT"
-        //         }
-        //     }
-        //
-        // swap
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": "1680008815965",
-        //         "data": {
-        //             "successList": [
-        //                 {
-        //                     "orderId": "1024598257429823488",
-        //                     "clientOid": "876493ce-c287-4bfc-9f4a-8b1905881313"
-        //                 },
-        //             ],
-        //             "failureList": []
-        //         }
-        //     }
-        //
-        // spot margin
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700717155622,
-        //         "data": {
-        //             "resultList": [
-        //                 {
-        //                     "orderId": "1111453253721796609",
-        //                     "clientOid": "2ae7fc8a4ff949b6b60d770ca3950e2d"
-        //                 },
-        //             ],
-        //             "failure": []
-        //         }
-        //     }
-        //
-        return response;
+        const data = this.safeDict(response, 'data');
+        const resultList = this.safeList2(data, 'resultList', 'successList');
+        const failureList = this.safeList2(data, 'failure', 'failureList');
+        const responseList = this.arrayConcat(resultList, failureList);
+        return this.parseOrders(responseList);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
@@ -5093,6 +5107,7 @@ export default class bitget extends Exchange {
          * @description fetches information on an order made by the user
          * @see https://www.bitget.com/api-doc/spot/trade/Get-Order-Info
          * @see https://www.bitget.com/api-doc/contract/trade/Get-Order-Details
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -5198,8 +5213,10 @@ export default class bitget extends Exchange {
             response = JSON.parse(response);
         }
         const data = this.safeDict(response, 'data');
-        if ((data !== undefined) && !Array.isArray(data)) {
-            return this.parseOrder(data, market);
+        if ((data !== undefined)) {
+            if (!Array.isArray(data)) {
+                return this.parseOrder(data, market);
+            }
         }
         const dataList = this.safeList(response, 'data', []);
         const first = this.safeDict(dataList, 0, {});

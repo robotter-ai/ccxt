@@ -134,6 +134,7 @@ interface Exchange {
     privateGetAccountAccountPositionRisk (params?: {}): Promise<implicitReturnType>;
     privateGetAccountBills (params?: {}): Promise<implicitReturnType>;
     privateGetAccountBillsArchive (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountBillsHistoryArchive (params?: {}): Promise<implicitReturnType>;
     privateGetAccountConfig (params?: {}): Promise<implicitReturnType>;
     privateGetAccountMaxSize (params?: {}): Promise<implicitReturnType>;
     privateGetAccountMaxAvailSize (params?: {}): Promise<implicitReturnType>;
@@ -230,6 +231,7 @@ interface Exchange {
     privatePostSprdCancelOrder (params?: {}): Promise<implicitReturnType>;
     privatePostSprdMassCancel (params?: {}): Promise<implicitReturnType>;
     privatePostSprdAmendOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostSprdCancelAllAfter (params?: {}): Promise<implicitReturnType>;
     privatePostTradeOrder (params?: {}): Promise<implicitReturnType>;
     privatePostTradeBatchOrders (params?: {}): Promise<implicitReturnType>;
     privatePostTradeCancelOrder (params?: {}): Promise<implicitReturnType>;
@@ -273,6 +275,7 @@ interface Exchange {
     privatePostAccountFixedLoanAmendBorrowingOrder (params?: {}): Promise<implicitReturnType>;
     privatePostAccountFixedLoanManualReborrow (params?: {}): Promise<implicitReturnType>;
     privatePostAccountFixedLoanRepayBorrowingOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountBillsHistoryArchive (params?: {}): Promise<implicitReturnType>;
     privatePostUsersSubaccountModifyApikey (params?: {}): Promise<implicitReturnType>;
     privatePostAssetSubaccountTransfer (params?: {}): Promise<implicitReturnType>;
     privatePostUsersSubaccountSetTransferOut (params?: {}): Promise<implicitReturnType>;

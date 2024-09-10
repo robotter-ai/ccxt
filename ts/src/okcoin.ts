@@ -579,6 +579,9 @@ export default class okcoin extends Exchange {
                 'defaultNetwork': 'ERC20',
                 'networks': {
                     'ERC20': 'Ethereum',
+                    'BTC': 'Bitcoin',
+                    'OMNI': 'Omni',
+                    'TRC20': 'TRON',
                 },
             },
             'commonCurrencies': {
@@ -715,15 +718,6 @@ export default class okcoin extends Exchange {
         });
     }
 
-    safeNetwork (networkId) {
-        const networksById: Dict = {
-            'Bitcoin': 'BTC',
-            'Omni': 'OMNI',
-            'TRON': 'TRC20',
-        };
-        return this.safeString (networksById, networkId, networkId);
-    }
-
     async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
@@ -766,7 +760,7 @@ export default class okcoin extends Exchange {
                     if ((networkId !== undefined) && (networkId.indexOf ('-') >= 0)) {
                         const parts = networkId.split ('-');
                         const chainPart = this.safeString (parts, 1, networkId);
-                        const networkCode = this.safeNetwork (chainPart);
+                        const networkCode = this.networkIdToCode (chainPart);
                         const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
                         if (maxPrecision === undefined) {
                             maxPrecision = precision;
@@ -1343,7 +1337,7 @@ export default class okcoin extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.reduceOnly] MARGIN orders only, or swap/future orders in net mode
          * @param {bool} [params.postOnly] true to place a post only order

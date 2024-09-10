@@ -19,6 +19,7 @@ class woofipro extends Exchange {
             'version' => 'v1',
             'certified' => true,
             'pro' => true,
+            'dex' => true,
             'hostname' => 'dex.woo.org',
             'has' => array(
                 'CORS' => null,
@@ -672,6 +673,10 @@ class woofipro extends Exchange {
         $amount = $this->safe_string($trade, 'executed_quantity');
         $order_id = $this->safe_string($trade, 'order_id');
         $fee = $this->parse_token_and_fee_temp($trade, 'fee_asset', 'fee');
+        $feeCost = $this->safe_string($fee, 'cost');
+        if ($feeCost !== null) {
+            $fee['cost'] = $feeCost;
+        }
         $cost = Precise::string_mul($price, $amount);
         $side = $this->safe_string_lower($trade, 'side');
         $id = $this->safe_string($trade, 'id');
@@ -1222,7 +1227,7 @@ class woofipro extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency
-         * @param {float} [$price] the $price that the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price that the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} $request to be sent to the exchange
          */
@@ -1319,7 +1324,7 @@ class woofipro extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price a trigger $order is triggered at
          * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered (perpetual swap markets only)
@@ -1441,7 +1446,7 @@ class woofipro extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
          * @param {float} [$params->stopLossPrice] $price to trigger stop-loss orders
@@ -1677,6 +1682,7 @@ class woofipro extends Exchange {
          * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
          * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
          * fetches information on an order made by the user
+         * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the order is a stop/algo order
