@@ -45,7 +45,12 @@ export default class cube extends Exchange {
     fetchBalance(params?: {}): Promise<Balances>;
     parseBalance(response: any): Balances;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    validateCreateOrderResponse(response: object): void;
+    handleCreateOrderReject(reason: string, order: object): void;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    validateCancelOrderResponse(response: object, order: object): void;
+    handleCancelOrderReject(reason: string, order: object): void;
+    handleCancelOrderAck(reason: string, ack: object): void;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<{
         info: import("./base/types.js").Dictionary<any>;
         market: import("./base/types.js").Dictionary<any>;

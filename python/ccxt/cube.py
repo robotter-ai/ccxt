@@ -1030,136 +1030,249 @@ class cube(Exchange, ImplicitAPI):
         return self.safe_balance(balanceResult)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
-        """
-        create a trade order
-        :see: https://cubexch.gitbook.io/cube-api/rest-osmium-api#order
-        :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
-        :param str side: 'buy' or 'sell'
-        :param float amount: how much of you want to trade in units of the base currency
-        :param float [price]: the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
-        """
-        meta = self.fetch_market_meta(symbol)
-        symbol = self.safe_string(meta, 'symbol')
-        marketId = self.safe_string(meta, 'marketId')
-        market = self.safe_dict(meta, 'market')
-        rawMarketId = self.safe_integer(self.safe_dict(market, 'info'), 'marketId')
-        quantityTickSize = self.safe_number(self.safe_dict(market, 'info'), 'quantityTickSize')
-        exchangeAmount = None
-        if quantityTickSize and quantityTickSize != 0:
-            exchangeAmount = self.parse_to_int(amount / quantityTickSize)
-        exchangeOrderType = None
-        if type == 'limit':
-            exchangeOrderType = 0
-        elif type == 'market':
-            exchangeOrderType = 1
-        elif type == 'MARKET_WITH_PROTECTION':
-            exchangeOrderType = 2
-        else:
-            raise InvalidOrder('OrderType was not recognized: ' + type)
-        exchangeOrderSide = None
-        if side == 'buy':
-            exchangeOrderSide = 0
-        elif side == 'sell':
-            exchangeOrderSide = 1
-        else:
-            raise InvalidOrder('OrderSide was not recognized: ' + side)
-        timestamp = self.milliseconds()
-        clientOrderIdFromParams = self.safe_integer(params, 'clientOrderId')
-        clientOrderId = None
-        if clientOrderIdFromParams is None:
-            clientOrderId = timestamp
-        else:
-            clientOrderId = clientOrderIdFromParams
-        request = {
-            'clientOrderId': clientOrderId,
-            'requestId': self.safe_integer(params, 'requestId', 1),
-            'marketId': rawMarketId,
-            'quantity': exchangeAmount,
-            'side': exchangeOrderSide,
-            'timeInForce': self.safe_integer(params, 'timeInForce', 1),
-            'orderType': exchangeOrderType,
-            'selfTradePrevention': self.safe_integer(params, 'selfTradePrevention', 0),
-            'postOnly': self.safe_integer(params, 'postOnly', 0),
-            'cancelOnDisconnect': self.safe_bool(params, 'cancelOnDisconnect', False),
-        }
-        priceTickSize = self.parse_to_numeric(self.safe_value(self.safe_dict(market, 'info'), 'priceTickSize'))
-        if price is not None:
-            lamportPrice = None
-            if priceTickSize and priceTickSize != 0:
-                lamportPrice = self.parse_to_int(price / priceTickSize)
-            request['price'] = lamportPrice
-        self.inject_sub_account_id(request, params)
-        response = self.restOsmiumPrivatePostOrder(self.extend(request, params))
-        order = self.safe_dict(self.safe_dict(response, 'result'), 'Ack')
-        if order is None:
-            order = self.safe_dict(self.safe_dict(response, 'result'), 'Rej')
-        exchangeOrderId = self.safe_string(order, 'exchangeOrderId')
-        fetchedOrder = self.fetch_raw_order(exchangeOrderId, marketId)
-        orderStatus = None
-        if fetchedOrder is not None and self.safe_string(fetchedOrder, 'exchangeOrderId') is not None:
+        try:
+            meta = self.fetch_market_meta(symbol)
+            symbol = self.safe_string(meta, 'symbol')
+            marketId = self.safe_string(meta, 'marketId')
+            market = self.safe_dict(meta, 'market')
+            rawMarketId = self.safe_integer(self.safe_dict(market, 'info'), 'marketId')
+            quantityTickSize = self.safe_number(self.safe_dict(market, 'info'), 'quantityTickSize')
+            exchangeAmount = None
+            if quantityTickSize and quantityTickSize != 0:
+                exchangeAmount = self.parse_to_int(amount / quantityTickSize)
+            exchangeOrderType = None
+            if type == 'limit':
+                exchangeOrderType = 0
+            elif type == 'market':
+                exchangeOrderType = 1
+            elif type == 'MARKET_WITH_PROTECTION':
+                exchangeOrderType = 2
+            else:
+                raise InvalidOrder('OrderType was not recognized: ' + type)
+            exchangeOrderSide = None
+            if side == 'buy':
+                exchangeOrderSide = 0
+            elif side == 'sell':
+                exchangeOrderSide = 1
+            else:
+                raise InvalidOrder('OrderSide was not recognized: ' + side)
+            timestamp = self.milliseconds()
+            clientOrderId = self.safe_integer(params, 'clientOrderId', timestamp)
+            request = {
+                'clientOrderId': clientOrderId,
+                'requestId': self.safe_integer(params, 'requestId', 1),
+                'marketId': rawMarketId,
+                'quantity': exchangeAmount,
+                'side': exchangeOrderSide,
+                'timeInForce': self.safe_integer(params, 'timeInForce', 1),
+                'orderType': exchangeOrderType,
+                'selfTradePrevention': self.safe_integer(params, 'selfTradePrevention', 0),
+                'postOnly': self.safe_integer(params, 'postOnly', 0),
+                'cancelOnDisconnect': self.safe_bool(params, 'cancelOnDisconnect', False),
+            }
+            priceTickSize = self.parse_to_numeric(self.safe_value(self.safe_dict(market, 'info'), 'priceTickSize'))
+            if price is not None:
+                lamportPrice = None
+                if priceTickSize and priceTickSize != 0:
+                    lamportPrice = self.parse_to_int(price / priceTickSize)
+                request['price'] = lamportPrice
+            self.inject_sub_account_id(request, params)
+            response = self.restOsmiumPrivatePostOrder(self.extend(request, params))
+            self.validate_create_order_response(response)
+            order = self.safe_dict(self.safe_dict(response, 'result'), 'Ack')
+            exchangeOrderId = self.safe_string(order, 'exchangeOrderId')
+            fetchedOrder = self.fetch_raw_order(exchangeOrderId, marketId)
             orderStatus = 'open'
-        if fetchedOrder is None and self.safe_dict(self.safe_dict(response, 'result'), 'Ack') is not None:
-            orderStatus = 'filled'
-        if fetchedOrder is None and self.safe_dict(self.safe_dict(response, 'result'), 'Rej') is not None:
-            orderStatus = 'rejected'
-        return self.parse_order(
-            {
+            if not fetchedOrder:
+                orderStatus = 'filled' if order else 'rejected'
+            return self.parse_order({
                 'order': order,
                 'fetchedOrder': fetchedOrder,
                 'orderStatus': orderStatus,
                 'transactionType': 'creation',
-            },
-            market
-        )
+            }, market)
+        except Exception as error:
+            if isinstance(error, Error):
+                raise Error(`Failed to create order: ${error.message}`)
+            raise Error('Failed to create order: An unknown error occurred.')
+
+    def validate_create_order_response(self, response: object):
+        result = self.safe_dict(response, 'result')
+        if 'Ack' in result:
+            return
+        rejection = self.safe_dict(result, 'Rej')
+        if rejection:
+            rejectReason = self.safe_string(rejection, 'reason')
+            self.handle_create_order_reject(rejectReason, rejection)
+        raise Error('Order response is invalid: No Ack or Rej found.')
+
+    def handle_create_order_reject(self, reason: str, order: object):
+        clientOrderId = self.safe_string(order, 'clientOrderId')
+        errorMessage = `Order rejected for clientOrderId ${clientOrderId}. Reason: `
+        switch(reason) {
+        case '0':
+            errorMessage += 'Unclassified error occurred.'
+            break
+        case '1':
+            errorMessage += 'Invalid quantity: Quantity was zero.'
+            break
+        case '2':
+            errorMessage += 'Invalid market ID: The specified market ID does not exist.'
+            break
+        case '3':
+            errorMessage += 'Duplicate order ID: The specified client order ID was not unique among open orders for self subaccount.'
+            break
+        case '4':
+            errorMessage += 'Invalid side specified.'
+            break
+        case '5':
+            errorMessage += 'Invalid time in force specified.'
+            break
+        case '6':
+            errorMessage += 'Invalid order type specified.'
+            break
+        case '7':
+            errorMessage += 'Invalid post-only flag specified.'
+            break
+        case '8':
+            errorMessage += 'Invalid self-trade prevention specified.'
+            break
+        case '9':
+            errorMessage += 'Unknown trader: Internal error with subaccount positions.'
+            break
+        case '10':
+            errorMessage += 'Price should not be specified for market or market limit orders.'
+            break
+        case '11':
+            errorMessage += 'Post-only with market order is not allowed.'
+            break
+        case '12':
+            errorMessage += 'Post-only with invalid time in force.'
+            break
+        case '13':
+            errorMessage += 'Exceeded spot position limits.'
+            break
+        case '14':
+            errorMessage += 'No opposing resting orders to trade against.'
+            break
+        case '15':
+            errorMessage += 'Post-only order would have crossed and traded.'
+            break
+        case '16':
+            errorMessage += 'Fill or kill(FOK) order was not fully fillable.'
+            break
+        case '17':
+            errorMessage += 'Only order cancelations are accepted at self time.'
+            break
+        case '18':
+            errorMessage += 'Protection price would not trade for market-with-protection orders.'
+            break
+        case '19':
+            errorMessage += 'Market orders cannot be placed because there is no internal reference price.'
+            break
+        case '20':
+            errorMessage += 'Slippage too high: The order would trade beyond allowed protection levels.'
+            break
+        case '21':
+            errorMessage += 'Outside price band: Bid price is too low or ask price is too high.'
+            break
+        default:
+            errorMessage += `Unknown reason code: ${reason}.`
+            break
+        raise Error(errorMessage)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
-        """
-        cancels an open order
-        :see: https://cubexch.gitbook.io/cube-api/rest-osmium-api#order-1
-        :param str id: order id
-        :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
-        """
-        meta = self.fetch_market_meta(symbol)
-        symbol = self.safe_string(meta, 'symbol')
-        marketId = self.safe_string(meta, 'marketId')
-        market = self.safe_dict(meta, 'market')
-        rawMarketId = self.safe_integer(self.safe_dict(market, 'info'), 'marketId')
-        fetchedOrder = self.fetch_raw_order(id, marketId)
-        if fetchedOrder is None:
-            fetchedOrder = {}
-        clientOrderId = self.safe_integer(fetchedOrder, 'clientOrderId')
-        request = {
-            'clientOrderId': clientOrderId,
-            'requestId': self.safe_integer(params, 'requestId', 1),
-            'marketId': rawMarketId,
-        }
-        self.inject_sub_account_id(request, params)
-        response = self.restOsmiumPrivateDeleteOrder(self.extend(request, params))
-        reason = None
-        if self.safe_dict(self.safe_dict(response, 'result'), 'Rej'):
-            reasonNumber = self.safe_string(self.safe_dict(self.safe_dict(response, 'result'), 'Rej'), 'reason')
-            if reasonNumber == '0':
-                reason = 'Unclassified'
-            elif reasonNumber == '1':
-                reason = 'Invalid market id'
-            elif reasonNumber == '2':
-                reason = 'Order not found'
-            else:
-                reason = 'Unknown'
-            raise InvalidOrder('Order cancellation rejected. Reason: "' + reason + '".')
-        return self.parse_order(
-            {
+        try:
+            meta = self.fetch_market_meta(symbol)
+            symbol = self.safe_string(meta, 'symbol')
+            marketId = self.safe_string(meta, 'marketId')
+            market = self.safe_dict(meta, 'market')
+            rawMarketId = self.safe_integer(self.safe_dict(market, 'info'), 'marketId')
+            fetchedOrder = self.fetch_raw_order(id, marketId)
+            if not fetchedOrder:
+                fetchedOrder = {}
+            clientOrderId = self.safe_integer(fetchedOrder, 'clientOrderId')
+            request = {
+                'clientOrderId': clientOrderId,
+                'requestId': self.safe_integer(params, 'requestId', 1),
+                'marketId': rawMarketId,
+            }
+            self.inject_sub_account_id(request, params)
+            response = self.restOsmiumPrivateDeleteOrder(self.extend(request, params))
+            self.validate_cancel_order_response(response, fetchedOrder)
+            return self.parse_order({
                 'cancellationResponse': response,
                 'fetchedOrder': fetchedOrder,
                 'transactionType': 'cancellation',
-            },
-            market
-        )
+            }, market)
+        except Exception as error:
+            if isinstance(error, Error):
+                raise Error(`Failed to cancel order: ${error.message}`)
+            raise Error('Failed to cancel order: An unknown error occurred.')
+
+    def validate_cancel_order_response(self, response: object, order: object):
+        result = self.safe_dict(response, 'result')
+        if 'Ack' in result:
+            ack = self.safe_dict(result, 'Ack')
+            reason = self.safe_string(ack, 'reason')
+            self.handle_cancel_order_ack(reason, ack)
+            return
+        rejection = self.safe_dict(result, 'Rej')
+        if rejection:
+            rejectReason = self.safe_string(rejection, 'reason')
+            self.handle_cancel_order_reject(rejectReason, order)
+        raise Error('Cancel order response is invalid: No Ack or Rej found.')
+
+    def handle_cancel_order_reject(self, reason: str, order: object):
+        clientOrderId = self.safe_string(order, 'clientOrderId')
+        errorMessage = `Order cancellation rejected for clientOrderId ${clientOrderId}. Reason: `
+        switch(reason) {
+        case '0':
+            errorMessage += 'Unclassified error occurred.'
+            break
+        case '1':
+            errorMessage += 'Invalid market ID: The specified market ID does not exist.'
+            break
+        case '2':
+            errorMessage += 'Order not found: The specified client order ID does not exist for the corresponding market ID and subaccount ID.'
+            break
+        default:
+            errorMessage += `Unknown reason code: ${reason}.`
+            break
+        raise InvalidOrder(errorMessage)
+
+    def handle_cancel_order_ack(self, reason: str, ack: object):
+        clientOrderId = self.safe_string(ack, 'clientOrderId')
+        message = `Order cancellation acknowledged for clientOrderId ${clientOrderId}. Reason: `
+        switch(reason) {
+        case '0':
+            message += 'Unclassified acknowledgment.'
+            break
+        case '1':
+            message += 'Order canceled due to disconnection.'
+            break
+        case '2':
+            message += 'Order was requested to be canceled.'
+            break
+        case '3':
+            message += 'Immediate or cancel(IOC) order was not fully filled.'
+            break
+        case '4':
+            message += 'A resting order was canceled due to self-trade prevention(STP).'
+            break
+        case '5':
+            message += 'An aggressing order was canceled due to self-trade prevention(STP).'
+            break
+        case '6':
+            message += 'Order was covered by a mass-cancel request.'
+            break
+        case '7':
+            message += 'Order was canceled because asset position limits would be otherwise breached.'
+            break
+        default:
+            message += `Unknown acknowledgment reason code: ${reason}.`
+            break
+        raise InvalidOrder(message)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """

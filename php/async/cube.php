@@ -1111,153 +1111,276 @@ class cube extends Exchange {
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * create a trade $order
-             * @see https://cubexch.gitbook.io/cube-api/rest-osmium-api#$order
-             * @param {string} $symbol unified $symbol of the $market to create an $order in
-             * @param {string} $type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of you want to trade in units of the base currency
-             * @param {float} [$price] the $price that the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
-             */
-            $meta = Async\await($this->fetch_market_meta($symbol));
-            $symbol = $this->safe_string($meta, 'symbol');
-            $marketId = $this->safe_string($meta, 'marketId');
-            $market = $this->safe_dict($meta, 'market');
-            $rawMarketId = $this->safe_integer($this->safe_dict($market, 'info'), 'marketId');
-            $quantityTickSize = $this->safe_number($this->safe_dict($market, 'info'), 'quantityTickSize');
-            $exchangeAmount = null;
-            if ($quantityTickSize && $quantityTickSize !== 0) {
-                $exchangeAmount = $this->parse_to_int($amount / $quantityTickSize);
-            }
-            $exchangeOrderType = null;
-            if ($type === 'limit') {
-                $exchangeOrderType = 0;
-            } elseif ($type === 'market') {
-                $exchangeOrderType = 1;
-            } elseif ($type === 'MARKET_WITH_PROTECTION') {
-                $exchangeOrderType = 2;
-            } else {
-                throw new InvalidOrder('OrderType was not recognized => ' . $type);
-            }
-            $exchangeOrderSide = null;
-            if ($side === 'buy') {
-                $exchangeOrderSide = 0;
-            } elseif ($side === 'sell') {
-                $exchangeOrderSide = 1;
-            } else {
-                throw new InvalidOrder('OrderSide was not recognized => ' . $side);
-            }
-            $timestamp = $this->milliseconds();
-            $clientOrderIdFromParams = $this->safe_integer($params, 'clientOrderId');
-            $clientOrderId = null;
-            if ($clientOrderIdFromParams === null) {
-                $clientOrderId = $timestamp;
-            } else {
-                $clientOrderId = $clientOrderIdFromParams;
-            }
-            $request = array(
-                'clientOrderId' => $clientOrderId,
-                'requestId' => $this->safe_integer($params, 'requestId', 1),
-                'marketId' => $rawMarketId,
-                'quantity' => $exchangeAmount,
-                'side' => $exchangeOrderSide,
-                'timeInForce' => $this->safe_integer($params, 'timeInForce', 1),
-                'orderType' => $exchangeOrderType,
-                'selfTradePrevention' => $this->safe_integer($params, 'selfTradePrevention', 0),
-                'postOnly' => $this->safe_integer($params, 'postOnly', 0),
-                'cancelOnDisconnect' => $this->safe_bool($params, 'cancelOnDisconnect', false),
-            );
-            $priceTickSize = $this->parse_to_numeric($this->safe_value($this->safe_dict($market, 'info'), 'priceTickSize'));
-            if ($price !== null) {
-                $lamportPrice = null;
-                if ($priceTickSize && $priceTickSize !== 0) {
-                    $lamportPrice = $this->parse_to_int($price / $priceTickSize);
+            try {
+                $meta = Async\await($this->fetch_market_meta($symbol));
+                $symbol = $this->safe_string($meta, 'symbol');
+                $marketId = $this->safe_string($meta, 'marketId');
+                $market = $this->safe_dict($meta, 'market');
+                $rawMarketId = $this->safe_integer($this->safe_dict($market, 'info'), 'marketId');
+                $quantityTickSize = $this->safe_number($this->safe_dict($market, 'info'), 'quantityTickSize');
+                $exchangeAmount = null;
+                if ($quantityTickSize && $quantityTickSize !== 0) {
+                    $exchangeAmount = $this->parse_to_int($amount / $quantityTickSize);
                 }
-                $request['price'] = $lamportPrice;
-            }
-            $this->inject_sub_account_id($request, $params);
-            $response = Async\await($this->restOsmiumPrivatePostOrder ($this->extend($request, $params)));
-            $order = $this->safe_dict($this->safe_dict($response, 'result'), 'Ack');
-            if ($order === null) {
-                $order = $this->safe_dict($this->safe_dict($response, 'result'), 'Rej');
-            }
-            $exchangeOrderId = $this->safe_string($order, 'exchangeOrderId');
-            $fetchedOrder = Async\await($this->fetch_raw_order($exchangeOrderId, $marketId));
-            $orderStatus = null;
-            if ($fetchedOrder !== null && $this->safe_string($fetchedOrder, 'exchangeOrderId') !== null) {
+                $exchangeOrderType = null;
+                if ($type === 'limit') {
+                    $exchangeOrderType = 0;
+                } elseif ($type === 'market') {
+                    $exchangeOrderType = 1;
+                } elseif ($type === 'MARKET_WITH_PROTECTION') {
+                    $exchangeOrderType = 2;
+                } else {
+                    throw new InvalidOrder('OrderType was not recognized => ' . $type);
+                }
+                $exchangeOrderSide = null;
+                if ($side === 'buy') {
+                    $exchangeOrderSide = 0;
+                } elseif ($side === 'sell') {
+                    $exchangeOrderSide = 1;
+                } else {
+                    throw new InvalidOrder('OrderSide was not recognized => ' . $side);
+                }
+                $timestamp = $this->milliseconds();
+                $clientOrderId = $this->safe_integer($params, 'clientOrderId', $timestamp);
+                $request = array(
+                    'clientOrderId' => $clientOrderId,
+                    'requestId' => $this->safe_integer($params, 'requestId', 1),
+                    'marketId' => $rawMarketId,
+                    'quantity' => $exchangeAmount,
+                    'side' => $exchangeOrderSide,
+                    'timeInForce' => $this->safe_integer($params, 'timeInForce', 1),
+                    'orderType' => $exchangeOrderType,
+                    'selfTradePrevention' => $this->safe_integer($params, 'selfTradePrevention', 0),
+                    'postOnly' => $this->safe_integer($params, 'postOnly', 0),
+                    'cancelOnDisconnect' => $this->safe_bool($params, 'cancelOnDisconnect', false),
+                );
+                $priceTickSize = $this->parse_to_numeric($this->safe_value($this->safe_dict($market, 'info'), 'priceTickSize'));
+                if ($price !== null) {
+                    $lamportPrice = null;
+                    if ($priceTickSize && $priceTickSize !== 0) {
+                        $lamportPrice = $this->parse_to_int($price / $priceTickSize);
+                    }
+                    $request['price'] = $lamportPrice;
+                }
+                $this->inject_sub_account_id($request, $params);
+                $response = Async\await($this->restOsmiumPrivatePostOrder ($this->extend($request, $params)));
+                $this->validate_create_order_response($response);
+                $order = $this->safe_dict($this->safe_dict($response, 'result'), 'Ack');
+                $exchangeOrderId = $this->safe_string($order, 'exchangeOrderId');
+                $fetchedOrder = Async\await($this->fetch_raw_order($exchangeOrderId, $marketId));
                 $orderStatus = 'open';
-            }
-            if ($fetchedOrder === null && $this->safe_dict($this->safe_dict($response, 'result'), 'Ack') !== null) {
-                $orderStatus = 'filled';
-            }
-            if ($fetchedOrder === null && $this->safe_dict($this->safe_dict($response, 'result'), 'Rej') !== null) {
-                $orderStatus = 'rejected';
-            }
-            return $this->parse_order(
-                array(
+                if (!$fetchedOrder) {
+                    $orderStatus = $order ? 'filled' : 'rejected';
+                }
+                return $this->parse_order(array(
                     'order' => $order,
                     'fetchedOrder' => $fetchedOrder,
                     'orderStatus' => $orderStatus,
                     'transactionType' => 'creation',
-                ),
-                $market
-            );
+                ), $market);
+            } catch (Exception $error) {
+                if ($error instanceof Error) {
+                    throw new \Exception(`Failed to create $order => $array($error->message)`);
+                }
+                throw new \Exception('Failed to create $order => An unknown $error occurred.');
+            }
         }) ();
+    }
+
+    public function validate_create_order_response(array $response) {
+        $result = $this->safe_dict($response, 'result');
+        if (is_array($result) && array_key_exists('Ack', $result)) {
+            return;
+        }
+        $rejection = $this->safe_dict($result, 'Rej');
+        if ($rejection) {
+            $rejectReason = $this->safe_string($rejection, 'reason');
+            $this->handle_create_order_reject($rejectReason, $rejection);
+        }
+        throw new \Exception('Order $response is invalid => No Ack or Rej found.');
+    }
+
+    public function handle_create_order_reject(string $reason, array $order) {
+        $clientOrderId = $this->safe_string($order, 'clientOrderId');
+        $errorMessage = `Order rejected for $clientOrderId ${$clientOrderId}. Reason => `;
+        switch ($reason) {
+        case '0':
+            $errorMessage .= 'Unclassified error occurred.';
+            break;
+        case '1':
+            $errorMessage .= 'Invalid quantity => Quantity was zero.';
+            break;
+        case '2':
+            $errorMessage .= 'Invalid market ID => The specified market ID does not exist.';
+            break;
+        case '3':
+            $errorMessage .= 'Duplicate $order ID => The specified client $order ID was not unique among open orders for this subaccount.';
+            break;
+        case '4':
+            $errorMessage .= 'Invalid side specified.';
+            break;
+        case '5':
+            $errorMessage .= 'Invalid time in force specified.';
+            break;
+        case '6':
+            $errorMessage .= 'Invalid $order type specified.';
+            break;
+        case '7':
+            $errorMessage .= 'Invalid post-only flag specified.';
+            break;
+        case '8':
+            $errorMessage .= 'Invalid self-trade prevention specified.';
+            break;
+        case '9':
+            $errorMessage .= 'Unknown trader => Internal error with subaccount positions.';
+            break;
+        case '10':
+            $errorMessage .= 'Price should not be specified for market or market limit orders.';
+            break;
+        case '11':
+            $errorMessage .= 'Post-only with market $order is not allowed.';
+            break;
+        case '12':
+            $errorMessage .= 'Post-only with invalid time in force.';
+            break;
+        case '13':
+            $errorMessage .= 'Exceeded spot position limits.';
+            break;
+        case '14':
+            $errorMessage .= 'No opposing resting orders to trade against.';
+            break;
+        case '15':
+            $errorMessage .= 'Post-only $order would have crossed and traded.';
+            break;
+        case '16':
+            $errorMessage .= 'Fill or kill (FOK) $order was not fully fillable.';
+            break;
+        case '17':
+            $errorMessage .= 'Only $order cancelations are accepted at this time.';
+            break;
+        case '18':
+            $errorMessage .= 'Protection price would not trade for market-with-protection orders.';
+            break;
+        case '19':
+            $errorMessage .= 'Market orders cannot be placed because there is no internal reference price.';
+            break;
+        case '20':
+            $errorMessage .= 'Slippage too high => The $order would trade beyond allowed protection levels.';
+            break;
+        case '21':
+            $errorMessage .= 'Outside price band => Bid price is too low or ask price is too high.';
+            break;
+        default:
+            $errorMessage .= `Unknown $reason code => ${$reason}.`;
+            break;
+        }
+        throw new \Exception($errorMessage);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * cancels an open order
-             * @see https://cubexch.gitbook.io/cube-api/rest-osmium-api#order-1
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
-             */
-            $meta = Async\await($this->fetch_market_meta($symbol));
-            $symbol = $this->safe_string($meta, 'symbol');
-            $marketId = $this->safe_string($meta, 'marketId');
-            $market = $this->safe_dict($meta, 'market');
-            $rawMarketId = $this->safe_integer($this->safe_dict($market, 'info'), 'marketId');
-            $fetchedOrder = Async\await($this->fetch_raw_order($id, $marketId));
-            if ($fetchedOrder === null) {
-                $fetchedOrder = array();
-            }
-            $clientOrderId = $this->safe_integer($fetchedOrder, 'clientOrderId');
-            $request = array(
-                'clientOrderId' => $clientOrderId,
-                'requestId' => $this->safe_integer($params, 'requestId', 1),
-                'marketId' => $rawMarketId,
-            );
-            $this->inject_sub_account_id($request, $params);
-            $response = Async\await($this->restOsmiumPrivateDeleteOrder ($this->extend($request, $params)));
-            $reason = null;
-            if ($this->safe_dict($this->safe_dict($response, 'result'), 'Rej')) {
-                $reasonNumber = $this->safe_string($this->safe_dict($this->safe_dict($response, 'result'), 'Rej'), 'reason');
-                if ($reasonNumber === '0') {
-                    $reason = 'Unclassified';
-                } elseif ($reasonNumber === '1') {
-                    $reason = 'Invalid $market id';
-                } elseif ($reasonNumber === '2') {
-                    $reason = 'Order not found';
-                } else {
-                    $reason = 'Unknown';
+            try {
+                $meta = Async\await($this->fetch_market_meta($symbol));
+                $symbol = $this->safe_string($meta, 'symbol');
+                $marketId = $this->safe_string($meta, 'marketId');
+                $market = $this->safe_dict($meta, 'market');
+                $rawMarketId = $this->safe_integer($this->safe_dict($market, 'info'), 'marketId');
+                $fetchedOrder = Async\await($this->fetch_raw_order($id, $marketId));
+                if (!$fetchedOrder) {
+                    $fetchedOrder = array();
                 }
-                throw new InvalidOrder('Order cancellation rejected. Reason => "' . $reason . '".');
-            }
-            return $this->parse_order(
-                array(
+                $clientOrderId = $this->safe_integer($fetchedOrder, 'clientOrderId');
+                $request = array(
+                    'clientOrderId' => $clientOrderId,
+                    'requestId' => $this->safe_integer($params, 'requestId', 1),
+                    'marketId' => $rawMarketId,
+                );
+                $this->inject_sub_account_id($request, $params);
+                $response = Async\await($this->restOsmiumPrivateDeleteOrder ($this->extend($request, $params)));
+                $this->validate_cancel_order_response($response, $fetchedOrder);
+                return $this->parse_order(array(
                     'cancellationResponse' => $response,
                     'fetchedOrder' => $fetchedOrder,
                     'transactionType' => 'cancellation',
-                ),
-                $market
-            );
+                ), $market);
+            } catch (Exception $error) {
+                if ($error instanceof Error) {
+                    throw new \Exception(`Failed to cancel order => $array($error->message)`);
+                }
+                throw new \Exception('Failed to cancel order => An unknown $error occurred.');
+            }
         }) ();
+    }
+
+    public function validate_cancel_order_response(array $response, array $order) {
+        $result = $this->safe_dict($response, 'result');
+        if (is_array($result) && array_key_exists('Ack', $result)) {
+            $ack = $this->safe_dict($result, 'Ack');
+            $reason = $this->safe_string($ack, 'reason');
+            $this->handle_cancel_order_ack($reason, $ack);
+            return;
+        }
+        $rejection = $this->safe_dict($result, 'Rej');
+        if ($rejection) {
+            $rejectReason = $this->safe_string($rejection, 'reason');
+            $this->handle_cancel_order_reject($rejectReason, $order);
+        }
+        throw new \Exception('Cancel $order $response is invalid => No Ack or Rej found.');
+    }
+
+    public function handle_cancel_order_reject(string $reason, array $order) {
+        $clientOrderId = $this->safe_string($order, 'clientOrderId');
+        $errorMessage = `Order cancellation rejected for $clientOrderId ${$clientOrderId}. Reason => `;
+        switch ($reason) {
+        case '0':
+            $errorMessage .= 'Unclassified error occurred.';
+            break;
+        case '1':
+            $errorMessage .= 'Invalid market ID => The specified market ID does not exist.';
+            break;
+        case '2':
+            $errorMessage .= 'Order not found => The specified client $order ID does not exist for the corresponding market ID and subaccount ID.';
+            break;
+        default:
+            $errorMessage .= `Unknown $reason code => ${$reason}.`;
+            break;
+        }
+        throw new InvalidOrder($errorMessage);
+    }
+
+    public function handle_cancel_order_ack(string $reason, array $ack) {
+        $clientOrderId = $this->safe_string($ack, 'clientOrderId');
+        $message = `Order cancellation acknowledged for $clientOrderId ${$clientOrderId}. Reason => `;
+        switch ($reason) {
+        case '0':
+            $message .= 'Unclassified acknowledgment.';
+            break;
+        case '1':
+            $message .= 'Order canceled due to disconnection.';
+            break;
+        case '2':
+            $message .= 'Order was requested to be canceled.';
+            break;
+        case '3':
+            $message .= 'Immediate or cancel (IOC) order was not fully filled.';
+            break;
+        case '4':
+            $message .= 'A resting order was canceled due to self-trade prevention (STP).';
+            break;
+        case '5':
+            $message .= 'An aggressing order was canceled due to self-trade prevention (STP).';
+            break;
+        case '6':
+            $message .= 'Order was covered by a mass-cancel request.';
+            break;
+        case '7':
+            $message .= 'Order was canceled because asset position limits would be otherwise breached.';
+            break;
+        default:
+            $message .= `Unknown acknowledgment $reason code => ${$reason}.`;
+            break;
+        }
+        throw new InvalidOrder($message);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
