@@ -1459,11 +1459,11 @@ export default class cube extends Exchange {
         //  }
         //
         return this.parseOrder (
-          {
-              'fetchedOrder': order,
-              'transactionType': 'fetching',
-          },
-          market
+            {
+                'fetchedOrder': order,
+                'transactionType': 'fetching',
+            },
+            market
         );
     }
 
