@@ -1286,7 +1286,7 @@ export default class cube extends Exchange {
             errorMessage += 'Outside price band: Bid price is too low or ask price is too high.';
             break;
         default:
-            errorMessage += `Unknown reason code: ${reason}.`;
+            errorMessage += 'Unknown reason code: ' + reason + '.';
             break;
         }
         throw new InvalidOrder (errorMessage);
@@ -1352,7 +1352,7 @@ export default class cube extends Exchange {
             errorMessage += 'Order not found: The specified client order ID does not exist for the corresponding market ID and subaccount ID.';
             break;
         default:
-            errorMessage += `Unknown reason code: ${reason}.`;
+            errorMessage += 'Unknown reason code: ' + reason + '.';
             break;
         }
         throw new InvalidOrder (errorMessage);
