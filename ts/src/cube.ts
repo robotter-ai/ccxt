@@ -1132,79 +1132,72 @@ export default class cube extends Exchange {
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
-        try {
-            const meta = await this.fetchMarketMeta (symbol);
-            symbol = this.safeString (meta, 'symbol');
-            const marketId = this.safeString (meta, 'marketId');
-            const market = this.safeDict (meta, 'market');
-            const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
-            const quantityTickSize = this.safeNumber (this.safeDict (market, 'info'), 'quantityTickSize');
-            let exchangeAmount = undefined;
-            if (quantityTickSize && quantityTickSize !== 0) {
-                exchangeAmount = this.parseToInt (amount / quantityTickSize);
-            }
-            let exchangeOrderType = undefined;
-            if (type === 'limit') {
-                exchangeOrderType = 0;
-            } else if (type === 'market') {
-                exchangeOrderType = 1;
-            } else if (type === 'MARKET_WITH_PROTECTION') {
-                exchangeOrderType = 2;
-            } else {
-                throw new InvalidOrder ('OrderType was not recognized: ' + type);
-            }
-            let exchangeOrderSide = undefined;
-            if (side === 'buy') {
-                exchangeOrderSide = 0;
-            } else if (side === 'sell') {
-                exchangeOrderSide = 1;
-            } else {
-                throw new InvalidOrder ('OrderSide was not recognized: ' + side);
-            }
-            const timestamp = this.milliseconds ();
-            const clientOrderId = this.safeInteger (params, 'clientOrderId', timestamp);
-            const request = {
-                'clientOrderId': clientOrderId,
-                'requestId': this.safeInteger (params, 'requestId', 1),
-                'marketId': rawMarketId,
-                'quantity': exchangeAmount,
-                'side': exchangeOrderSide,
-                'timeInForce': this.safeInteger (params, 'timeInForce', 1),
-                'orderType': exchangeOrderType,
-                'selfTradePrevention': this.safeInteger (params, 'selfTradePrevention', 0),
-                'postOnly': this.safeInteger (params, 'postOnly', 0),
-                'cancelOnDisconnect': this.safeBool (params, 'cancelOnDisconnect', false),
-            };
-            const priceTickSize = this.parseToNumeric (this.safeValue (this.safeDict (market, 'info'), 'priceTickSize'));
-            if (price !== undefined) {
-                let lamportPrice = undefined;
-                if (priceTickSize && priceTickSize !== 0) {
-                    lamportPrice = this.parseToInt (price / priceTickSize);
-                }
-                request['price'] = lamportPrice;
-            }
-            this.injectSubAccountId (request, params);
-            const response = await this.restOsmiumPrivatePostOrder (this.extend (request, params));
-            this.validateCreateOrderResponse (response);
-            const order = this.safeDict (this.safeDict (response, 'result'), 'Ack');
-            const exchangeOrderId = this.safeString (order, 'exchangeOrderId');
-            const fetchedOrder = await this.fetchRawOrder (exchangeOrderId, marketId);
-            let orderStatus = 'open';
-            if (!fetchedOrder) {
-                orderStatus = order ? 'filled' : 'rejected';
-            }
-            return this.parseOrder ({
-                'order': order,
-                'fetchedOrder': fetchedOrder,
-                'orderStatus': orderStatus,
-                'transactionType': 'creation',
-            }, market as Market);
-        } catch (error) {
-            if (error instanceof Error) {
-                throw new Error (`Failed to create order: ${error.message}`);
-            }
-            throw new Error ('Failed to create order: An unknown error occurred.');
+        const meta = await this.fetchMarketMeta (symbol);
+        symbol = this.safeString (meta, 'symbol');
+        const marketId = this.safeString (meta, 'marketId');
+        const market = this.safeDict (meta, 'market');
+        const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
+        const quantityTickSize = this.safeNumber (this.safeDict (market, 'info'), 'quantityTickSize');
+        let exchangeAmount = undefined;
+        if (quantityTickSize && quantityTickSize !== 0) {
+            exchangeAmount = this.parseToInt (amount / quantityTickSize);
         }
+        let exchangeOrderType = undefined;
+        if (type === 'limit') {
+            exchangeOrderType = 0;
+        } else if (type === 'market') {
+            exchangeOrderType = 1;
+        } else if (type === 'MARKET_WITH_PROTECTION') {
+            exchangeOrderType = 2;
+        } else {
+            throw new InvalidOrder ('OrderType was not recognized: ' + type);
+        }
+        let exchangeOrderSide = undefined;
+        if (side === 'buy') {
+            exchangeOrderSide = 0;
+        } else if (side === 'sell') {
+            exchangeOrderSide = 1;
+        } else {
+            throw new InvalidOrder ('OrderSide was not recognized: ' + side);
+        }
+        const timestamp = this.milliseconds ();
+        const clientOrderId = this.safeInteger (params, 'clientOrderId', timestamp);
+        const request = {
+            'clientOrderId': clientOrderId,
+            'requestId': this.safeInteger (params, 'requestId', 1),
+            'marketId': rawMarketId,
+            'quantity': exchangeAmount,
+            'side': exchangeOrderSide,
+            'timeInForce': this.safeInteger (params, 'timeInForce', 1),
+            'orderType': exchangeOrderType,
+            'selfTradePrevention': this.safeInteger (params, 'selfTradePrevention', 0),
+            'postOnly': this.safeInteger (params, 'postOnly', 0),
+            'cancelOnDisconnect': this.safeBool (params, 'cancelOnDisconnect', false),
+        };
+        const priceTickSize = this.parseToNumeric (this.safeValue (this.safeDict (market, 'info'), 'priceTickSize'));
+        if (price !== undefined) {
+            let lamportPrice = undefined;
+            if (priceTickSize && priceTickSize !== 0) {
+                lamportPrice = this.parseToInt (price / priceTickSize);
+            }
+            request['price'] = lamportPrice;
+        }
+        this.injectSubAccountId (request, params);
+        const response = await this.restOsmiumPrivatePostOrder (this.extend (request, params));
+        this.validateCreateOrderResponse (response);
+        const order = this.safeDict (this.safeDict (response, 'result'), 'Ack');
+        const exchangeOrderId = this.safeString (order, 'exchangeOrderId');
+        const fetchedOrder = await this.fetchRawOrder (exchangeOrderId, marketId);
+        let orderStatus = 'open';
+        if (!fetchedOrder) {
+            orderStatus = order ? 'filled' : 'rejected';
+        }
+        return this.parseOrder ({
+            'order': order,
+            'fetchedOrder': fetchedOrder,
+            'orderStatus': orderStatus,
+            'transactionType': 'creation',
+        }, market as Market);
     }
 
     validateCreateOrderResponse (response: object) {
@@ -1213,16 +1206,18 @@ export default class cube extends Exchange {
             return;
         }
         const rejection = this.safeDict (result, 'Rej');
-        if (rejection) {
+        if (rejection !== undefined) {
             const rejectReason = this.safeString (rejection, 'reason');
-            this.handleCreateOrderReject (rejectReason, rejection);
+            if (rejectReason !== undefined) {
+                this.handleCreateOrderReject (rejectReason, rejection);
+            }
         }
-        throw new Error ('Order response is invalid: No Ack or Rej found.');
+        throw new InvalidOrder ('Order response is invalid: No Ack or Rej found.');
     }
 
     handleCreateOrderReject (reason: string, order: object) {
         const clientOrderId = this.safeString (order, 'clientOrderId');
-        let errorMessage = `Order rejected for clientOrderId ${clientOrderId}. Reason: `;
+        let errorMessage = 'Order rejected for clientOrderId ' + clientOrderId + '. Reason: ';
         switch (reason) {
         case '0':
             errorMessage += 'Unclassified error occurred.';
@@ -1294,40 +1289,33 @@ export default class cube extends Exchange {
             errorMessage += `Unknown reason code: ${reason}.`;
             break;
         }
-        throw new Error (errorMessage);
+        throw new InvalidOrder (errorMessage);
     }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        try {
-            const meta = await this.fetchMarketMeta (symbol);
-            symbol = this.safeString (meta, 'symbol');
-            const marketId = this.safeString (meta, 'marketId');
-            const market = this.safeDict (meta, 'market');
-            const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
-            let fetchedOrder = await this.fetchRawOrder (id, marketId);
-            if (!fetchedOrder) {
-                fetchedOrder = {};
-            }
-            const clientOrderId = this.safeInteger (fetchedOrder, 'clientOrderId');
-            const request = {
-                'clientOrderId': clientOrderId,
-                'requestId': this.safeInteger (params, 'requestId', 1),
-                'marketId': rawMarketId,
-            };
-            this.injectSubAccountId (request, params);
-            const response = await this.restOsmiumPrivateDeleteOrder (this.extend (request, params));
-            this.validateCancelOrderResponse (response, fetchedOrder);
-            return this.parseOrder ({
-                'cancellationResponse': response,
-                'fetchedOrder': fetchedOrder,
-                'transactionType': 'cancellation',
-            }, market as Market);
-        } catch (error) {
-            if (error instanceof Error) {
-                throw new Error (`Failed to cancel order: ${error.message}`);
-            }
-            throw new Error ('Failed to cancel order: An unknown error occurred.');
+        const meta = await this.fetchMarketMeta (symbol);
+        symbol = this.safeString (meta, 'symbol');
+        const marketId = this.safeString (meta, 'marketId');
+        const market = this.safeDict (meta, 'market');
+        const rawMarketId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
+        let fetchedOrder = await this.fetchRawOrder (id, marketId);
+        if (!fetchedOrder) {
+            fetchedOrder = {};
         }
+        const clientOrderId = this.safeInteger (fetchedOrder, 'clientOrderId');
+        const request = {
+            'clientOrderId': clientOrderId,
+            'requestId': this.safeInteger (params, 'requestId', 1),
+            'marketId': rawMarketId,
+        };
+        this.injectSubAccountId (request, params);
+        const response = await this.restOsmiumPrivateDeleteOrder (this.extend (request, params));
+        this.validateCancelOrderResponse (response, fetchedOrder);
+        return this.parseOrder ({
+            'cancellationResponse': response,
+            'fetchedOrder': fetchedOrder,
+            'transactionType': 'cancellation',
+        }, market as Market);
     }
 
     validateCancelOrderResponse (response: object, order: object) {
@@ -1335,20 +1323,24 @@ export default class cube extends Exchange {
         if ('Ack' in result) {
             const ack = this.safeDict (result, 'Ack');
             const reason = this.safeString (ack, 'reason');
-            this.handleCancelOrderAck (reason, ack);
+            if (reason !== undefined) {
+                this.handleCancelOrderAck (reason, ack);
+            }
             return;
         }
         const rejection = this.safeDict (result, 'Rej');
         if (rejection) {
             const rejectReason = this.safeString (rejection, 'reason');
-            this.handleCancelOrderReject (rejectReason, order);
+            if (rejectReason !== undefined) {
+                this.handleCancelOrderReject (rejectReason, order);
+            }
         }
-        throw new Error ('Cancel order response is invalid: No Ack or Rej found.');
+        throw new InvalidOrder ('Cancel order response is invalid: No Ack or Rej found.');
     }
 
     handleCancelOrderReject (reason: string, order: object) {
         const clientOrderId = this.safeString (order, 'clientOrderId');
-        let errorMessage = `Order cancellation rejected for clientOrderId ${clientOrderId}. Reason: `;
+        let errorMessage = 'Order cancellation rejected for clientOrderId' + clientOrderId + 'Reason: ';
         switch (reason) {
         case '0':
             errorMessage += 'Unclassified error occurred.';
@@ -1368,7 +1360,7 @@ export default class cube extends Exchange {
 
     handleCancelOrderAck (reason: string, ack: object) {
         const clientOrderId = this.safeString (ack, 'clientOrderId');
-        let message = `Order cancellation acknowledged for clientOrderId ${clientOrderId}. Reason: `;
+        let message = 'Order rejected for clientOrderId ' + clientOrderId + '. Reason: ';
         switch (reason) {
         case '0':
             message += 'Unclassified acknowledgment.';
@@ -1395,7 +1387,7 @@ export default class cube extends Exchange {
             message += 'Order was canceled because asset position limits would be otherwise breached.';
             break;
         default:
-            message += `Unknown acknowledgment reason code: ${reason}.`;
+            message += 'Unknown acknowledgment reason code:' + reason;
             break;
         }
         throw new InvalidOrder (message);
