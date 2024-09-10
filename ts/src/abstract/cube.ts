@@ -11,6 +11,9 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     restIridiumPublicGetMarkets (params?: {}): Promise<implicitReturnType>;
     restIridiumPublicGetHistoryKlines (params?: {}): Promise<implicitReturnType>;
+    restIridiumPublicGetPointsLoyaltyLeaderboard (params?: {}): Promise<implicitReturnType>;
+    restIridiumPublicGetPointsReferralLeaderboard (params?: {}): Promise<implicitReturnType>;
+    restIridiumPublicGetPointsBlocksLeaderboard (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersCheck (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersInfo (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersSubaccounts (params?: {}): Promise<implicitReturnType>;
@@ -24,6 +27,10 @@ interface Exchange {
     restIridiumPrivateGetUsersFeeEstimateMarketId (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersAddress (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivateGetUsersAddressSettings (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivateGetUsersLootBoxes (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivateGetUsersInvites (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivateGetUsersDailyLoyalty (params?: {}): Promise<implicitReturnType>;
+    restIridiumPrivateGetUsersUserTier (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivatePostUsersWithdraw (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivatePostUsersSubaccounts (params?: {}): Promise<implicitReturnType>;
     restIridiumPrivatePatchUsersSubaccountSubaccountId (params?: {}): Promise<implicitReturnType>;
