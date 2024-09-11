@@ -1105,77 +1105,52 @@ class cube(Exchange, ImplicitAPI):
     def handle_create_order_reject(self, reason: str, order: object):
         clientOrderId = self.safe_string(order, 'clientOrderId')
         errorMessage = 'Order rejected for clientOrderId ' + clientOrderId + '. Reason: '
-        switch(reason) {
-        case '0':
-            errorMessage += 'Unclassified error occurred.'
-            break
-        case '1':
-            errorMessage += 'Invalid quantity: Quantity was zero.'
-            break
-        case '2':
-            errorMessage += 'Invalid market ID: The specified market ID does not exist.'
-            break
-        case '3':
-            errorMessage += 'Duplicate order ID: The specified client order ID was not unique among open orders for self subaccount.'
-            break
-        case '4':
-            errorMessage += 'Invalid side specified.'
-            break
-        case '5':
-            errorMessage += 'Invalid time in force specified.'
-            break
-        case '6':
-            errorMessage += 'Invalid order type specified.'
-            break
-        case '7':
-            errorMessage += 'Invalid post-only flag specified.'
-            break
-        case '8':
-            errorMessage += 'Invalid self-trade prevention specified.'
-            break
-        case '9':
-            errorMessage += 'Unknown trader: Internal error with subaccount positions.'
-            break
-        case '10':
-            errorMessage += 'Price should not be specified for market or market limit orders.'
-            break
-        case '11':
-            errorMessage += 'Post-only with market order is not allowed.'
-            break
-        case '12':
-            errorMessage += 'Post-only with invalid time in force.'
-            break
-        case '13':
-            errorMessage += 'Exceeded spot position limits.'
-            break
-        case '14':
-            errorMessage += 'No opposing resting orders to trade against.'
-            break
-        case '15':
-            errorMessage += 'Post-only order would have crossed and traded.'
-            break
-        case '16':
-            errorMessage += 'Fill or kill(FOK) order was not fully fillable.'
-            break
-        case '17':
-            errorMessage += 'Only order cancelations are accepted at self time.'
-            break
-        case '18':
-            errorMessage += 'Protection price would not trade for market-with-protection orders.'
-            break
-        case '19':
-            errorMessage += 'Market orders cannot be placed because there is no internal reference price.'
-            break
-        case '20':
-            errorMessage += 'Slippage too high: The order would trade beyond allowed protection levels.'
-            break
-        case '21':
-            errorMessage += 'Outside price band: Bid price is too low or ask price is too high.'
-            break
-        default:
-            errorMessage += `Unknown reason code: ${reason}.`
-            break
-        raise InvalidOrder(errorMessage)
+        if reason == '0':
+            raise InvalidOrder(errorMessage + 'Unclassified error occurred.')
+        elif reason == '1':
+            raise InvalidOrder(errorMessage + 'Invalid quantity: Quantity was zero.')
+        elif reason == '2':
+            raise InvalidOrder(errorMessage + 'Invalid market ID: The specified market ID does not exist.')
+        elif reason == '3':
+            raise InvalidOrder(errorMessage + 'Duplicate order ID: The specified client order ID was not unique among open orders for self subaccount.')
+        elif reason == '4':
+            raise InvalidOrder(errorMessage + 'Invalid side specified.')
+        elif reason == '5':
+            raise InvalidOrder(errorMessage + 'Invalid time in force specified.')
+        elif reason == '6':
+            raise InvalidOrder(errorMessage + 'Invalid order type specified.')
+        elif reason == '7':
+            raise InvalidOrder(errorMessage + 'Invalid post-only flag specified.')
+        elif reason == '8':
+            raise InvalidOrder(errorMessage + 'Invalid self-trade prevention specified.')
+        elif reason == '9':
+            raise InvalidOrder(errorMessage + 'Unknown trader: Internal error with subaccount positions.')
+        elif reason == '10':
+            raise InvalidOrder(errorMessage + 'Price should not be specified for market or market limit orders.')
+        elif reason == '11':
+            raise InvalidOrder(errorMessage + 'Post-only with market order is not allowed.')
+        elif reason == '12':
+            raise InvalidOrder(errorMessage + 'Post-only with invalid time in force.')
+        elif reason == '13':
+            raise InvalidOrder(errorMessage + 'Exceeded spot position limits.')
+        elif reason == '14':
+            raise InvalidOrder(errorMessage + 'No opposing resting orders to trade against.')
+        elif reason == '15':
+            raise InvalidOrder(errorMessage + 'Post-only order would have crossed and traded.')
+        elif reason == '16':
+            raise InvalidOrder(errorMessage + 'Fill or kill(FOK) order was not fully fillable.')
+        elif reason == '17':
+            raise InvalidOrder(errorMessage + 'Only order cancelations are accepted at self time.')
+        elif reason == '18':
+            raise InvalidOrder(errorMessage + 'Protection price would not trade for market-with-protection orders.')
+        elif reason == '19':
+            raise InvalidOrder(errorMessage + 'Market orders cannot be placed because there is no internal reference price.')
+        elif reason == '20':
+            raise InvalidOrder(errorMessage + 'Slippage too high: The order would trade beyond allowed protection levels.')
+        elif reason == '21':
+            raise InvalidOrder(errorMessage + 'Outside price band: Bid price is too low or ask price is too high.')
+        else:
+            raise InvalidOrder(errorMessage + 'Unknown reason code: ' + reason + '.')
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         meta = self.fetch_market_meta(symbol)
@@ -1219,53 +1194,36 @@ class cube(Exchange, ImplicitAPI):
     def handle_cancel_order_reject(self, reason: str, order: object):
         clientOrderId = self.safe_string(order, 'clientOrderId')
         errorMessage = 'Order cancellation rejected for clientOrderId' + clientOrderId + 'Reason: '
-        switch(reason) {
-        case '0':
-            errorMessage += 'Unclassified error occurred.'
-            break
-        case '1':
-            errorMessage += 'Invalid market ID: The specified market ID does not exist.'
-            break
-        case '2':
-            errorMessage += 'Order not found: The specified client order ID does not exist for the corresponding market ID and subaccount ID.'
-            break
-        default:
-            errorMessage += `Unknown reason code: ${reason}.`
-            break
-        raise InvalidOrder(errorMessage)
+        if reason == '0':
+            raise InvalidOrder(errorMessage + 'Unclassified error occurred.')
+        elif reason == '1':
+            raise InvalidOrder(errorMessage + 'Invalid market ID: The specified market ID does not exist.')
+        elif reason == '2':
+            raise InvalidOrder(errorMessage + 'Order not found: The specified client order ID does not exist for the corresponding market ID and subaccount ID.')
+        else:
+            raise InvalidOrder(errorMessage + 'Unknown reason code: ' + reason + '.')
 
     def handle_cancel_order_ack(self, reason: str, ack: object):
         clientOrderId = self.safe_string(ack, 'clientOrderId')
-        message = 'Order rejected for clientOrderId ' + clientOrderId + '. Reason: '
-        switch(reason) {
-        case '0':
-            message += 'Unclassified acknowledgment.'
-            break
-        case '1':
-            message += 'Order canceled due to disconnection.'
-            break
-        case '2':
-            message += 'Order was requested to be canceled.'
-            break
-        case '3':
-            message += 'Immediate or cancel(IOC) order was not fully filled.'
-            break
-        case '4':
-            message += 'A resting order was canceled due to self-trade prevention(STP).'
-            break
-        case '5':
-            message += 'An aggressing order was canceled due to self-trade prevention(STP).'
-            break
-        case '6':
-            message += 'Order was covered by a mass-cancel request.'
-            break
-        case '7':
-            message += 'Order was canceled because asset position limits would be otherwise breached.'
-            break
-        default:
-            message += 'Unknown acknowledgment reason code:' + reason
-            break
-        raise InvalidOrder(message)
+        errorMessage = 'Order rejected for clientOrderId ' + clientOrderId + '. Reason: '
+        if reason == '0':
+            raise InvalidOrder(errorMessage + 'Unclassified acknowledgment.')
+        elif reason == '1':
+            raise InvalidOrder(errorMessage + 'Order canceled due to disconnection.')
+        elif reason == '2':
+            raise InvalidOrder(errorMessage + 'Order was requested to be canceled.')
+        elif reason == '3':
+            raise InvalidOrder(errorMessage + 'Immediate or cancel(IOC) order was not fully filled.')
+        elif reason == '4':
+            raise InvalidOrder(errorMessage + 'A resting order was canceled due to self-trade prevention(STP).')
+        elif reason == '5':
+            raise InvalidOrder(errorMessage + 'An aggressing order was canceled due to self-trade prevention(STP).')
+        elif reason == '6':
+            raise InvalidOrder(errorMessage + 'Order was covered by a mass-cancel request.')
+        elif reason == '7':
+            raise InvalidOrder(errorMessage + 'Order was canceled because asset position limits would be otherwise breached.')
+        else:
+            raise InvalidOrder(errorMessage + 'Unknown acknowledgment reason code:' + reason + '.')
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """

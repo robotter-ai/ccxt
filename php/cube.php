@@ -1175,78 +1175,53 @@ class cube extends Exchange {
     public function handle_create_order_reject(string $reason, array $order) {
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $errorMessage = 'Order rejected for $clientOrderId ' . $clientOrderId . '. Reason => ';
-        switch ($reason) {
-        case '0':
-            $errorMessage .= 'Unclassified error occurred.';
-            break;
-        case '1':
-            $errorMessage .= 'Invalid quantity => Quantity was zero.';
-            break;
-        case '2':
-            $errorMessage .= 'Invalid market ID => The specified market ID does not exist.';
-            break;
-        case '3':
-            $errorMessage .= 'Duplicate $order ID => The specified client $order ID was not unique among open orders for this subaccount.';
-            break;
-        case '4':
-            $errorMessage .= 'Invalid side specified.';
-            break;
-        case '5':
-            $errorMessage .= 'Invalid time in force specified.';
-            break;
-        case '6':
-            $errorMessage .= 'Invalid $order type specified.';
-            break;
-        case '7':
-            $errorMessage .= 'Invalid post-only flag specified.';
-            break;
-        case '8':
-            $errorMessage .= 'Invalid self-trade prevention specified.';
-            break;
-        case '9':
-            $errorMessage .= 'Unknown trader => Internal error with subaccount positions.';
-            break;
-        case '10':
-            $errorMessage .= 'Price should not be specified for market or market limit orders.';
-            break;
-        case '11':
-            $errorMessage .= 'Post-only with market $order is not allowed.';
-            break;
-        case '12':
-            $errorMessage .= 'Post-only with invalid time in force.';
-            break;
-        case '13':
-            $errorMessage .= 'Exceeded spot position limits.';
-            break;
-        case '14':
-            $errorMessage .= 'No opposing resting orders to trade against.';
-            break;
-        case '15':
-            $errorMessage .= 'Post-only $order would have crossed and traded.';
-            break;
-        case '16':
-            $errorMessage .= 'Fill or kill (FOK) $order was not fully fillable.';
-            break;
-        case '17':
-            $errorMessage .= 'Only $order cancelations are accepted at this time.';
-            break;
-        case '18':
-            $errorMessage .= 'Protection price would not trade for market-with-protection orders.';
-            break;
-        case '19':
-            $errorMessage .= 'Market orders cannot be placed because there is no internal reference price.';
-            break;
-        case '20':
-            $errorMessage .= 'Slippage too high => The $order would trade beyond allowed protection levels.';
-            break;
-        case '21':
-            $errorMessage .= 'Outside price band => Bid price is too low or ask price is too high.';
-            break;
-        default:
-            $errorMessage .= `Unknown $reason code => ${$reason}.`;
-            break;
+        if ($reason === '0') {
+            throw new InvalidOrder($errorMessage . 'Unclassified error occurred.');
+        } elseif ($reason === '1') {
+            throw new InvalidOrder($errorMessage . 'Invalid quantity => Quantity was zero.');
+        } elseif ($reason === '2') {
+            throw new InvalidOrder($errorMessage . 'Invalid market ID => The specified market ID does not exist.');
+        } elseif ($reason === '3') {
+            throw new InvalidOrder($errorMessage . 'Duplicate $order ID => The specified client $order ID was not unique among open orders for this subaccount.');
+        } elseif ($reason === '4') {
+            throw new InvalidOrder($errorMessage . 'Invalid side specified.');
+        } elseif ($reason === '5') {
+            throw new InvalidOrder($errorMessage . 'Invalid time in force specified.');
+        } elseif ($reason === '6') {
+            throw new InvalidOrder($errorMessage . 'Invalid $order type specified.');
+        } elseif ($reason === '7') {
+            throw new InvalidOrder($errorMessage . 'Invalid post-only flag specified.');
+        } elseif ($reason === '8') {
+            throw new InvalidOrder($errorMessage . 'Invalid self-trade prevention specified.');
+        } elseif ($reason === '9') {
+            throw new InvalidOrder($errorMessage . 'Unknown trader => Internal error with subaccount positions.');
+        } elseif ($reason === '10') {
+            throw new InvalidOrder($errorMessage . 'Price should not be specified for market or market limit orders.');
+        } elseif ($reason === '11') {
+            throw new InvalidOrder($errorMessage . 'Post-only with market $order is not allowed.');
+        } elseif ($reason === '12') {
+            throw new InvalidOrder($errorMessage . 'Post-only with invalid time in force.');
+        } elseif ($reason === '13') {
+            throw new InvalidOrder($errorMessage . 'Exceeded spot position limits.');
+        } elseif ($reason === '14') {
+            throw new InvalidOrder($errorMessage . 'No opposing resting orders to trade against.');
+        } elseif ($reason === '15') {
+            throw new InvalidOrder($errorMessage . 'Post-only $order would have crossed and traded.');
+        } elseif ($reason === '16') {
+            throw new InvalidOrder($errorMessage . 'Fill or kill (FOK) $order was not fully fillable.');
+        } elseif ($reason === '17') {
+            throw new InvalidOrder($errorMessage . 'Only $order cancelations are accepted at this time.');
+        } elseif ($reason === '18') {
+            throw new InvalidOrder($errorMessage . 'Protection price would not trade for market-with-protection orders.');
+        } elseif ($reason === '19') {
+            throw new InvalidOrder($errorMessage . 'Market orders cannot be placed because there is no internal reference price.');
+        } elseif ($reason === '20') {
+            throw new InvalidOrder($errorMessage . 'Slippage too high => The $order would trade beyond allowed protection levels.');
+        } elseif ($reason === '21') {
+            throw new InvalidOrder($errorMessage . 'Outside price band => Bid price is too low or ask price is too high.');
+        } else {
+            throw new InvalidOrder($errorMessage . 'Unknown $reason code => ' . $reason . '.');
         }
-        throw new InvalidOrder($errorMessage);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -1298,56 +1273,39 @@ class cube extends Exchange {
     public function handle_cancel_order_reject(string $reason, array $order) {
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $errorMessage = 'Order cancellation rejected for clientOrderId' . $clientOrderId . 'Reason => ';
-        switch ($reason) {
-        case '0':
-            $errorMessage .= 'Unclassified error occurred.';
-            break;
-        case '1':
-            $errorMessage .= 'Invalid market ID => The specified market ID does not exist.';
-            break;
-        case '2':
-            $errorMessage .= 'Order not found => The specified client $order ID does not exist for the corresponding market ID and subaccount ID.';
-            break;
-        default:
-            $errorMessage .= `Unknown $reason code => ${$reason}.`;
-            break;
+        if ($reason === '0') {
+            throw new InvalidOrder($errorMessage . 'Unclassified error occurred.');
+        } elseif ($reason === '1') {
+            throw new InvalidOrder($errorMessage . 'Invalid market ID => The specified market ID does not exist.');
+        } elseif ($reason === '2') {
+            throw new InvalidOrder($errorMessage . 'Order not found => The specified client $order ID does not exist for the corresponding market ID and subaccount ID.');
+        } else {
+            throw new InvalidOrder($errorMessage . 'Unknown $reason code => ' . $reason . '.');
         }
-        throw new InvalidOrder($errorMessage);
     }
 
     public function handle_cancel_order_ack(string $reason, array $ack) {
         $clientOrderId = $this->safe_string($ack, 'clientOrderId');
-        $message = 'Order rejected for $clientOrderId ' . $clientOrderId . '. Reason => ';
-        switch ($reason) {
-        case '0':
-            $message .= 'Unclassified acknowledgment.';
-            break;
-        case '1':
-            $message .= 'Order canceled due to disconnection.';
-            break;
-        case '2':
-            $message .= 'Order was requested to be canceled.';
-            break;
-        case '3':
-            $message .= 'Immediate or cancel (IOC) order was not fully filled.';
-            break;
-        case '4':
-            $message .= 'A resting order was canceled due to self-trade prevention (STP).';
-            break;
-        case '5':
-            $message .= 'An aggressing order was canceled due to self-trade prevention (STP).';
-            break;
-        case '6':
-            $message .= 'Order was covered by a mass-cancel request.';
-            break;
-        case '7':
-            $message .= 'Order was canceled because asset position limits would be otherwise breached.';
-            break;
-        default:
-            $message .= 'Unknown acknowledgment $reason code:' . $reason;
-            break;
+        $errorMessage = 'Order rejected for $clientOrderId ' . $clientOrderId . '. Reason => ';
+        if ($reason === '0') {
+            throw new InvalidOrder($errorMessage . 'Unclassified acknowledgment.');
+        } elseif ($reason === '1') {
+            throw new InvalidOrder($errorMessage . 'Order canceled due to disconnection.');
+        } elseif ($reason === '2') {
+            throw new InvalidOrder($errorMessage . 'Order was requested to be canceled.');
+        } elseif ($reason === '3') {
+            throw new InvalidOrder($errorMessage . 'Immediate or cancel (IOC) order was not fully filled.');
+        } elseif ($reason === '4') {
+            throw new InvalidOrder($errorMessage . 'A resting order was canceled due to self-trade prevention (STP).');
+        } elseif ($reason === '5') {
+            throw new InvalidOrder($errorMessage . 'An aggressing order was canceled due to self-trade prevention (STP).');
+        } elseif ($reason === '6') {
+            throw new InvalidOrder($errorMessage . 'Order was covered by a mass-cancel request.');
+        } elseif ($reason === '7') {
+            throw new InvalidOrder($errorMessage . 'Order was canceled because asset position limits would be otherwise breached.');
+        } else {
+            throw new InvalidOrder($errorMessage . 'Unknown acknowledgment $reason code:' . $reason . '.');
         }
-        throw new InvalidOrder($message);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
