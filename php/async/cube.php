@@ -1197,7 +1197,7 @@ class cube extends Exchange {
 
     public function handle_create_order_reject(string $reason, array $order) {
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
-        $errorMessage = 'Order rejected for $clientOrderId ' . $clientOrderId . '. Reason => ';
+        $errorMessage = 'Failed to create $order ' . $clientOrderId . '. ';
         if ($reason === '0') {
             throw new InvalidOrder($errorMessage . 'Unclassified error occurred.');
         } elseif ($reason === '1') {
@@ -1297,7 +1297,7 @@ class cube extends Exchange {
 
     public function handle_cancel_order_reject(string $reason, array $order) {
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
-        $errorMessage = 'Order cancellation rejected for clientOrderId' . $clientOrderId . 'Reason => ';
+        $errorMessage = 'Failed to cancel $order ' . $clientOrderId . '. ';
         if ($reason === '0') {
             throw new InvalidOrder($errorMessage . 'Unclassified error occurred.');
         } elseif ($reason === '1') {
@@ -1311,7 +1311,7 @@ class cube extends Exchange {
 
     public function handle_cancel_order_ack(string $reason, array $ack) {
         $clientOrderId = $this->safe_string($ack, 'clientOrderId');
-        $errorMessage = 'Order rejected for $clientOrderId ' . $clientOrderId . '. Reason => ';
+        $errorMessage = 'Failed to cancel order ' . $clientOrderId . '. ';
         if ($reason === '0') {
             throw new InvalidOrder($errorMessage . 'Unclassified acknowledgment.');
         } elseif ($reason === '1') {
