@@ -1104,7 +1104,7 @@ class cube(Exchange, ImplicitAPI):
 
     def handle_create_order_reject(self, reason: str, order: object):
         clientOrderId = self.safe_string(order, 'clientOrderId')
-        errorMessage = 'Order rejected for clientOrderId ' + clientOrderId + '. Reason: '
+        errorMessage = 'Failed to create order ' + clientOrderId + '. '
         if reason == '0':
             raise InvalidOrder(errorMessage + 'Unclassified error occurred.')
         elif reason == '1':
@@ -1193,7 +1193,7 @@ class cube(Exchange, ImplicitAPI):
 
     def handle_cancel_order_reject(self, reason: str, order: object):
         clientOrderId = self.safe_string(order, 'clientOrderId')
-        errorMessage = 'Order cancellation rejected for clientOrderId' + clientOrderId + 'Reason: '
+        errorMessage = 'Failed to cancel order ' + clientOrderId + '. '
         if reason == '0':
             raise InvalidOrder(errorMessage + 'Unclassified error occurred.')
         elif reason == '1':
@@ -1205,7 +1205,7 @@ class cube(Exchange, ImplicitAPI):
 
     def handle_cancel_order_ack(self, reason: str, ack: object):
         clientOrderId = self.safe_string(ack, 'clientOrderId')
-        errorMessage = 'Order rejected for clientOrderId ' + clientOrderId + '. Reason: '
+        errorMessage = 'Failed to cancel order ' + clientOrderId + '. '
         if reason == '0':
             raise InvalidOrder(errorMessage + 'Unclassified acknowledgment.')
         elif reason == '1':

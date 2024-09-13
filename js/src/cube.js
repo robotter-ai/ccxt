@@ -1185,7 +1185,7 @@ export default class cube extends Exchange {
     }
     handleCreateOrderReject(reason, order) {
         const clientOrderId = this.safeString(order, 'clientOrderId');
-        const errorMessage = 'Order rejected for clientOrderId ' + clientOrderId + '. Reason: ';
+        const errorMessage = 'Failed to create order ' + clientOrderId + '. ';
         if (reason === '0') {
             throw new InvalidOrder(errorMessage + 'Unclassified error occurred.');
         }
@@ -1302,7 +1302,7 @@ export default class cube extends Exchange {
     }
     handleCancelOrderReject(reason, order) {
         const clientOrderId = this.safeString(order, 'clientOrderId');
-        const errorMessage = 'Order cancellation rejected for clientOrderId' + clientOrderId + 'Reason: ';
+        const errorMessage = 'Failed to cancel order ' + clientOrderId + '. ';
         if (reason === '0') {
             throw new InvalidOrder(errorMessage + 'Unclassified error occurred.');
         }
@@ -1318,7 +1318,7 @@ export default class cube extends Exchange {
     }
     handleCancelOrderAck(reason, ack) {
         const clientOrderId = this.safeString(ack, 'clientOrderId');
-        const errorMessage = 'Order rejected for clientOrderId ' + clientOrderId + '. Reason: ';
+        const errorMessage = 'Failed to cancel order ' + clientOrderId + '. ';
         if (reason === '0') {
             throw new InvalidOrder(errorMessage + 'Unclassified acknowledgment.');
         }
