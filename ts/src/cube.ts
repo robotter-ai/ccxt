@@ -1216,8 +1216,8 @@ export default class cube extends Exchange {
     }
 
     handleCreateOrderReject (reason: string, order: object) {
-        const clientOrderId = this.safeString (order, 'clientOrderId');
-        const errorMessage = 'Failed to create order ' + clientOrderId + '. ';
+        const exchangeOrderId = this.safeString (order, 'exchangeOrderId');
+        const errorMessage = 'Failed to create order ' + exchangeOrderId + '. ';
         if (reason === '0') {
             throw new InvalidOrder (errorMessage + 'Unclassified error occurred.');
         } else if (reason === '1') {
@@ -1296,11 +1296,11 @@ export default class cube extends Exchange {
     validateCancelOrderResponse (response: object, order: object) {
         const result = this.safeDict (response, 'result');
         if ('Ack' in result) {
-            const ack = this.safeDict (result, 'Ack');
-            const reason = this.safeString (ack, 'reason');
-            if (reason !== undefined) {
-                this.handleCancelOrderAck (reason, ack);
-            }
+            // const ack = this.safeDict (result, 'Ack');
+            // const reason = this.safeString (ack, 'reason');
+            // if (reason !== undefined) {
+            //     this.handleCancelOrderAck (reason, ack);
+            // }
             return;
         }
         const rejection = this.safeDict (result, 'Rej');
@@ -1314,8 +1314,8 @@ export default class cube extends Exchange {
     }
 
     handleCancelOrderReject (reason: string, order: object) {
-        const clientOrderId = this.safeString (order, 'clientOrderId');
-        const errorMessage = 'Failed to cancel order ' + clientOrderId + '. ';
+        const exchangeOrderId = this.safeString (order, 'exchangeOrderId');
+        const errorMessage = 'Failed to cancel order ' + exchangeOrderId + '. ';
         if (reason === '0') {
             throw new InvalidOrder (errorMessage + 'Unclassified error occurred.');
         } else if (reason === '1') {
@@ -1328,8 +1328,8 @@ export default class cube extends Exchange {
     }
 
     handleCancelOrderAck (reason: string, ack: object) {
-        const clientOrderId = this.safeString (ack, 'clientOrderId');
-        const errorMessage = 'Failed to cancel order ' + clientOrderId + '. ';
+        const exchangeOrderId = this.safeString (ack, 'exchangeOrderId');
+        const errorMessage = 'Failed to cancel order ' + exchangeOrderId + '. ';
         if (reason === '0') {
             throw new InvalidOrder (errorMessage + 'Unclassified acknowledgment.');
         } else if (reason === '1') {
