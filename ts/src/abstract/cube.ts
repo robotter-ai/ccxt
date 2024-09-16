@@ -9,6 +9,7 @@ import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
+    restRootPrivateGetUserInfo (params?: {}): Promise<implicitReturnType>;
     restIridiumPublicGetMarkets (params?: {}): Promise<implicitReturnType>;
     restIridiumPublicGetHistoryKlines (params?: {}): Promise<implicitReturnType>;
     restIridiumPublicGetPointsLoyaltyLeaderboard (params?: {}): Promise<implicitReturnType>;
