@@ -46,7 +46,7 @@ export default class cube extends Exchange {
     parseBalance(response: any): Balances;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     validateCreateOrderResponse(response: object): void;
-    handleCreateOrderReject(reason: string, order: object): void;
+    handleCreateOrderReject(reason: any): void;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     validateCancelOrderResponse(response: object, order: object): void;
     handleCancelOrderReject(reason: string, order: object): void;

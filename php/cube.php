@@ -1166,61 +1166,49 @@ class cube extends Exchange {
         if ($rejection !== null) {
             $rejectReason = $this->safe_string($rejection, 'reason');
             if ($rejectReason !== null) {
-                $this->handle_create_order_reject($rejectReason, $rejection);
+                $this->handle_create_order_reject($rejectReason);
             }
         }
         throw new InvalidOrder('Order $response is invalid => No Ack or Rej found.');
     }
 
-    public function handle_create_order_reject(string $reason, array $order) {
-        $clientOrderId = $this->safe_string($order, 'clientOrderId');
-        $errorMessage = 'Failed to create $order ' . $clientOrderId . '. ';
-        if ($reason === '0') {
-            throw new InvalidOrder($errorMessage . 'Unclassified error occurred.');
-        } elseif ($reason === '1') {
-            throw new InvalidOrder($errorMessage . 'Invalid quantity => Quantity was zero.');
-        } elseif ($reason === '2') {
-            throw new InvalidOrder($errorMessage . 'Invalid market ID => The specified market ID does not exist.');
-        } elseif ($reason === '3') {
-            throw new InvalidOrder($errorMessage . 'Duplicate $order ID => The specified client $order ID was not unique among open orders for this subaccount.');
-        } elseif ($reason === '4') {
-            throw new InvalidOrder($errorMessage . 'Invalid side specified.');
-        } elseif ($reason === '5') {
-            throw new InvalidOrder($errorMessage . 'Invalid time in force specified.');
-        } elseif ($reason === '6') {
-            throw new InvalidOrder($errorMessage . 'Invalid $order type specified.');
-        } elseif ($reason === '7') {
-            throw new InvalidOrder($errorMessage . 'Invalid post-only flag specified.');
-        } elseif ($reason === '8') {
-            throw new InvalidOrder($errorMessage . 'Invalid self-trade prevention specified.');
-        } elseif ($reason === '9') {
-            throw new InvalidOrder($errorMessage . 'Unknown trader => Internal error with subaccount positions.');
-        } elseif ($reason === '10') {
-            throw new InvalidOrder($errorMessage . 'Price should not be specified for market or market limit orders.');
-        } elseif ($reason === '11') {
-            throw new InvalidOrder($errorMessage . 'Post-only with market $order is not allowed.');
-        } elseif ($reason === '12') {
-            throw new InvalidOrder($errorMessage . 'Post-only with invalid time in force.');
-        } elseif ($reason === '13') {
-            throw new InvalidOrder($errorMessage . 'Exceeded spot position limits.');
-        } elseif ($reason === '14') {
-            throw new InvalidOrder($errorMessage . 'No opposing resting orders to trade against.');
-        } elseif ($reason === '15') {
-            throw new InvalidOrder($errorMessage . 'Post-only $order would have crossed and traded.');
-        } elseif ($reason === '16') {
-            throw new InvalidOrder($errorMessage . 'Fill or kill (FOK) $order was not fully fillable.');
-        } elseif ($reason === '17') {
-            throw new InvalidOrder($errorMessage . 'Only $order cancelations are accepted at this time.');
-        } elseif ($reason === '18') {
-            throw new InvalidOrder($errorMessage . 'Protection price would not trade for market-with-protection orders.');
-        } elseif ($reason === '19') {
-            throw new InvalidOrder($errorMessage . 'Market orders cannot be placed because there is no internal reference price.');
-        } elseif ($reason === '20') {
-            throw new InvalidOrder($errorMessage . 'Slippage too high => The $order would trade beyond allowed protection levels.');
-        } elseif ($reason === '21') {
-            throw new InvalidOrder($errorMessage . 'Outside price band => Bid price is too low or ask price is too high.');
+    public function handle_create_order_reject($reason) {
+        $errorMessageBase = 'Failed to create order. ';
+        $reasonStr trim(= ('' . $reason));
+        $reasonMessages = array(
+            '0' => 'Unclassified error occurred.',
+            '1' => 'Invalid quantity => Quantity was zero.',
+            '2' => 'Invalid market ID => The specified market ID does not exist.',
+            '3' => 'Duplicate order ID => The specified client order ID was not unique among open orders for this subaccount.',
+            '4' => 'Invalid side specified.',
+            '5' => 'Invalid time in force specified.',
+            '6' => 'Invalid order type specified.',
+            '7' => 'Invalid post-only flag specified.',
+            '8' => 'Invalid self-trade prevention specified.',
+            '9' => 'Unknown trader => Internal error with subaccount positions.',
+            '10' => 'Price should not be specified for market or market limit orders.',
+            '11' => 'Post-only with market order is not allowed.',
+            '12' => 'Post-only with invalid time in force.',
+            '13' => 'Exceeded spot position limits.',
+            '14' => 'No opposing resting orders to trade against.',
+            '15' => 'Post-only order would have crossed and traded.',
+            '16' => 'Fill or kill (FOK) order was not fully fillable.',
+            '17' => 'Only order cancellations are accepted at this time.',
+            '18' => 'Protection price would not trade for market-with-protection orders.',
+            '19' => 'Market orders cannot be placed because there is no internal reference price.',
+            '20' => 'Slippage too high => The order would trade beyond allowed protection levels.',
+            '21' => 'Outside price band => Bid price is too low or ask price is too high.',
+            '22' => 'Limit order without price.',
+            '23' => 'Conflicting quantity type => Both quantity and quote quantity were specified.',
+            '24' => 'No quantity type => Neither quantity nor quote quantity was specified.',
+            '25' => 'Order quantity too low => The quantity of this order, if traded fully, would represent less than the minimum amount allowed for this market.',
+            '26' => 'Order quantity too high => The quantity of this order, if traded fully, would represent greater than the maximum amount allowed for this market.',
+        );
+        $specificErrorMessage = $reasonMessages[$reasonStr];
+        if ($specificErrorMessage) {
+            throw new InvalidOrder($errorMessageBase . $specificErrorMessage);
         } else {
-            throw new InvalidOrder($errorMessage . 'Unknown $reason code => ' . $reason . '.');
+            throw new InvalidOrder($errorMessageBase . 'Unknown $reason code => ' . $reasonStr . '.');
         }
     }
 
@@ -1253,11 +1241,11 @@ class cube extends Exchange {
     public function validate_cancel_order_response(array $response, array $order) {
         $result = $this->safe_dict($response, 'result');
         if (is_array($result) && array_key_exists('Ack', $result)) {
-            $ack = $this->safe_dict($result, 'Ack');
-            $reason = $this->safe_string($ack, 'reason');
-            if ($reason !== null) {
-                $this->handle_cancel_order_ack($reason, $ack);
-            }
+            // $ack = $this->safe_dict($result, 'Ack');
+            // $reason = $this->safe_string($ack, 'reason');
+            // if ($reason !== null) {
+            //     $this->handle_cancel_order_ack($reason, $ack);
+            // }
             return;
         }
         $rejection = $this->safe_dict($result, 'Rej');
@@ -1271,8 +1259,9 @@ class cube extends Exchange {
     }
 
     public function handle_cancel_order_reject(string $reason, array $order) {
-        $clientOrderId = $this->safe_string($order, 'clientOrderId');
-        $errorMessage = 'Failed to cancel $order ' . $clientOrderId . '. ';
+        $exchangeOrderId = $this->safe_string($order, 'exchangeOrderId');
+        $orderIdText = $exchangeOrderId ? $exchangeOrderId : 'unknown';
+        $errorMessage = 'Failed to cancel $order ' . $orderIdText . '. ';
         if ($reason === '0') {
             throw new InvalidOrder($errorMessage . 'Unclassified error occurred.');
         } elseif ($reason === '1') {
@@ -1280,13 +1269,13 @@ class cube extends Exchange {
         } elseif ($reason === '2') {
             throw new InvalidOrder($errorMessage . 'Order not found => The specified client $order ID does not exist for the corresponding market ID and subaccount ID.');
         } else {
-            throw new InvalidOrder($errorMessage . 'Unknown $reason code => ' . $reason . '.');
+            throw new InvalidOrder($errorMessage);
         }
     }
 
     public function handle_cancel_order_ack(string $reason, array $ack) {
-        $clientOrderId = $this->safe_string($ack, 'clientOrderId');
-        $errorMessage = 'Failed to cancel order ' . $clientOrderId . '. ';
+        $exchangeOrderId = $this->safe_string($ack, 'exchangeOrderId');
+        $errorMessage = 'Failed to cancel order ' . $exchangeOrderId . '. ';
         if ($reason === '0') {
             throw new InvalidOrder($errorMessage . 'Unclassified acknowledgment.');
         } elseif ($reason === '1') {

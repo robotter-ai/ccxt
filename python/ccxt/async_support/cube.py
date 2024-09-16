@@ -1099,58 +1099,46 @@ class cube(Exchange, ImplicitAPI):
         if rejection is not None:
             rejectReason = self.safe_string(rejection, 'reason')
             if rejectReason is not None:
-                self.handle_create_order_reject(rejectReason, rejection)
+                self.handle_create_order_reject(rejectReason)
         raise InvalidOrder('Order response is invalid: No Ack or Rej found.')
 
-    def handle_create_order_reject(self, reason: str, order: object):
-        clientOrderId = self.safe_string(order, 'clientOrderId')
-        errorMessage = 'Failed to create order ' + clientOrderId + '. '
-        if reason == '0':
-            raise InvalidOrder(errorMessage + 'Unclassified error occurred.')
-        elif reason == '1':
-            raise InvalidOrder(errorMessage + 'Invalid quantity: Quantity was zero.')
-        elif reason == '2':
-            raise InvalidOrder(errorMessage + 'Invalid market ID: The specified market ID does not exist.')
-        elif reason == '3':
-            raise InvalidOrder(errorMessage + 'Duplicate order ID: The specified client order ID was not unique among open orders for self subaccount.')
-        elif reason == '4':
-            raise InvalidOrder(errorMessage + 'Invalid side specified.')
-        elif reason == '5':
-            raise InvalidOrder(errorMessage + 'Invalid time in force specified.')
-        elif reason == '6':
-            raise InvalidOrder(errorMessage + 'Invalid order type specified.')
-        elif reason == '7':
-            raise InvalidOrder(errorMessage + 'Invalid post-only flag specified.')
-        elif reason == '8':
-            raise InvalidOrder(errorMessage + 'Invalid self-trade prevention specified.')
-        elif reason == '9':
-            raise InvalidOrder(errorMessage + 'Unknown trader: Internal error with subaccount positions.')
-        elif reason == '10':
-            raise InvalidOrder(errorMessage + 'Price should not be specified for market or market limit orders.')
-        elif reason == '11':
-            raise InvalidOrder(errorMessage + 'Post-only with market order is not allowed.')
-        elif reason == '12':
-            raise InvalidOrder(errorMessage + 'Post-only with invalid time in force.')
-        elif reason == '13':
-            raise InvalidOrder(errorMessage + 'Exceeded spot position limits.')
-        elif reason == '14':
-            raise InvalidOrder(errorMessage + 'No opposing resting orders to trade against.')
-        elif reason == '15':
-            raise InvalidOrder(errorMessage + 'Post-only order would have crossed and traded.')
-        elif reason == '16':
-            raise InvalidOrder(errorMessage + 'Fill or kill(FOK) order was not fully fillable.')
-        elif reason == '17':
-            raise InvalidOrder(errorMessage + 'Only order cancelations are accepted at self time.')
-        elif reason == '18':
-            raise InvalidOrder(errorMessage + 'Protection price would not trade for market-with-protection orders.')
-        elif reason == '19':
-            raise InvalidOrder(errorMessage + 'Market orders cannot be placed because there is no internal reference price.')
-        elif reason == '20':
-            raise InvalidOrder(errorMessage + 'Slippage too high: The order would trade beyond allowed protection levels.')
-        elif reason == '21':
-            raise InvalidOrder(errorMessage + 'Outside price band: Bid price is too low or ask price is too high.')
+    def handle_create_order_reject(self, reason):
+        errorMessageBase = 'Failed to create order. '
+        reasonStr = ('' + reason).strip()
+        reasonMessages = {
+            '0': 'Unclassified error occurred.',
+            '1': 'Invalid quantity: Quantity was zero.',
+            '2': 'Invalid market ID: The specified market ID does not exist.',
+            '3': 'Duplicate order ID: The specified client order ID was not unique among open orders for self subaccount.',
+            '4': 'Invalid side specified.',
+            '5': 'Invalid time in force specified.',
+            '6': 'Invalid order type specified.',
+            '7': 'Invalid post-only flag specified.',
+            '8': 'Invalid self-trade prevention specified.',
+            '9': 'Unknown trader: Internal error with subaccount positions.',
+            '10': 'Price should not be specified for market or market limit orders.',
+            '11': 'Post-only with market order is not allowed.',
+            '12': 'Post-only with invalid time in force.',
+            '13': 'Exceeded spot position limits.',
+            '14': 'No opposing resting orders to trade against.',
+            '15': 'Post-only order would have crossed and traded.',
+            '16': 'Fill or kill(FOK) order was not fully fillable.',
+            '17': 'Only order cancellations are accepted at self time.',
+            '18': 'Protection price would not trade for market-with-protection orders.',
+            '19': 'Market orders cannot be placed because there is no internal reference price.',
+            '20': 'Slippage too high: The order would trade beyond allowed protection levels.',
+            '21': 'Outside price band: Bid price is too low or ask price is too high.',
+            '22': 'Limit order without price.',
+            '23': 'Conflicting quantity type: Both quantity and quote quantity were specified.',
+            '24': 'No quantity type: Neither quantity nor quote quantity was specified.',
+            '25': 'Order quantity too low: The quantity of self order, if traded fully, would represent less than the minimum amount allowed for self market.',
+            '26': 'Order quantity too high: The quantity of self order, if traded fully, would represent greater than the maximum amount allowed for self market.',
+        }
+        specificErrorMessage = reasonMessages[reasonStr]
+        if specificErrorMessage:
+            raise InvalidOrder(errorMessageBase + specificErrorMessage)
         else:
-            raise InvalidOrder(errorMessage + 'Unknown reason code: ' + reason + '.')
+            raise InvalidOrder(errorMessageBase + 'Unknown reason code: ' + reasonStr + '.')
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         meta = await self.fetch_market_meta(symbol)
@@ -1179,10 +1167,11 @@ class cube(Exchange, ImplicitAPI):
     def validate_cancel_order_response(self, response: object, order: object):
         result = self.safe_dict(response, 'result')
         if 'Ack' in result:
-            ack = self.safe_dict(result, 'Ack')
-            reason = self.safe_string(ack, 'reason')
-            if reason is not None:
-                self.handle_cancel_order_ack(reason, ack)
+            # ack = self.safe_dict(result, 'Ack')
+            # reason = self.safe_string(ack, 'reason')
+            # if reason is not None:
+            #     self.handle_cancel_order_ack(reason, ack)
+            # }
             return
         rejection = self.safe_dict(result, 'Rej')
         if rejection:
@@ -1192,8 +1181,9 @@ class cube(Exchange, ImplicitAPI):
         raise InvalidOrder('Cancel order response is invalid: No Ack or Rej found.')
 
     def handle_cancel_order_reject(self, reason: str, order: object):
-        clientOrderId = self.safe_string(order, 'clientOrderId')
-        errorMessage = 'Failed to cancel order ' + clientOrderId + '. '
+        exchangeOrderId = self.safe_string(order, 'exchangeOrderId')
+        orderIdText = exchangeOrderId if exchangeOrderId else 'unknown'
+        errorMessage = 'Failed to cancel order ' + orderIdText + '. '
         if reason == '0':
             raise InvalidOrder(errorMessage + 'Unclassified error occurred.')
         elif reason == '1':
@@ -1201,11 +1191,11 @@ class cube(Exchange, ImplicitAPI):
         elif reason == '2':
             raise InvalidOrder(errorMessage + 'Order not found: The specified client order ID does not exist for the corresponding market ID and subaccount ID.')
         else:
-            raise InvalidOrder(errorMessage + 'Unknown reason code: ' + reason + '.')
+            raise InvalidOrder(errorMessage)
 
     def handle_cancel_order_ack(self, reason: str, ack: object):
-        clientOrderId = self.safe_string(ack, 'clientOrderId')
-        errorMessage = 'Failed to cancel order ' + clientOrderId + '. '
+        exchangeOrderId = self.safe_string(ack, 'exchangeOrderId')
+        errorMessage = 'Failed to cancel order ' + exchangeOrderId + '. '
         if reason == '0':
             raise InvalidOrder(errorMessage + 'Unclassified acknowledgment.')
         elif reason == '1':
