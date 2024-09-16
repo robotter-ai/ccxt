@@ -19,11 +19,13 @@ export default class cube extends Exchange {
                 'api': {
                     'rest': {
                         'production': {
+                            'root': 'https://api.cube.exchange',
                             'iridium': 'https://api.cube.exchange/ir/v0',
                             'mendelev': 'https://api.cube.exchange/md/v0',
                             'osmium': 'https://api.cube.exchange/os/v0',
                         },
                         'staging': {
+                            'root': 'https://staging.cube.exchange',
                             'iridium': 'https://staging.cube.exchange/ir/v0',
                             'mendelev': 'https://staging.cube.exchange/md/v0',
                             'osmium': 'https://staging.cube.exchange/os/v0',
@@ -31,11 +33,13 @@ export default class cube extends Exchange {
                     },
                     'ws': {
                         'production': {
+                            'root': 'wss://api.cube.exchange',
                             'iridium': 'wss://api.cube.exchange/ir',
                             'mendelev': 'wss://api.cube.exchange/md',
                             'osmium': 'wss://api.cube.exchange/os',
                         },
                         'staging': {
+                            'root': 'wss://staging.cube.exchange',
                             'iridium': 'wss://staging.cube.exchange/ir',
                             'mendelev': 'wss://staging.cube.exchange/md',
                             'osmium': 'wss://staging.cube.exchange/os',
@@ -49,6 +53,13 @@ export default class cube extends Exchange {
             'version': 'v0',
             'api': {
                 'rest': {
+                    'root': {
+                        'private': {
+                            'get': {
+                                '/user/info': 1,
+                            },
+                        },
+                    },
                     'iridium': {
                         'public': {
                             'get': {
@@ -337,6 +348,10 @@ export default class cube extends Exchange {
             }
             else if (api[i] === 'osmium') {
                 endpoint = 'osmium';
+                break;
+            }
+            else if (api[i] === 'root') {
+                endpoint = 'root';
                 break;
             }
         }

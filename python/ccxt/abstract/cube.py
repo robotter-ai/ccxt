@@ -2,6 +2,7 @@ from ccxt.base.types import Entry
 
 
 class ImplicitAPI:
+    rest_root_private_get_user_info = restRootPrivateGetUserInfo = Entry('/user/info', ['rest', 'root', 'private'], 'GET', {'cost': 1})
     rest_iridium_public_get_markets = restIridiumPublicGetMarkets = Entry('/markets', ['rest', 'iridium', 'public'], 'GET', {'cost': 1})
     rest_iridium_public_get_history_klines = restIridiumPublicGetHistoryKlines = Entry('/history/klines', ['rest', 'iridium', 'public'], 'GET', {'cost': 1})
     rest_iridium_public_get_points_loyalty_leaderboard = restIridiumPublicGetPointsLoyaltyLeaderboard = Entry('/points/loyalty-leaderboard', ['rest', 'iridium', 'public'], 'GET', {'cost': 1})

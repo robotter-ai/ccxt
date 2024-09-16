@@ -11,6 +11,11 @@ public partial class cube : Exchange
 {
     public cube (object args = null): base(args) {}
 
+    public async Task<object> restRootPrivateGetUserInfo (object parameters = null)
+    {
+        return await this.callAsync ("restRootPrivateGetUserInfo",parameters);
+    }
+
     public async Task<object> restIridiumPublicGetMarkets (object parameters = null)
     {
         return await this.callAsync ("restIridiumPublicGetMarkets",parameters);

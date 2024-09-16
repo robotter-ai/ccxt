@@ -32,11 +32,13 @@ class cube(Exchange, ImplicitAPI):
                 'api': {
                     'rest': {
                         'production': {
+                            'root': 'https://api.cube.exchange',
                             'iridium': 'https://api.cube.exchange/ir/v0',
                             'mendelev': 'https://api.cube.exchange/md/v0',
                             'osmium': 'https://api.cube.exchange/os/v0',
                         },
                         'staging': {
+                            'root': 'https://staging.cube.exchange',
                             'iridium': 'https://staging.cube.exchange/ir/v0',
                             'mendelev': 'https://staging.cube.exchange/md/v0',
                             'osmium': 'https://staging.cube.exchange/os/v0',
@@ -44,11 +46,13 @@ class cube(Exchange, ImplicitAPI):
                     },
                     'ws': {
                         'production': {
+                            'root': 'wss://api.cube.exchange',
                             'iridium': 'wss://api.cube.exchange/ir',
                             'mendelev': 'wss://api.cube.exchange/md',
                             'osmium': 'wss://api.cube.exchange/os',
                         },
                         'staging': {
+                            'root': 'wss://staging.cube.exchange',
                             'iridium': 'wss://staging.cube.exchange/ir',
                             'mendelev': 'wss://staging.cube.exchange/md',
                             'osmium': 'wss://staging.cube.exchange/os',
@@ -62,6 +66,13 @@ class cube(Exchange, ImplicitAPI):
             'version': 'v0',
             'api': {
                 'rest': {
+                    'root': {
+                        'private': {
+                            'get': {
+                                '/user/info': 1,
+                            },
+                        },
+                    },
                     'iridium': {
                         'public': {
                             'get': {
@@ -344,6 +355,9 @@ class cube(Exchange, ImplicitAPI):
                 break
             elif api[i] == 'osmium':
                 endpoint = 'osmium'
+                break
+            elif api[i] == 'root':
+                endpoint = 'root'
                 break
         baseUrl = self.urls['api']['rest'][environment][endpoint]
         url = baseUrl + self.implode_params(path, params)

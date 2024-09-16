@@ -21,11 +21,13 @@ class cube extends Exchange {
                 'api' => array(
                     'rest' => array(
                         'production' => array(
+                            'root' => 'https://api.cube.exchange',
                             'iridium' => 'https://api.cube.exchange/ir/v0',
                             'mendelev' => 'https://api.cube.exchange/md/v0',
                             'osmium' => 'https://api.cube.exchange/os/v0',
                         ),
                         'staging' => array(
+                            'root' => 'https://staging.cube.exchange',
                             'iridium' => 'https://staging.cube.exchange/ir/v0',
                             'mendelev' => 'https://staging.cube.exchange/md/v0',
                             'osmium' => 'https://staging.cube.exchange/os/v0',
@@ -33,11 +35,13 @@ class cube extends Exchange {
                     ),
                     'ws' => array(
                         'production' => array(
+                            'root' => 'wss://api.cube.exchange',
                             'iridium' => 'wss://api.cube.exchange/ir',
                             'mendelev' => 'wss://api.cube.exchange/md',
                             'osmium' => 'wss://api.cube.exchange/os',
                         ),
                         'staging' => array(
+                            'root' => 'wss://staging.cube.exchange',
                             'iridium' => 'wss://staging.cube.exchange/ir',
                             'mendelev' => 'wss://staging.cube.exchange/md',
                             'osmium' => 'wss://staging.cube.exchange/os',
@@ -51,6 +55,13 @@ class cube extends Exchange {
             'version' => 'v0',
             'api' => array(
                 'rest' => array(
+                    'root' => array(
+                        'private' => array(
+                            'get' => array(
+                                '/user/info' => 1,
+                            ),
+                        ),
+                    ),
                     'iridium' => array(
                         'public' => array(
                             'get' => array(
@@ -341,6 +352,9 @@ class cube extends Exchange {
                 break;
             } elseif ($api[$i] === 'osmium') {
                 $endpoint = 'osmium';
+                break;
+            } elseif ($api[$i] === 'root') {
+                $endpoint = 'root';
                 break;
             }
         }
