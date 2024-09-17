@@ -1230,7 +1230,7 @@ export default class cube extends Exchange {
 
     handleCreateOrderReject (reason) {
         const errorMessageBase = 'Failed to create order. ';
-        const reasonStr = ('' + reason).trim ();
+        const reasonStr = this.strip ('' + reason);
         const reasonMessages = {
             '0': 'Unclassified error occurred.',
             '1': 'Invalid quantity: Quantity was zero.',
