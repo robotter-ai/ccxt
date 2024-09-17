@@ -1118,7 +1118,7 @@ class cube(Exchange, ImplicitAPI):
 
     def handle_create_order_reject(self, reason):
         errorMessageBase = 'Failed to create order. '
-        reasonStr = ('' + reason).strip()
+        reasonStr = self.strip('' + reason)
         reasonMessages = {
             '0': 'Unclassified error occurred.',
             '1': 'Invalid quantity: Quantity was zero.',

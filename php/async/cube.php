@@ -1211,7 +1211,7 @@ class cube extends Exchange {
 
     public function handle_create_order_reject($reason) {
         $errorMessageBase = 'Failed to create order. ';
-        $reasonStr trim(= ('' . $reason));
+        $reasonStr = $this->strip('' . $reason);
         $reasonMessages = array(
             '0' => 'Unclassified error occurred.',
             '1' => 'Invalid quantity => Quantity was zero.',
