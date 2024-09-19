@@ -907,9 +907,9 @@ class cube(Exchange, ImplicitAPI):
         # [
         #     1715278500,  # start_time           |   ohlcv[0]
         #     14695,       # Kline open price.    |   ohlcv[1]
-        #     14695,       # Kline close price.   |   ohlcv[2]
-        #     14695,       # Kline high price.    |   ohlcv[3]
-        #     14695,       # Kline low price.     |   ohlcv[4]
+        #     14695,       # Kline high price.    |   ohlcv[2]
+        #     14695,       # Kline low price.     |   ohlcv[3]
+        #     14695,       # Kline close price.   |   ohlcv[4]
         #     "5784"       # volume_hi            |   ohlcv[5]
         # ]
         #
@@ -917,18 +917,18 @@ class cube(Exchange, ImplicitAPI):
         # [
         #     1504541580000,  # UTC timestamp in milliseconds, integer |   ohlcv[0]
         #     4235.4,        #(O)pen price, float                    |   ohlcv[1]
-        #     4240.6,        #(H)ighest price, float                 |   ohlcv[3]
-        #     4230.0,        #(L)owest price, float                  |   ohlcv[4]
-        #     4230.7,        #(C)losing price, float                 |   ohlcv[2]
+        #     4240.6,        #(H)ighest price, float                 |   ohlcv[2]
+        #     4230.0,        #(L)owest price, float                  |   ohlcv[3]
+        #     4230.7,        #(C)losing price, float                 |   ohlcv[4]
         #     37.72941911    #(V)olume, float                        |   ohlcv[5]
         # ],
         normalizer = math.pow(10, self.safe_integer(self.safe_dict(market, 'precision'), 'price'))
         return [
             self.parse_to_numeric(ohlcv[0]),
             self.parse_to_numeric(ohlcv[1]) / normalizer,
+            self.parse_to_numeric(ohlcv[2]) / normalizer,
             self.parse_to_numeric(ohlcv[3]) / normalizer,
             self.parse_to_numeric(ohlcv[4]) / normalizer,
-            self.parse_to_numeric(ohlcv[2]) / normalizer,
             self.parse_to_numeric(ohlcv[5]),
         ]
 
