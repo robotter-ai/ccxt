@@ -956,9 +956,9 @@ export default class cube extends Exchange {
         // [
         //     1715278500,  // start_time           |   ohlcv[0]
         //     14695,       // Kline open price.    |   ohlcv[1]
-        //     14695,       // Kline close price.   |   ohlcv[2]
-        //     14695,       // Kline high price.    |   ohlcv[3]
-        //     14695,       // Kline low price.     |   ohlcv[4]
+        //     14695,       // Kline high price.    |   ohlcv[2]
+        //     14695,       // Kline low price.     |   ohlcv[3]
+        //     14695,       // Kline close price.   |   ohlcv[4]
         //     "5784"       // volume_hi            |   ohlcv[5]
         // ]
         //
@@ -966,18 +966,18 @@ export default class cube extends Exchange {
         // [
         //     1504541580000, // UTC timestamp in milliseconds, integer |   ohlcv[0]
         //     4235.4,        // (O)pen price, float                    |   ohlcv[1]
-        //     4240.6,        // (H)ighest price, float                 |   ohlcv[3]
-        //     4230.0,        // (L)owest price, float                  |   ohlcv[4]
-        //     4230.7,        // (C)losing price, float                 |   ohlcv[2]
+        //     4240.6,        // (H)ighest price, float                 |   ohlcv[2]
+        //     4230.0,        // (L)owest price, float                  |   ohlcv[3]
+        //     4230.7,        // (C)losing price, float                 |   ohlcv[4]
         //     37.72941911    // (V)olume, float                        |   ohlcv[5]
         // ],
         const normalizer = Math.pow(10, this.safeInteger(this.safeDict(market, 'precision'), 'price'));
         return [
             this.parseToNumeric(ohlcv[0]),
             this.parseToNumeric(ohlcv[1]) / normalizer,
+            this.parseToNumeric(ohlcv[2]) / normalizer,
             this.parseToNumeric(ohlcv[3]) / normalizer,
             this.parseToNumeric(ohlcv[4]) / normalizer,
-            this.parseToNumeric(ohlcv[2]) / normalizer,
             this.parseToNumeric(ohlcv[5]),
         ];
     }
