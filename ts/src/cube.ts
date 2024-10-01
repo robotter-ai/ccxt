@@ -1008,7 +1008,7 @@ export default class cube extends Exchange {
         //     37.72941911    // (V)olume, float                        |   ohlcv[5]
         // ],
         let timestamp = this.parseToNumeric (ohlcv[0]);
-        if (timestamp.toString ().length === 10) {
+        if (this.numberToString (timestamp).length === 10) {
             timestamp = timestamp * 1000;
         }
         const normalizer = Math.pow (10, this.safeInteger (this.safeDict (market, 'precision'), 'price'));

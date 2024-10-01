@@ -916,6 +916,9 @@ export default class cube extends Exchange {
         const market = this.safeDict(meta, 'market');
         const marketNumericId = this.safeInteger(this.safeDict(market, 'info'), 'marketId');
         const selectedTimeframe = this.timeframes[timeframe];
+        if (since !== undefined && since.toString().length === 10) {
+            since = since * 1000;
+        }
         const request = {
             'interval': selectedTimeframe,
         };
@@ -971,9 +974,13 @@ export default class cube extends Exchange {
         //     4230.7,        // (C)losing price, float                 |   ohlcv[4]
         //     37.72941911    // (V)olume, float                        |   ohlcv[5]
         // ],
+        let timestamp = this.parseToNumeric(ohlcv[0]);
+        if (this.numberToString(timestamp).length === 10) {
+            timestamp = timestamp * 1000;
+        }
         const normalizer = Math.pow(10, this.safeInteger(this.safeDict(market, 'precision'), 'price'));
         return [
-            this.parseToNumeric(ohlcv[0]),
+            timestamp,
             this.parseToNumeric(ohlcv[1]) / normalizer,
             this.parseToNumeric(ohlcv[2]) / normalizer,
             this.parseToNumeric(ohlcv[3]) / normalizer,

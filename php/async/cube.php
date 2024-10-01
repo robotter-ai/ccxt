@@ -926,6 +926,9 @@ class cube extends Exchange {
             $market = $this->safe_dict($meta, 'market');
             $marketNumericId = $this->safe_integer($this->safe_dict($market, 'info'), 'marketId');
             $selectedTimeframe = $this->timeframes[$timeframe];
+            if ($since !== null && (string) strlen($since) === 10) {
+                $since = $since * 1000;
+            }
             $request = array(
                 'interval' => $selectedTimeframe,
             );
@@ -976,16 +979,20 @@ class cube extends Exchange {
         //
         // CCXT KLine format
         // [
-        //     1504541580000, // UTC timestamp in milliseconds, integer |   $ohlcv[0]
+        //     1504541580000, // UTC $timestamp in milliseconds, integer |   $ohlcv[0]
         //     4235.4,        // (O)pen price, float                    |   $ohlcv[1]
         //     4240.6,        // (H)ighest price, float                 |   $ohlcv[2]
         //     4230.0,        // (L)owest price, float                  |   $ohlcv[3]
         //     4230.7,        // (C)losing price, float                 |   $ohlcv[4]
         //     37.72941911    // (V)olume, float                        |   $ohlcv[5]
         // ],
+        $timestamp = $this->parse_to_numeric($ohlcv[0]);
+        if ($this->number_to_string(strlen($timestamp)) === 10) {
+            $timestamp = $timestamp * 1000;
+        }
         $normalizer = pow(10, $this->safe_integer($this->safe_dict($market, 'precision'), 'price'));
         return [
-            $this->parse_to_numeric($ohlcv[0]),
+            $timestamp,
             $this->parse_to_numeric($ohlcv[1]) / $normalizer,
             $this->parse_to_numeric($ohlcv[2]) / $normalizer,
             $this->parse_to_numeric($ohlcv[3]) / $normalizer,
