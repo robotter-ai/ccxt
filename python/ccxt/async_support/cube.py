@@ -869,15 +869,20 @@ class cube(Exchange, ImplicitAPI):
         market = self.safe_dict(meta, 'market')
         marketNumericId = self.safe_integer(self.safe_dict(market, 'info'), 'marketId')
         selectedTimeframe = self.timeframes[timeframe]
-        if since is not None and since.toString(len()) == 10:
-            since = since * 1000
+        if since is not None:
+            sinceString = str(since)
+            if len(sinceString) != 10 and len(sinceString) != 13:
+                raise BadRequest('Invalid timestamp: must be 10 or 13 digits long.')
+            else:
+                if len(sinceString) == 10:
+                    since = since * 1000
         request = {
             'interval': selectedTimeframe,
         }
         if marketNumericId is not None:
             request['marketId'] = marketNumericId
         if since is not None:
-            request['start_time'] = since  # The unix nanosecond timestamp that self kline covers.
+            request['start_time'] = since
         response = await self.restIridiumPublicGetHistoryKlines(self.extend(request, params))
         data = self.safe_value(response, 'result', [])
         #
@@ -925,8 +930,12 @@ class cube(Exchange, ImplicitAPI):
         #     37.72941911    #(V)olume, float                        |   ohlcv[5]
         # ],
         timestamp = self.parse_to_numeric(ohlcv[0])
-        if self.number_to_string(len(timestamp)) == 10:
-            timestamp = timestamp * 1000
+        timestampString = str(timestamp)
+        if len(timestampString) != 10 and len(timestampString) != 13:
+            raise BadRequest('Invalid timestamp: must be 10 or 13 digits long.')
+        else:
+            if len(timestampString) == 10:
+                timestamp = timestamp * 1000
         normalizer = math.pow(10, self.safe_integer(self.safe_dict(market, 'precision'), 'price'))
         return [
             timestamp,

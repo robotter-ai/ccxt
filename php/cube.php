@@ -908,8 +908,15 @@ class cube extends Exchange {
         $market = $this->safe_dict($meta, 'market');
         $marketNumericId = $this->safe_integer($this->safe_dict($market, 'info'), 'marketId');
         $selectedTimeframe = $this->timeframes[$timeframe];
-        if ($since !== null && (string) strlen($since) === 10) {
-            $since = $since * 1000;
+        if ($since !== null) {
+            $sinceString = (string) $since;
+            if (strlen($sinceString) !== 10 && strlen($sinceString) !== 13) {
+                throw new BadRequest('Invalid timestamp => must be 10 or 13 digits long.');
+            } else {
+                if (strlen($sinceString) === 10) {
+                    $since = $since * 1000;
+                }
+            }
         }
         $request = array(
             'interval' => $selectedTimeframe,
@@ -918,7 +925,7 @@ class cube extends Exchange {
             $request['marketId'] = $marketNumericId;
         }
         if ($since !== null) {
-            $request['start_time'] = $since; // The unix nanosecond timestamp that this kline covers.
+            $request['start_time'] = $since;
         }
         $response = $this->restIridiumPublicGetHistoryKlines ($this->extend($request, $params));
         $data = $this->safe_value($response, 'result', array());
@@ -968,8 +975,13 @@ class cube extends Exchange {
         //     37.72941911    // (V)olume, float                        |   $ohlcv[5]
         // ],
         $timestamp = $this->parse_to_numeric($ohlcv[0]);
-        if ($this->number_to_string(strlen($timestamp)) === 10) {
-            $timestamp = $timestamp * 1000;
+        $timestampString = (string) $timestamp;
+        if (strlen($timestampString) !== 10 && strlen($timestampString) !== 13) {
+            throw new BadRequest('Invalid $timestamp => must be 10 or 13 digits long.');
+        } else {
+            if (strlen($timestampString) === 10) {
+                $timestamp = $timestamp * 1000;
+            }
         }
         $normalizer = pow(10, $this->safe_integer($this->safe_dict($market, 'precision'), 'price'));
         return [
