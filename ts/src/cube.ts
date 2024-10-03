@@ -948,8 +948,15 @@ export default class cube extends Exchange {
         const market = this.safeDict (meta, 'market');
         const marketNumericId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
         const selectedTimeframe = this.timeframes[timeframe];
-        if (since !== undefined && since.toString ().length === 10) {
-            since = since * 1000;
+        if (since !== undefined) {
+            const sinceString = since.toString ();
+            if (sinceString.length !== 10 && sinceString.length !== 13) {
+                throw new BadRequest ('Invalid timestamp: must be 10 or 13 digits long.');
+            } else {
+                if (sinceString.length === 10) {
+                    since = since * 1000;
+                }
+            }
         }
         const request = {
             'interval': selectedTimeframe,
@@ -958,7 +965,7 @@ export default class cube extends Exchange {
             request['marketId'] = marketNumericId;
         }
         if (since !== undefined) {
-            request['start_time'] = since; // The unix nanosecond timestamp that this kline covers.
+            request['start_time'] = since;
         }
         const response = await this.restIridiumPublicGetHistoryKlines (this.extend (request, params));
         const data = this.safeValue (response, 'result', []);
@@ -1008,8 +1015,13 @@ export default class cube extends Exchange {
         //     37.72941911    // (V)olume, float                        |   ohlcv[5]
         // ],
         let timestamp = this.parseToNumeric (ohlcv[0]);
-        if (this.numberToString (timestamp).length === 10) {
-            timestamp = timestamp * 1000;
+        const timestampString = timestamp.toString ();
+        if (timestampString.length !== 10 && timestampString.length !== 13) {
+            throw new BadRequest ('Invalid timestamp: must be 10 or 13 digits long.');
+        } else {
+            if (timestampString.length === 10) {
+                timestamp = timestamp * 1000;
+            }
         }
         const normalizer = Math.pow (10, this.safeInteger (this.safeDict (market, 'precision'), 'price'));
         return [
