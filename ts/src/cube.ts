@@ -1298,6 +1298,9 @@ export default class cube extends Exchange {
             fetchedOrder = {};
         }
         const clientOrderId = this.safeInteger (fetchedOrder, 'clientOrderId');
+        if (!clientOrderId) {
+            throw new InvalidOrder ('Failed to cancel order ' + id + '. Order not found: The specified order ID or client order ID does not exist for the corresponding market ID and subaccount ID.');
+        }
         const request = {
             'clientOrderId': clientOrderId,
             'requestId': this.safeInteger (params, 'requestId', 1),
@@ -1487,6 +1490,7 @@ export default class cube extends Exchange {
         //
         const result = this.safeList (this.safeDict (rawResponse, 'result'), 'orders');
         let order = undefined;
+        id = id.toString ();
         for (let i = 0; i < this.countItems (result); i++) {
             const clientOrderId = this.safeString (result[i], 'clientOrderId');
             const exchangeOrderId = this.safeString (result[i], 'exchangeOrderId');

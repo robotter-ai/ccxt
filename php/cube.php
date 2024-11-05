@@ -1256,6 +1256,9 @@ class cube extends Exchange {
             $fetchedOrder = array();
         }
         $clientOrderId = $this->safe_integer($fetchedOrder, 'clientOrderId');
+        if (!$clientOrderId) {
+            throw new InvalidOrder('Failed to cancel order ' . $id . '. Order not found => The specified order ID or client order ID does not exist for the corresponding $market ID and subaccount ID.');
+        }
         $request = array(
             'clientOrderId' => $clientOrderId,
             'requestId' => $this->safe_integer($params, 'requestId', 1),
@@ -1439,6 +1442,7 @@ class cube extends Exchange {
         //
         $result = $this->safe_list($this->safe_dict($rawResponse, 'result'), 'orders');
         $order = null;
+        $id = (string) $id;
         for ($i = 0; $i < $this->count_items($result); $i++) {
             $clientOrderId = $this->safe_string($result[$i], 'clientOrderId');
             $exchangeOrderId = $this->safe_string($result[$i], 'exchangeOrderId');
