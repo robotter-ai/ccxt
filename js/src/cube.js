@@ -1264,7 +1264,7 @@ export default class cube extends Exchange {
         }
         const clientOrderId = this.safeInteger(fetchedOrder, 'clientOrderId');
         if (!clientOrderId) {
-            throw new InvalidOrder('Failed to cancel order ' + id + '. Order not found: The specified order ID or client order ID does not exist for the corresponding market ID and subaccount ID.');
+            throw new InvalidOrder('Failed to cancel order ' + id.toString() + '. Order not found: The specified order ID or client order ID does not exist for the corresponding market ID and subaccount ID.');
         }
         const request = {
             'clientOrderId': clientOrderId,

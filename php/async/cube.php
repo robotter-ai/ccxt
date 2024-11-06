@@ -1282,7 +1282,7 @@ class cube extends Exchange {
             }
             $clientOrderId = $this->safe_integer($fetchedOrder, 'clientOrderId');
             if (!$clientOrderId) {
-                throw new InvalidOrder('Failed to cancel order ' . $id . '. Order not found => The specified order ID or client order ID does not exist for the corresponding $market ID and subaccount ID.');
+                throw new InvalidOrder('Failed to cancel order ' . (string) $id . '. Order not found => The specified order ID or client order ID does not exist for the corresponding $market ID and subaccount ID.');
             }
             $request = array(
                 'clientOrderId' => $clientOrderId,

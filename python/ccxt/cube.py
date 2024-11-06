@@ -1179,7 +1179,7 @@ class cube(Exchange, ImplicitAPI):
             fetchedOrder = {}
         clientOrderId = self.safe_integer(fetchedOrder, 'clientOrderId')
         if not clientOrderId:
-            raise InvalidOrder('Failed to cancel order ' + id + '. Order not found: The specified order ID or client order ID does not exist for the corresponding market ID and subaccount ID.')
+            raise InvalidOrder('Failed to cancel order ' + str(id) + '. Order not found: The specified order ID or client order ID does not exist for the corresponding market ID and subaccount ID.')
         request = {
             'clientOrderId': clientOrderId,
             'requestId': self.safe_integer(params, 'requestId', 1),
