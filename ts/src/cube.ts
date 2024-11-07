@@ -14,6 +14,7 @@ import {
     Balances,
     Currencies,
     Currency,
+    DepositAddress,
     IndexType,
     Int,
     Market,
@@ -32,7 +33,6 @@ import {
     Transaction,
 } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-// ---------------------------------------------------------------------------
 
 /**
  * @class cube
@@ -50,11 +50,13 @@ export default class cube extends Exchange {
                 'api': {
                     'rest': {
                         'production': {
+                            'root': 'https://api.cube.exchange',
                             'iridium': 'https://api.cube.exchange/ir/v0',
                             'mendelev': 'https://api.cube.exchange/md/v0',
                             'osmium': 'https://api.cube.exchange/os/v0',
                         },
                         'staging': {
+                            'root': 'https://staging.cube.exchange',
                             'iridium': 'https://staging.cube.exchange/ir/v0',
                             'mendelev': 'https://staging.cube.exchange/md/v0',
                             'osmium': 'https://staging.cube.exchange/os/v0',
@@ -62,11 +64,13 @@ export default class cube extends Exchange {
                     },
                     'ws': {
                         'production': {
+                            'root': 'wss://api.cube.exchange',
                             'iridium': 'wss://api.cube.exchange/ir',
                             'mendelev': 'wss://api.cube.exchange/md',
                             'osmium': 'wss://api.cube.exchange/os',
                         },
                         'staging': {
+                            'root': 'wss://staging.cube.exchange',
                             'iridium': 'wss://staging.cube.exchange/ir',
                             'mendelev': 'wss://staging.cube.exchange/md',
                             'osmium': 'wss://staging.cube.exchange/os',
@@ -80,6 +84,13 @@ export default class cube extends Exchange {
             'version': 'v0',
             'api': {
                 'rest': {
+                    'root': {
+                        'private': {
+                            'get': {
+                                '/user/info': 1,
+                            },
+                        },
+                    },
                     'iridium': {
                         'public': {
                             'get': {
@@ -370,6 +381,9 @@ export default class cube extends Exchange {
                 break;
             } else if (api[i] === 'osmium') {
                 endpoint = 'osmium';
+                break;
+            } else if (api[i] === 'root') {
+                endpoint = 'root';
                 break;
             }
         }
@@ -935,6 +949,16 @@ export default class cube extends Exchange {
         const market = this.safeDict (meta, 'market');
         const marketNumericId = this.safeInteger (this.safeDict (market, 'info'), 'marketId');
         const selectedTimeframe = this.timeframes[timeframe];
+        if (since !== undefined) {
+            const sinceString = since.toString ();
+            if (sinceString.length !== 10 && sinceString.length !== 13) {
+                throw new BadRequest ('Invalid timestamp: must be 10 or 13 digits long.');
+            } else {
+                if (sinceString.length === 10) {
+                    since = since * 1000;
+                }
+            }
+        }
         const request = {
             'interval': selectedTimeframe,
         };
@@ -942,7 +966,7 @@ export default class cube extends Exchange {
             request['marketId'] = marketNumericId;
         }
         if (since !== undefined) {
-            request['start_time'] = since; // The unix nanosecond timestamp that this kline covers.
+            request['start_time'] = since;
         }
         const response = await this.restIridiumPublicGetHistoryKlines (this.extend (request, params));
         const data = this.safeValue (response, 'result', []);
@@ -976,9 +1000,9 @@ export default class cube extends Exchange {
         // [
         //     1715278500,  // start_time           |   ohlcv[0]
         //     14695,       // Kline open price.    |   ohlcv[1]
-        //     14695,       // Kline close price.   |   ohlcv[2]
-        //     14695,       // Kline high price.    |   ohlcv[3]
-        //     14695,       // Kline low price.     |   ohlcv[4]
+        //     14695,       // Kline high price.    |   ohlcv[2]
+        //     14695,       // Kline low price.     |   ohlcv[3]
+        //     14695,       // Kline close price.   |   ohlcv[4]
         //     "5784"       // volume_hi            |   ohlcv[5]
         // ]
         //
@@ -986,18 +1010,27 @@ export default class cube extends Exchange {
         // [
         //     1504541580000, // UTC timestamp in milliseconds, integer |   ohlcv[0]
         //     4235.4,        // (O)pen price, float                    |   ohlcv[1]
-        //     4240.6,        // (H)ighest price, float                 |   ohlcv[3]
-        //     4230.0,        // (L)owest price, float                  |   ohlcv[4]
-        //     4230.7,        // (C)losing price, float                 |   ohlcv[2]
+        //     4240.6,        // (H)ighest price, float                 |   ohlcv[2]
+        //     4230.0,        // (L)owest price, float                  |   ohlcv[3]
+        //     4230.7,        // (C)losing price, float                 |   ohlcv[4]
         //     37.72941911    // (V)olume, float                        |   ohlcv[5]
         // ],
+        let timestamp = this.parseToNumeric (ohlcv[0]);
+        const timestampString = timestamp.toString ();
+        if (timestampString.length !== 10 && timestampString.length !== 13) {
+            throw new BadRequest ('Invalid timestamp: must be 10 or 13 digits long.');
+        } else {
+            if (timestampString.length === 10) {
+                timestamp = timestamp * 1000;
+            }
+        }
         const normalizer = Math.pow (10, this.safeInteger (this.safeDict (market, 'precision'), 'price'));
         return [
-            this.parseToNumeric (ohlcv[0]),
+            timestamp,
             this.parseToNumeric (ohlcv[1]) / normalizer,
+            this.parseToNumeric (ohlcv[2]) / normalizer,
             this.parseToNumeric (ohlcv[3]) / normalizer,
             this.parseToNumeric (ohlcv[4]) / normalizer,
-            this.parseToNumeric (ohlcv[2]) / normalizer,
             this.parseToNumeric (ohlcv[5]),
         ];
     }
@@ -1209,61 +1242,49 @@ export default class cube extends Exchange {
         if (rejection !== undefined) {
             const rejectReason = this.safeString (rejection, 'reason');
             if (rejectReason !== undefined) {
-                this.handleCreateOrderReject (rejectReason, rejection);
+                this.handleCreateOrderReject (rejectReason);
             }
         }
         throw new InvalidOrder ('Order response is invalid: No Ack or Rej found.');
     }
 
-    handleCreateOrderReject (reason: string, order: object) {
-        const clientOrderId = this.safeString (order, 'clientOrderId');
-        const errorMessage = 'Failed to create order ' + clientOrderId + '. ';
-        if (reason === '0') {
-            throw new InvalidOrder (errorMessage + 'Unclassified error occurred.');
-        } else if (reason === '1') {
-            throw new InvalidOrder (errorMessage + 'Invalid quantity: Quantity was zero.');
-        } else if (reason === '2') {
-            throw new InvalidOrder (errorMessage + 'Invalid market ID: The specified market ID does not exist.');
-        } else if (reason === '3') {
-            throw new InvalidOrder (errorMessage + 'Duplicate order ID: The specified client order ID was not unique among open orders for this subaccount.');
-        } else if (reason === '4') {
-            throw new InvalidOrder (errorMessage + 'Invalid side specified.');
-        } else if (reason === '5') {
-            throw new InvalidOrder (errorMessage + 'Invalid time in force specified.');
-        } else if (reason === '6') {
-            throw new InvalidOrder (errorMessage + 'Invalid order type specified.');
-        } else if (reason === '7') {
-            throw new InvalidOrder (errorMessage + 'Invalid post-only flag specified.');
-        } else if (reason === '8') {
-            throw new InvalidOrder (errorMessage + 'Invalid self-trade prevention specified.');
-        } else if (reason === '9') {
-            throw new InvalidOrder (errorMessage + 'Unknown trader: Internal error with subaccount positions.');
-        } else if (reason === '10') {
-            throw new InvalidOrder (errorMessage + 'Price should not be specified for market or market limit orders.');
-        } else if (reason === '11') {
-            throw new InvalidOrder (errorMessage + 'Post-only with market order is not allowed.');
-        } else if (reason === '12') {
-            throw new InvalidOrder (errorMessage + 'Post-only with invalid time in force.');
-        } else if (reason === '13') {
-            throw new InvalidOrder (errorMessage + 'Exceeded spot position limits.');
-        } else if (reason === '14') {
-            throw new InvalidOrder (errorMessage + 'No opposing resting orders to trade against.');
-        } else if (reason === '15') {
-            throw new InvalidOrder (errorMessage + 'Post-only order would have crossed and traded.');
-        } else if (reason === '16') {
-            throw new InvalidOrder (errorMessage + 'Fill or kill (FOK) order was not fully fillable.');
-        } else if (reason === '17') {
-            throw new InvalidOrder (errorMessage + 'Only order cancelations are accepted at this time.');
-        } else if (reason === '18') {
-            throw new InvalidOrder (errorMessage + 'Protection price would not trade for market-with-protection orders.');
-        } else if (reason === '19') {
-            throw new InvalidOrder (errorMessage + 'Market orders cannot be placed because there is no internal reference price.');
-        } else if (reason === '20') {
-            throw new InvalidOrder (errorMessage + 'Slippage too high: The order would trade beyond allowed protection levels.');
-        } else if (reason === '21') {
-            throw new InvalidOrder (errorMessage + 'Outside price band: Bid price is too low or ask price is too high.');
+    handleCreateOrderReject (reason) {
+        const errorMessageBase = 'Failed to create order. ';
+        const reasonStr = this.strip ('' + reason);
+        const reasonMessages = {
+            '0': 'Unclassified error occurred.',
+            '1': 'Invalid quantity: Quantity was zero.',
+            '2': 'Invalid market ID: The specified market ID does not exist.',
+            '3': 'Duplicate order ID: The specified client order ID was not unique among open orders for this subaccount.',
+            '4': 'Invalid side specified.',
+            '5': 'Invalid time in force specified.',
+            '6': 'Invalid order type specified.',
+            '7': 'Invalid post-only flag specified.',
+            '8': 'Invalid self-trade prevention specified.',
+            '9': 'Unknown trader: Internal error with subaccount positions.',
+            '10': 'Price should not be specified for market or market limit orders.',
+            '11': 'Post-only with market order is not allowed.',
+            '12': 'Post-only with invalid time in force.',
+            '13': 'Exceeded spot position limits.',
+            '14': 'No opposing resting orders to trade against.',
+            '15': 'Post-only order would have crossed and traded.',
+            '16': 'Fill or kill (FOK) order was not fully fillable.',
+            '17': 'Only order cancellations are accepted at this time.',
+            '18': 'Protection price would not trade for market-with-protection orders.',
+            '19': 'Market orders cannot be placed because there is no internal reference price.',
+            '20': 'Slippage too high: The order would trade beyond allowed protection levels.',
+            '21': 'Outside price band: Bid price is too low or ask price is too high.',
+            '22': 'Limit order without price.',
+            '23': 'Conflicting quantity type: Both quantity and quote quantity were specified.',
+            '24': 'No quantity type: Neither quantity nor quote quantity was specified.',
+            '25': 'Order quantity too low: The quantity of this order, if traded fully, would represent less than the minimum amount allowed for this market.',
+            '26': 'Order quantity too high: The quantity of this order, if traded fully, would represent greater than the maximum amount allowed for this market.',
+        };
+        const specificErrorMessage = reasonMessages[reasonStr];
+        if (specificErrorMessage) {
+            throw new InvalidOrder (errorMessageBase + specificErrorMessage);
         } else {
-            throw new InvalidOrder (errorMessage + 'Unknown reason code: ' + reason + '.');
+            throw new InvalidOrder (errorMessageBase + 'Unknown reason code: ' + reasonStr + '.');
         }
     }
 
@@ -1278,6 +1299,9 @@ export default class cube extends Exchange {
             fetchedOrder = {};
         }
         const clientOrderId = this.safeInteger (fetchedOrder, 'clientOrderId');
+        if (!clientOrderId) {
+            throw new InvalidOrder ('Failed to cancel order ' + id.toString () + '. Order not found: The specified order ID or client order ID does not exist for the corresponding market ID and subaccount ID.');
+        }
         const request = {
             'clientOrderId': clientOrderId,
             'requestId': this.safeInteger (params, 'requestId', 1),
@@ -1296,11 +1320,11 @@ export default class cube extends Exchange {
     validateCancelOrderResponse (response: object, order: object) {
         const result = this.safeDict (response, 'result');
         if ('Ack' in result) {
-            const ack = this.safeDict (result, 'Ack');
-            const reason = this.safeString (ack, 'reason');
-            if (reason !== undefined) {
-                this.handleCancelOrderAck (reason, ack);
-            }
+            // const ack = this.safeDict (result, 'Ack');
+            // const reason = this.safeString (ack, 'reason');
+            // if (reason !== undefined) {
+            //     this.handleCancelOrderAck (reason, ack);
+            // }
             return;
         }
         const rejection = this.safeDict (result, 'Rej');
@@ -1314,8 +1338,9 @@ export default class cube extends Exchange {
     }
 
     handleCancelOrderReject (reason: string, order: object) {
-        const clientOrderId = this.safeString (order, 'clientOrderId');
-        const errorMessage = 'Failed to cancel order ' + clientOrderId + '. ';
+        const exchangeOrderId = this.safeString (order, 'exchangeOrderId');
+        const orderIdText = exchangeOrderId ? exchangeOrderId : 'unknown';
+        const errorMessage = 'Failed to cancel order ' + orderIdText + '. ';
         if (reason === '0') {
             throw new InvalidOrder (errorMessage + 'Unclassified error occurred.');
         } else if (reason === '1') {
@@ -1323,13 +1348,13 @@ export default class cube extends Exchange {
         } else if (reason === '2') {
             throw new InvalidOrder (errorMessage + 'Order not found: The specified client order ID does not exist for the corresponding market ID and subaccount ID.');
         } else {
-            throw new InvalidOrder (errorMessage + 'Unknown reason code: ' + reason + '.');
+            throw new InvalidOrder (errorMessage);
         }
     }
 
     handleCancelOrderAck (reason: string, ack: object) {
-        const clientOrderId = this.safeString (ack, 'clientOrderId');
-        const errorMessage = 'Failed to cancel order ' + clientOrderId + '. ';
+        const exchangeOrderId = this.safeString (ack, 'exchangeOrderId');
+        const errorMessage = 'Failed to cancel order ' + exchangeOrderId + '. ';
         if (reason === '0') {
             throw new InvalidOrder (errorMessage + 'Unclassified acknowledgment.');
         } else if (reason === '1') {
@@ -1417,11 +1442,11 @@ export default class cube extends Exchange {
         //  }
         //
         return this.parseOrder (
-            {
-                'fetchedOrder': order,
-                'transactionType': 'fetching',
-            },
-            market
+          {
+              'fetchedOrder': order,
+              'transactionType': 'fetching',
+          },
+          market
         );
     }
 
@@ -1466,6 +1491,7 @@ export default class cube extends Exchange {
         //
         const result = this.safeList (this.safeDict (rawResponse, 'result'), 'orders');
         let order = undefined;
+        id = id.toString ();
         for (let i = 0; i < this.countItems (result); i++) {
             const clientOrderId = this.safeString (result[i], 'clientOrderId');
             const exchangeOrderId = this.safeString (result[i], 'exchangeOrderId');
@@ -2087,7 +2113,7 @@ export default class cube extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit, params);
     }
 
-    async fetchDepositAddresses (codes: Strings = undefined, params = {}) {
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
         /**
          * @method
          * @name cube#fetchDepositAddresses
@@ -2157,10 +2183,10 @@ export default class cube extends Exchange {
         }
         const subAccounts = this.safeList (rawUsersInfoResponse, 'subaccounts', []);
         const result = {
-            'info': {
-                'subaccounts': subAccounts,
-                'sources': sources,
-            },
+            // 'info': {
+            //     'subaccounts': subAccounts,
+            //     'sources': sources,
+            // },
         };
         for (let i = 0; i < subAccounts.length; i++) {
             const subAccount = subAccounts[i];
@@ -2188,10 +2214,10 @@ export default class cube extends Exchange {
                     'address': address,
                     'network': network,
                     'tag': subAccountId,
-                };
+                } as DepositAddress;
             }
         }
-        return result;
+        return result as DepositAddress[];
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
