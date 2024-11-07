@@ -198,12 +198,12 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitfinex.fetchTickers (symbols[, params])
+bitfinex.fetchTickers ([symbols, params])
 ```
 
 
@@ -290,7 +290,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -333,7 +333,7 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | Yes | not used by bitfinex cancelAllOrders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -400,12 +400,13 @@ fetches information on an order made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
 | symbol | <code>string</code> | Yes | not used by bitfinex fetchOrder |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitfinex.fetchOrder (symbol[, params])
+bitfinex.fetchOrder (id, symbol[, params])
 ```
 
 
@@ -551,6 +552,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
+**See**: https://docs.bitfinex.com/v1/reference/ws-public-trades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -573,6 +575,7 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
+**See**: https://docs.bitfinex.com/v1/reference/ws-public-ticker  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -593,6 +596,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
+**See**: https://docs.bitfinex.com/v1/reference/ws-public-order-books  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -613,6 +617,11 @@ watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>bitfinex</code>](#bitfinex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**
+
+- https://docs.bitfinex.com/v1/reference/ws-auth-order-updates
+- https://docs.bitfinex.com/v1/reference/ws-auth-order-snapshots
 
 
 | Param | Type | Required | Description |

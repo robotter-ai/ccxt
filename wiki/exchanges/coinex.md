@@ -5,6 +5,7 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
+* [fetchCurrencies](#fetchcurrencies)
 * [fetchMarkets](#fetchmarkets)
 * [fetchTicker](#fetchticker)
 * [fetchTickers](#fetchtickers)
@@ -38,6 +39,7 @@
 * [reduceMargin](#reducemargin)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchFundingRate](#fetchfundingrate)
+* [fetchFundingInterval](#fetchfundinginterval)
 * [fetchFundingRates](#fetchfundingrates)
 * [withdraw](#withdraw)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
@@ -52,14 +54,38 @@
 * [fetchDepositWithdrawFee](#fetchdepositwithdrawfee)
 * [fetchLeverage](#fetchleverage)
 * [fetchPositionHistory](#fetchpositionhistory)
+* [closePosition](#closeposition)
 * [fetchMarginAdjustmentHistory](#fetchmarginadjustmenthistory)
 * [watchBalance](#watchbalance)
+* [watchMyTrades](#watchmytrades)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
 * [watchTrades](#watchtrades)
+* [watchTradesForSymbols](#watchtradesforsymbols)
+* [watchOrderBookForSymbols](#watchorderbookforsymbols)
 * [watchOrderBook](#watchorderbook)
-* [watchOHLCV](#watchohlcv)
-* [fetchOHLCV](#fetchohlcv)
+* [watchOrders](#watchorders)
+* [watchBidsAsks](#watchbidsasks)
+
+<a name="fetchCurrencies" id="fetchcurrencies"></a>
+
+### fetchCurrencies{docsify-ignore}
+fetches all available currencies on an exchange
+
+**Kind**: instance method of [<code>coinex</code>](#coinex)  
+**Returns**: <code>object</code> - an associative dictionary of currencies
+
+**See**: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coinex.fetchCurrencies ([params])
+```
+
 
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
@@ -363,7 +389,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much you want to trade in units of the base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | price to trigger stop orders |
 | params.stopLossPrice | <code>float</code> | No | price to trigger stop loss orders |
@@ -457,7 +483,7 @@ edit a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of the currency you want to trade in units of the base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | the price to trigger stop orders |
 
@@ -918,10 +944,31 @@ coinex.fetchFundingRate (symbol[, params])
 ```
 
 
+<a name="fetchFundingInterval" id="fetchfundinginterval"></a>
+
+### fetchFundingInterval{docsify-ignore}
+fetch the current funding rate interval
+
+**Kind**: instance method of [<code>coinex</code>](#coinex)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+**See**: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coinex.fetchFundingInterval (symbol[, params])
+```
+
+
 <a name="fetchFundingRates" id="fetchfundingrates"></a>
 
 ### fetchFundingRates{docsify-ignore}
-fetch the current funding rates
+fetch the current funding rates for multiple markets
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
@@ -1245,6 +1292,32 @@ coinex.fetchPositionHistory (symbol[, since, limit, params])
 ```
 
 
+<a name="closePosition" id="closeposition"></a>
+
+### closePosition{docsify-ignore}
+closes an open position for a market
+
+**Kind**: instance method of [<code>coinex</code>](#coinex)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**: https://docs.coinex.com/api/v2/futures/position/http/close-position  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified CCXT market symbol |
+| side | <code>string</code> | No | buy or sell, not used by coinex |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | Yes | required by coinex, one of: limit, market, maker_only, ioc or fok, default is *market* |
+| params.price | <code>string</code> | No | the price to fulfill the order, ignored in market orders |
+| params.amount | <code>string</code> | No | the amount to trade in units of the base currency |
+| params.clientOrderId | <code>string</code> | No | the client id of the order |
+
+
+```javascript
+coinex.closePosition (symbol[, side, params])
+```
+
+
 <a name="fetchMarginAdjustmentHistory" id="fetchmarginadjustmenthistory"></a>
 
 ### fetchMarginAdjustmentHistory{docsify-ignore}
@@ -1279,6 +1352,11 @@ watch balance and get the amount of funds available for trading or funds locked 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
 
+**See**
+
+- https://docs.coinex.com/api/v2/assets/balance/ws/spot_balance
+- https://docs.coinex.com/api/v2/assets/balance/ws/futures_balance
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1290,6 +1368,33 @@ coinex.watchBalance ([params])
 ```
 
 
+<a name="watchMyTrades" id="watchmytrades"></a>
+
+### watchMyTrades{docsify-ignore}
+watches information on multiple trades made by the user
+
+**Kind**: instance method of [<code>coinex</code>](#coinex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+
+**See**
+
+- https://docs.coinex.com/api/v2/spot/deal/ws/user-deals
+- https://docs.coinex.com/api/v2/futures/deal/ws/user-deals
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified symbol of the market the trades were made in |
+| since | <code>int</code> | No | the earliest time in ms to watch trades |
+| limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coinex.watchMyTrades ([symbol, since, limit, params])
+```
+
+
 <a name="watchTicker" id="watchticker"></a>
 
 ### watchTicker{docsify-ignore}
@@ -1298,7 +1403,11 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe  
+**See**
+
+- https://docs.coinex.com/api/v2/spot/market/ws/market
+- https://docs.coinex.com/api/v2/futures/market/ws/market-state
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1319,7 +1428,11 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe  
+**See**
+
+- https://docs.coinex.com/api/v2/spot/market/ws/market
+- https://docs.coinex.com/api/v2/futures/market/ws/market-state
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1342,8 +1455,8 @@ get the list of most recent trades for a particular symbol
 
 **See**
 
-- https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket012_deal_subcribe
-- https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
+- https://docs.coinex.com/api/v2/spot/market/ws/market-deals
+- https://docs.coinex.com/api/v2/futures/market/ws/market-deals
 
 
 | Param | Type | Required | Description |
@@ -1359,6 +1472,59 @@ coinex.watchTrades (symbol[, since, limit, params])
 ```
 
 
+<a name="watchTradesForSymbols" id="watchtradesforsymbols"></a>
+
+### watchTradesForSymbols{docsify-ignore}
+watch the most recent trades for a list of symbols
+
+**Kind**: instance method of [<code>coinex</code>](#coinex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**
+
+- https://docs.coinex.com/api/v2/spot/market/ws/market-deals
+- https://docs.coinex.com/api/v2/futures/market/ws/market-deals
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbols of the markets to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coinex.watchTradesForSymbols (symbols[, since, limit, params])
+```
+
+
+<a name="watchOrderBookForSymbols" id="watchorderbookforsymbols"></a>
+
+### watchOrderBookForSymbols{docsify-ignore}
+watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>coinex</code>](#coinex)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**
+
+- https://docs.coinex.com/api/v2/spot/market/ws/market-depth
+- https://docs.coinex.com/api/v2/futures/market/ws/market-depth
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coinex.watchOrderBookForSymbols (symbols[, limit, params])
+```
+
+
 <a name="watchOrderBook" id="watchorderbook"></a>
 
 ### watchOrderBook{docsify-ignore}
@@ -1369,8 +1535,8 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 **See**
 
-- https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket017_depth_subscribe_multi
-- https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
+- https://docs.coinex.com/api/v2/spot/market/ws/market-depth
+- https://docs.coinex.com/api/v2/futures/market/ws/market-depth
 
 
 | Param | Type | Required | Description |
@@ -1385,51 +1551,55 @@ coinex.watchOrderBook (symbol[, limit, params])
 ```
 
 
-<a name="watchOHLCV" id="watchohlcv"></a>
+<a name="watchOrders" id="watchorders"></a>
 
-### watchOHLCV{docsify-ignore}
-watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+### watchOrders{docsify-ignore}
+watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket023_kline_subscribe  
+**See**
+
+- https://docs.coinex.com/api/v2/spot/order/ws/user-order
+- https://docs.coinex.com/api/v2/futures/order/ws/user-order
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
-| timeframe | <code>string</code> | Yes | the length of time each candle represents |
-| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.trigger | <code>bool</code> | No | if the orders to watch are trigger orders or not |
+
+
+```javascript
+coinex.watchOrders (symbol[, since, limit, params])
+```
+
+
+<a name="watchBidsAsks" id="watchbidsasks"></a>
+
+### watchBidsAsks{docsify-ignore}
+watches best bid & ask for symbols
+
+**Kind**: instance method of [<code>coinex</code>](#coinex)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**
+
+- https://docs.coinex.com/api/v2/spot/market/ws/market-bbo
+- https://docs.coinex.com/api/v2/futures/market/ws/market-bbo
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-coinex.watchOHLCV (symbol, timeframe[, since, limit, params])
-```
-
-
-<a name="fetchOHLCV" id="fetchohlcv"></a>
-
-### fetchOHLCV{docsify-ignore}
-query historical candlestick data containing the open, high, low, and close price, and the volume of a market
-
-**Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
-
-**See**: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket005_kline_query  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| symbol | <code>string</code> | unified symbol of the market to query OHLCV data for |
-| timeframe | <code>string</code> | the length of time each candle represents |
-| since | <code>int</code>, <code>undefined</code> | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code>, <code>undefined</code> | the maximum amount of candles to fetch |
-| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
-| params.end | <code>int</code>, <code>undefined</code> | the end time for spot markets, this.seconds () is set as default |
-
-
-```javascript
-coinex.fetchOHLCV (symbol, timeframe, since, limit, params[])
+coinex.watchBidsAsks ([symbols, params])
 ```
 

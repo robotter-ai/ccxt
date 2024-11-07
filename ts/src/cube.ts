@@ -14,6 +14,7 @@ import {
     Balances,
     Currencies,
     Currency,
+    DepositAddress,
     IndexType,
     Int,
     Market,
@@ -2112,7 +2113,7 @@ export default class cube extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit, params);
     }
 
-    async fetchDepositAddresses (codes: Strings = undefined, params = {}) {
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
         /**
          * @method
          * @name cube#fetchDepositAddresses
@@ -2182,10 +2183,10 @@ export default class cube extends Exchange {
         }
         const subAccounts = this.safeList (rawUsersInfoResponse, 'subaccounts', []);
         const result = {
-            'info': {
-                'subaccounts': subAccounts,
-                'sources': sources,
-            },
+            // 'info': {
+            //     'subaccounts': subAccounts,
+            //     'sources': sources,
+            // },
         };
         for (let i = 0; i < subAccounts.length; i++) {
             const subAccount = subAccounts[i];
@@ -2213,10 +2214,10 @@ export default class cube extends Exchange {
                     'address': address,
                     'network': network,
                     'tag': subAccountId,
-                };
+                } as DepositAddress;
             }
         }
-        return result;
+        return result as DepositAddress[];
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {

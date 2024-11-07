@@ -18,6 +18,7 @@
 * [createOrder](#createorder)
 * [cancelOrder](#cancelorder)
 * [fetchDepositAddress](#fetchdepositaddress)
+* [withdraw](#withdraw)
 * [watchTrades](#watchtrades)
 * [watchOrderBook](#watchorderbook)
 
@@ -242,7 +243,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -259,6 +260,7 @@ cancels an open order
 **Kind**: instance method of [<code>independentreserve</code>](#independentreserve)  
 **Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
+**See**: https://www.independentreserve.com/features/api#CancelOrder  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -290,6 +292,31 @@ fetch the deposit address for a currency associated with this account
 
 ```javascript
 independentreserve.fetchDepositAddress (code[, params])
+```
+
+
+<a name="withdraw" id="withdraw"></a>
+
+### withdraw{docsify-ignore}
+make a withdrawal
+
+**Kind**: instance method of [<code>independentreserve</code>](#independentreserve)  
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+
+**See**: https://www.independentreserve.com/features/api#WithdrawDigitalCurrency  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| amount | <code>float</code> | Yes | the amount to withdraw |
+| address | <code>string</code> | Yes | the address to withdraw to |
+| tag | <code>string</code> | Yes |  |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS |
+| params.comment | <code>object</code> | No | withdrawal comment, should not exceed 500 characters |
+
+
+```javascript
+independentreserve.withdraw (code, amount, address, tag[, params])
 ```
 
 

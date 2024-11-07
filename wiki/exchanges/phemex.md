@@ -37,8 +37,10 @@
 * [fetchTransfers](#fetchtransfers)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [withdraw](#withdraw)
+* [fetchOpenInterest](#fetchopeninterest)
 * [watchBalance](#watchbalance)
 * [watchTicker](#watchticker)
+* [watchTickers](#watchtickers)
 * [watchTrades](#watchtrades)
 * [watchOrderBook](#watchorderbook)
 * [watchOHLCV](#watchohlcv)
@@ -53,6 +55,7 @@ retrieves data on all markets for phemex
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
+**See**: https://phemex-docs.github.io/#query-product-information-3  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -251,13 +254,15 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>float</code> | No | trigger price for conditional orders |
 | params.takeProfit | <code>object</code> | No | *swap only* *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only) |
 | params.takeProfit.triggerPrice | <code>float</code> | No | take profit trigger price |
 | params.stopLoss | <code>object</code> | No | *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only) |
 | params.stopLoss.triggerPrice | <code>float</code> | No | stop loss trigger price |
+| params.posSide | <code>string</code> | No | *swap only* "Merged" for one way mode, "Long" for buy side of hedged mode, "Short" for sell side of hedged mode |
+| params.hedged | <code>bool</code> | No | *swap only* true for hedged mode, false for one way mode, default is false |
 
 
 ```javascript
@@ -282,7 +287,7 @@ edit a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.posSide | <code>string</code> | No | either 'Merged' or 'Long' or 'Short' |
 
@@ -344,15 +349,17 @@ fetches information on an order made by the user
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
 **Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
+**See**: https://phemex-docs.github.io/#query-orders-by-ids  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-phemex.fetchOrder (symbol[, params])
+phemex.fetchOrder (id, symbol[, params])
 ```
 
 
@@ -805,6 +812,27 @@ phemex.withdraw (code, amount, address, tag[, params])
 ```
 
 
+<a name="fetchOpenInterest" id="fetchopeninterest"></a>
+
+### fetchOpenInterest{docsify-ignore}
+retrieves the open interest of a trading pair
+
+**Kind**: instance method of [<code>phemex</code>](#phemex)  
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/#/?id=open-interest-structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+
+**See**: https://phemex-docs.github.io/#query-24-hours-ticker  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified CCXT market symbol |
+| params | <code>object</code> | No | exchange specific parameters |
+
+
+```javascript
+phemex.fetchOpenInterest (symbol[, params])
+```
+
+
 <a name="watchBalance" id="watchbalance"></a>
 
 ### watchBalance{docsify-ignore}
@@ -854,6 +882,33 @@ watches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 phemex.watchTicker (symbol[, params])
+```
+
+
+<a name="watchTickers" id="watchtickers"></a>
+
+### watchTickers{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+**Kind**: instance method of [<code>phemex</code>](#phemex)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**
+
+- https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-24-hours-ticker
+- https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-24-hours-ticker
+- https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-24-hours-ticker
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers |
+
+
+```javascript
+phemex.watchTickers ([symbols, params])
 ```
 
 
@@ -948,7 +1003,7 @@ phemex.watchOHLCV (symbol, timeframe[, since, limit, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
 
 | Param | Type | Required | Description |

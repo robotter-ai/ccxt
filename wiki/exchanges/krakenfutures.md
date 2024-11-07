@@ -415,7 +415,7 @@ krakenfutures.fetchBalance ([params])
 <a name="fetchFundingRates" id="fetchfundingrates"></a>
 
 ### fetchFundingRates{docsify-ignore}
-fetch the current funding rates
+fetch the current funding rates for multiple markets
 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
 **Returns**: <code>Array&lt;Order&gt;</code> - an array of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)

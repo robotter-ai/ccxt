@@ -307,12 +307,13 @@ fetches information on an order made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-probit.fetchOrder (symbol[, params])
+probit.fetchOrder (id, symbol[, params])
 ```
 
 
@@ -332,7 +333,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much you want to trade in units of the base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.cost | <code>float</code> | No | the quote quantity that can be used as an alternative for the amount for market buy orders |
 
@@ -613,6 +614,7 @@ get the list of trades associated with the user
 **Kind**: instance method of [<code>probit</code>](#probit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
+**See**: https://docs-en.probit.com/reference/trade_history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

@@ -12,13 +12,16 @@
 * [fetchTrades](#fetchtrades)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchFundingRate](#fetchfundingrate)
-* [fetchFundingRate](#fetchfundingrate)
+* [fetchFundingRates](#fetchfundingrates)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchOpenInterest](#fetchopeninterest)
 * [fetchTicker](#fetchticker)
 * [fetchTickers](#fetchtickers)
+* [fetchMarkPrice](#fetchmarkprice)
+* [fetchMarkPrices](#fetchmarkprices)
 * [fetchBalance](#fetchbalance)
 * [fetchPositions](#fetchpositions)
+* [fetchPosition](#fetchposition)
 * [createMarketOrderWithCost](#createmarketorderwithcost)
 * [createMarketBuyOrderWithCost](#createmarketbuyorderwithcost)
 * [createMarketSellOrderWithCost](#createmarketsellorderwithcost)
@@ -32,6 +35,8 @@
 * [fetchOrders](#fetchorders)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchClosedOrders](#fetchclosedorders)
+* [fetchCanceledOrders](#fetchcanceledorders)
+* [fetchCanceledAndClosedOrders](#fetchcanceledandclosedorders)
 * [transfer](#transfer)
 * [fetchTransfers](#fetchtransfers)
 * [fetchDepositAddressesByNetwork](#fetchdepositaddressesbynetwork)
@@ -51,7 +56,11 @@
 * [setPositionMode](#setpositionmode)
 * [editOrder](#editorder)
 * [fetchMarginMode](#fetchmarginmode)
+* [fetchTradingFee](#fetchtradingfee)
 * [watchTicker](#watchticker)
+* [watchTickers](#watchtickers)
+* [watchOrderBookForSymbols](#watchorderbookforsymbols)
+* [watchOHLCVForSymbols](#watchohlcvforsymbols)
 * [watchTrades](#watchtrades)
 * [watchOrderBook](#watchorderbook)
 * [watchOHLCV](#watchohlcv)
@@ -111,6 +120,7 @@ retrieves data on all markets for bingx
 
 - https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols
 - https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information
+- https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Contract%20Information
 
 
 | Param | Type | Required | Description |
@@ -137,6 +147,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 - https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
 - https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
 - https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#K-Line%20Data%20-%20Mark%20Price
+- https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20K-line%20Data
 
 
 | Param | Type | Required | Description |
@@ -147,7 +158,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
@@ -194,6 +205,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 - https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20depth%20information
 - https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Market%20Depth
+- https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%20Depth%20Data
 
 
 | Param | Type | Required | Description |
@@ -216,7 +228,11 @@ fetch the current funding rate
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
 
-**See**: https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate  
+**See**
+
+- https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
+- https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Price%20&%20Current%20Funding%20Rate
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -229,13 +245,13 @@ bingx.fetchFundingRate (symbol[, params])
 ```
 
 
-<a name="fetchFundingRate" id="fetchfundingrate"></a>
+<a name="fetchFundingRates" id="fetchfundingrates"></a>
 
-### fetchFundingRate{docsify-ignore}
-fetch the current funding rate
+### fetchFundingRates{docsify-ignore}
+fetch the current funding rate for multiple symbols
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
 
 **See**: https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate  
 
@@ -246,7 +262,7 @@ fetch the current funding rate
 
 
 ```javascript
-bingx.fetchFundingRate ([symbols, params])
+bingx.fetchFundingRates ([symbols, params])
 ```
 
 
@@ -278,16 +294,20 @@ bingx.fetchFundingRateHistory (symbol[, since, limit, params])
 <a name="fetchOpenInterest" id="fetchopeninterest"></a>
 
 ### fetchOpenInterest{docsify-ignore}
-Retrieves the open interest of a currency
+retrieves the open interest of a trading pair
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/#/?id=open-interest-structure](https://docs.ccxt.com/#/?id=open-interest-structure)
 
-**See**: https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions  
+**See**
+
+- https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
+- https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20Swap%20Open%20Positions
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | Unified CCXT market symbol |
+| symbol | <code>string</code> | Yes | unified CCXT market symbol |
 | params | <code>object</code> | No | exchange specific parameters |
 
 
@@ -306,8 +326,9 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 **See**
 
-- https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
-- https://bingx-api.github.io/docs/#/spot/market-api.html#24%E5%B0%8F%E6%97%B6%E4%BB%B7%E6%A0%BC%E5%8F%98%E5%8A%A8%E6%83%85%E5%86%B5
+- https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Get%20Ticker
+- https://bingx-api.github.io/docs/#/en-us/spot/market-api.html#24-hour%20price%20changes
+- https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
 
 
 | Param | Type | Required | Description |
@@ -329,7 +350,12 @@ fetches price tickers for multiple markets, statistical information calculated o
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker  
+**See**
+
+- https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Get%20Ticker
+- https://bingx-api.github.io/docs/#/en-us/spot/market-api.html#24-hour%20price%20changes
+- https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -339,6 +365,48 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 ```javascript
 bingx.fetchTickers (symbols[, params])
+```
+
+
+<a name="fetchMarkPrice" id="fetchmarkprice"></a>
+
+### fetchMarkPrice{docsify-ignore}
+fetches mark prices for the market
+
+**Kind**: instance method of [<code>bingx</code>](#bingx)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bingx.fetchMarkPrice (symbol[, params])
+```
+
+
+<a name="fetchMarkPrices" id="fetchmarkprices"></a>
+
+### fetchMarkPrices{docsify-ignore}
+fetches mark prices for multiple markets
+
+**Kind**: instance method of [<code>bingx</code>](#bingx)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bingx.fetchMarkPrices ([symbols, params])
 ```
 
 
@@ -355,6 +423,7 @@ query for balance and get the amount of funds available for trading or funds loc
 - https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
 - https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
 - https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
+- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
 
 
 | Param | Type | Required | Description |
@@ -374,12 +443,13 @@ bingx.fetchBalance ([params])
 fetch all open positions
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
 
 **See**
 
-- https://bingx-api.github.io/docs/#/swapV2/account-api.html#Perpetual%20Swap%20Positions
-- https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
+- https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+- https://bingx-api.github.io/docs/#/en-us/standard/contract-interface.html#position
+- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
 
 
 | Param | Type | Required | Description |
@@ -391,6 +461,31 @@ fetch all open positions
 
 ```javascript
 bingx.fetchPositions (symbols[, params])
+```
+
+
+<a name="fetchPosition" id="fetchposition"></a>
+
+### fetchPosition{docsify-ignore}
+fetch data on a single open contract trade position
+
+**Kind**: instance method of [<code>bingx</code>](#bingx)  
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+
+**See**
+
+- https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market the position is held in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bingx.fetchPosition (symbol[, params])
 ```
 
 
@@ -470,6 +565,7 @@ create a trade order
 
 - https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
 - https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
+- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Trade%20order
 
 
 | Param | Type | Required | Description |
@@ -478,7 +574,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much you want to trade in units of the base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderId | <code>string</code> | No | a unique id for the order |
 | params.postOnly | <code>bool</code> | No | true to place a post only order |
@@ -495,6 +591,8 @@ create a trade order
 | params.stopLoss | <code>object</code> | No | *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered |
 | params.stopLoss.triggerPrice | <code>float</code> | No | stop loss trigger price |
 | params.test | <code>boolean</code> | No | *swap only* whether to use the test endpoint or not, default is false |
+| params.positionSide | <code>string</code> | No | *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode |
+| params.hedged | <code>boolean</code> | No | *swap only* whether the order is in hedged mode or one way mode |
 
 
 ```javascript
@@ -520,6 +618,7 @@ create a list of trade orders
 | --- | --- | --- | --- |
 | orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.sync | <code>boolean</code> | No | *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type |
 
 
 ```javascript
@@ -533,12 +632,13 @@ bingx.createOrders (orders[, params])
 cancels an open order
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
 **See**
 
-- https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20an%20Order
-- https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20an%20Order
+- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20Order
+- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20Order
+- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20an%20Order
 
 
 | Param | Type | Required | Description |
@@ -566,6 +666,7 @@ cancel all open orders
 
 - https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20orders%20by%20symbol
 - https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
+- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20all%20orders
 
 
 | Param | Type | Required | Description |
@@ -638,22 +739,24 @@ bingx.cancelAllOrdersAfter (timeout[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
 **See**
 
-- https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Orders
-- https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Order
+- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
+- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
+- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bingx.fetchOrder (symbol[, params])
+bingx.fetchOrder (id, symbol[, params])
 ```
 
 
@@ -692,8 +795,9 @@ fetch all unfilled currently open orders
 
 **See**
 
-- https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Open%20Orders
-- https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20all%20current%20pending%20orders
+- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Current%20Open%20Orders
+- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Current%20All%20Open%20Orders
+- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20all%20current%20pending%20orders
 
 
 | Param | Type | Required | Description |
@@ -715,12 +819,75 @@ bingx.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**
+
+- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
+- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
+- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+- https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the closed orders |
+| since | <code>int</code> | No | timestamp in ms of the earliest order |
+| limit | <code>int</code> | No | the max number of closed orders to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
+| params.standard | <code>boolean</code> | No | whether to fetch standard contract orders |
+
+
+```javascript
+bingx.fetchClosedOrders (symbol[, since, limit, params])
+```
+
+
+<a name="fetchCanceledOrders" id="fetchcanceledorders"></a>
+
+### fetchCanceledOrders{docsify-ignore}
+fetches information on multiple canceled orders made by the user
+
+**Kind**: instance method of [<code>bingx</code>](#bingx)  
+**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**
+
+- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
+- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
+- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+- https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the canceled orders |
+| since | <code>int</code> | No | timestamp in ms of the earliest order |
+| limit | <code>int</code> | No | the max number of canceled orders to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
+| params.standard | <code>boolean</code> | No | whether to fetch standard contract orders |
+
+
+```javascript
+bingx.fetchCanceledOrders (symbol[, since, limit, params])
+```
+
+
+<a name="fetchCanceledAndClosedOrders" id="fetchcanceledandclosedorders"></a>
+
+### fetchCanceledAndClosedOrders{docsify-ignore}
+fetches information on multiple closed orders made by the user
+
+**Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
 **See**
 
-- https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Order%20History
-- https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
+- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
+- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
+- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
 - https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
 
 
@@ -735,7 +902,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bingx.fetchClosedOrders ([symbol, since, limit, params])
+bingx.fetchCanceledAndClosedOrders ([symbol, since, limit, params])
 ```
 
 
@@ -883,7 +1050,11 @@ set margin mode to 'cross' or 'isolated'
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - response from the exchange
 
-**See**: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Margin%20Mode  
+**See**
+
+- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Change%20Margin%20Type
+- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Set%20Margin%20Type
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -927,7 +1098,11 @@ fetch the set leverage for a market
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
 
-**See**: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage  
+**See**
+
+- https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage
+- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Leverage
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -948,7 +1123,11 @@ set the level of leverage for a market
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - response from the exchange
 
-**See**: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Leverage  
+**See**
+
+- https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Leverage
+- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Modify%20Leverage
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -973,8 +1152,9 @@ fetch all trades made by the user
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20History
-- https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20historical%20transaction%20orders
+- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20transaction%20details
+- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20orders
+- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order%20Trade%20Detail
 
 
 | Param | Type | Required | Description |
@@ -985,6 +1165,7 @@ fetch all trades made by the user
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms for the ending date filter, default is undefined |
 | params.trandingUnit | <code>string</code> | Yes | COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets) |
+| params.orderId | <code>string</code> | Yes | the order id required for inverse swap |
 
 
 ```javascript
@@ -1021,7 +1202,7 @@ make a withdrawal
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
 
-**See**: https://bingx-api.github.io/docs/#/common/account-api.html#Withdraw  
+**See**: https://bingx-api.github.io/docs/#/en-us/spot/wallet-api.html#Withdraw  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1046,7 +1227,11 @@ retrieves the users liquidated positions
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/#/?id=liquidation-structure)
 
-**See**: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders  
+**See**
+
+- https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
+- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20force%20orders
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1070,14 +1255,18 @@ closes open positions for a market
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions  
+**See**
+
+- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | No | not used by bingx |
 | params | <code>object</code> | No | extra parameters specific to the bingx api endpoint |
-| params.positionId | <code>string</code>, <code>undefined</code> | No | it is recommended to fill in this parameter when closing a position |
+| params.positionId | <code>string</code>, <code>undefined</code> | No | the id of the position you would like to close |
 
 
 ```javascript
@@ -1149,7 +1338,7 @@ cancels an order and places a new order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of the currency you want to trade in units of the base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.stopPrice | <code>string</code> | No | Trigger price used for TAKE_STOP_LIMIT, TAKE_STOP_MARKET, TRIGGER_LIMIT, TRIGGER_MARKET order types. |
 | params.takeProfit | <code>object</code> | No | *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered |
@@ -1180,7 +1369,11 @@ fetches the margin mode of the trading pair
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/#/?id=margin-mode-structure)
 
-**See**: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Mode  
+**See**
+
+- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Type
+- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Margin%20Type
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1193,6 +1386,32 @@ bingx.fetchMarginMode (symbol[, params])
 ```
 
 
+<a name="fetchTradingFee" id="fetchtradingfee"></a>
+
+### fetchTradingFee{docsify-ignore}
+fetch the trading fees for a market
+
+**Kind**: instance method of [<code>bingx</code>](#bingx)  
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+
+**See**
+
+- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Trading%20Commission%20Rate
+- https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20Trading%20Commission%20Rate
+- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Trade%20Commission%20Rate
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bingx.fetchTradingFee (symbol[, params])
+```
+
+
 <a name="watchTicker" id="watchticker"></a>
 
 ### watchTicker{docsify-ignore}
@@ -1201,7 +1420,12 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes  
+**See**
+
+- https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20to%2024-hour%20Price%20Change
+- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes
+- https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%2024-Hour%20Price%20Change
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1214,18 +1438,85 @@ bingx.watchTicker (symbol[, params])
 ```
 
 
+<a name="watchTickers" id="watchtickers"></a>
+
+### watchTickers{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+**Kind**: instance method of [<code>bingx</code>](#bingx)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes%20of%20all%20trading%20pairs  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to watch the tickers for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bingx.watchTickers (symbols[, params])
+```
+
+
+<a name="watchOrderBookForSymbols" id="watchorderbookforsymbols"></a>
+
+### watchOrderBookForSymbols{docsify-ignore}
+watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>bingx</code>](#bingx)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**: https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data%20of%20all%20trading%20pairs  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bingx.watchOrderBookForSymbols (symbols[, limit, params])
+```
+
+
+<a name="watchOHLCVForSymbols" id="watchohlcvforsymbols"></a>
+
+### watchOHLCVForSymbols{docsify-ignore}
+watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>bingx</code>](#bingx)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**: https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20K-Line%20Data%20of%20all%20trading%20pairs  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbolsAndTimeframes | <code>Array&lt;Array&lt;string&gt;&gt;</code> | Yes | array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']] |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bingx.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
+```
+
+
 <a name="watchTrades" id="watchtrades"></a>
 
 ### watchTrades{docsify-ignore}
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
 **See**
 
 - https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20to%20tick-by-tick
 - https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
+- https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscription%20transaction%20by%20transaction
 
 
 | Param | Type | Required | Description |
@@ -1251,8 +1542,9 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 **See**
 
-- https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20Market%20Depth%20Data
-- https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data
+- https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20Market%20Depth%20Data
+- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data
+- https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%20Limited%20Depth
 
 
 | Param | Type | Required | Description |
@@ -1277,8 +1569,9 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 **See**
 
-- https://bingx-api.github.io/docs/#/spot/socket/market.html#K%E7%BA%BF%20Streams
-- https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20K-Line%20Data
+- https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#K-line%20Streams
+- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20K-Line%20Data
+- https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%20Latest%20Trading%20Pair%20K-Line
 
 
 | Param | Type | Required | Description |
@@ -1305,20 +1598,21 @@ watches information on multiple orders made by the user
 
 **See**
 
-- https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
-- https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+- https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20order%20update%20data
+- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Order%20update%20push
+- https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Order%20update%20push
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| symbol | <code>string</code> | No | unified market symbol of the market orders are made in |
+| since | <code>int</code> | No | the earliest time in ms to watch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bingx.watchOrders (symbol[, since, limit, params])
+bingx.watchOrders ([symbol, since, limit, params])
 ```
 
 
@@ -1328,24 +1622,25 @@ bingx.watchOrders (symbol[, since, limit, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
 **See**
 
-- https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
-- https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+- https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20order%20update%20data
+- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Order%20update%20push
+- https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Order%20update%20push
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market trades were made in |
-| since | <code>int</code> | No | the earliest time in ms to trades orders for |
-| limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
+| symbol | <code>string</code> | No | unified market symbol of the market the trades are made in |
+| since | <code>int</code> | No | the earliest time in ms to watch trades for |
+| limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bingx.watchMyTrades (symbol[, since, limit, params])
+bingx.watchMyTrades ([symbol, since, limit, params])
 ```
 
 
@@ -1359,8 +1654,9 @@ query for balance and get the amount of funds available for trading or funds loc
 
 **See**
 
-- https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
-- https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+- https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20account%20balance%20push
+- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+- https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Account%20balance%20and%20position%20update%20push
 
 
 | Param | Type | Required | Description |

@@ -12,6 +12,8 @@
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTrades](#fetchtrades)
 * [fetchOHLCV](#fetchohlcv)
+* [fetchFundingRate](#fetchfundingrate)
+* [fetchFundingRates](#fetchfundingrates)
 * [fetchBalance](#fetchbalance)
 * [fetchTradingFee](#fetchtradingfee)
 * [fetchTradingFees](#fetchtradingfees)
@@ -36,7 +38,7 @@
 * [fetchTradesWs](#fetchtradesws)
 * [watchTrades](#watchtrades)
 * [watchOrders](#watchorders)
-* [watchOrderBook](#watchorderbook)
+* [fetchOrderBookWs](#fetchorderbookws)
 * [watchOrderBook](#watchorderbook)
 
 <a name="fetchTime" id="fetchtime"></a>
@@ -210,6 +212,48 @@ lbank.fetchOHLCV (symbol, timeframe[, since, limit, params])
 ```
 
 
+<a name="fetchFundingRate" id="fetchfundingrate"></a>
+
+### fetchFundingRate{docsify-ignore}
+fetch the current funding rate
+
+**Kind**: instance method of [<code>lbank</code>](#lbank)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+**See**: https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+lbank.fetchFundingRate (symbol[, params])
+```
+
+
+<a name="fetchFundingRates" id="fetchfundingrates"></a>
+
+### fetchFundingRates{docsify-ignore}
+fetch the funding rate for multiple markets
+
+**Kind**: instance method of [<code>lbank</code>](#lbank)  
+**Returns**: <code>object</code> - a dictionary of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexed by market symbols
+
+**See**: https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+lbank.fetchFundingRates (symbols[, params])
+```
+
+
 <a name="fetchBalance" id="fetchbalance"></a>
 
 ### fetchBalance{docsify-ignore}
@@ -322,7 +366,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -601,12 +645,12 @@ when using private endpoint, only returns information for currencies with non-ze
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | array of unified currency codes |
+| codes | <code>Array&lt;string&gt;</code> | No | array of unified currency codes |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-lbank.fetchDepositWithdrawFees (codes[, params])
+lbank.fetchDepositWithdrawFees ([codes, params])
 ```
 
 
@@ -754,7 +798,7 @@ get the list of trades associated with the user
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
-**See**: https://github.com/LBank-exchange/lbank-official-api-docs/blob/master/API-For-Spot-EN/WebSocket%20API(Asset%20%26%20Order).md#websocketsubscribeunsubscribe  
+**See**: https://www.lbank.com/en-US/docs/index.html#update-subscribed-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -769,9 +813,9 @@ lbank.watchOrders ([symbol, since, limit, params])
 ```
 
 
-<a name="watchOrderBook" id="watchorderbook"></a>
+<a name="fetchOrderBookWs" id="fetchorderbookws"></a>
 
-### watchOrderBook{docsify-ignore}
+### fetchOrderBookWs{docsify-ignore}
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
@@ -787,7 +831,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-lbank.watchOrderBook (symbol, limit, params[])
+lbank.fetchOrderBookWs (symbol, limit, params[])
 ```
 
 
@@ -799,11 +843,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/en/latest/manual.html#order-book-structure) indexed by market symbols
 
-**See**
-
-- https://www.lbank.com/en-US/docs/index.html#market-depth
-- https://www.lbank.com/en-US/docs/index.html#market-increment-depth
-
+**See**: https://www.lbank.com/en-US/docs/index.html#market-depth  
 
 | Param | Type | Description |
 | --- | --- | --- |

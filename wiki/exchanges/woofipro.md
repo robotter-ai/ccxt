@@ -10,6 +10,7 @@
 * [fetchMarkets](#fetchmarkets)
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchTrades](#fetchtrades)
+* [fetchFundingInterval](#fetchfundinginterval)
 * [fetchFundingRate](#fetchfundingrate)
 * [fetchFundingRates](#fetchfundingrates)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
@@ -41,6 +42,7 @@
 * [watchOrderBook](#watchorderbook)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
+* [watchBidsAsks](#watchbidsasks)
 * [watchOHLCV](#watchohlcv)
 * [watchTrades](#watchtrades)
 * [watchOrders](#watchorders)
@@ -151,6 +153,27 @@ woofipro.fetchTrades (symbol[, since, limit, params])
 ```
 
 
+<a name="fetchFundingInterval" id="fetchfundinginterval"></a>
+
+### fetchFundingInterval{docsify-ignore}
+fetch the current funding rate interval
+
+**Kind**: instance method of [<code>woofipro</code>](#woofipro)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woofipro.fetchFundingInterval (symbol[, params])
+```
+
+
 <a name="fetchFundingRate" id="fetchfundingrate"></a>
 
 ### fetchFundingRate{docsify-ignore}
@@ -175,7 +198,7 @@ woofipro.fetchFundingRate (symbol[, params])
 <a name="fetchFundingRates" id="fetchfundingrates"></a>
 
 ### fetchFundingRates{docsify-ignore}
-fetch the current funding rates
+fetch the current funding rate for multiple markets
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
@@ -304,7 +327,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | The price a trigger order is triggered at |
 | params.takeProfit | <code>object</code> | No | *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only) |
@@ -362,7 +385,7 @@ edit a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | The price a trigger order is triggered at |
 | params.stopLossPrice | <code>float</code> | No | price to trigger stop-loss orders |
@@ -475,6 +498,7 @@ fetches information on an order made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>boolean</code> | No | whether the order is a stop/algo order |
@@ -482,7 +506,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-woofipro.fetchOrder (symbol[, params])
+woofipro.fetchOrder (id, symbol[, params])
 ```
 
 
@@ -654,7 +678,7 @@ woofipro.fetchBalance ([params])
 <a name="fetchLedger" id="fetchledger"></a>
 
 ### fetchLedger{docsify-ignore}
-fetch the history of changes, actions done by the user or operations that altered balance of the user
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
 **Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger-structure)
@@ -663,14 +687,14 @@ fetch the history of changes, actions done by the user or operations that altere
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code, default is undefined |
+| code | <code>string</code> | No | unified currency code, default is undefined |
 | since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
-| limit | <code>int</code> | No | max number of ledger entrys to return, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-woofipro.fetchLedger (code[, since, limit, params])
+woofipro.fetchLedger ([code, since, limit, params])
 ```
 
 
@@ -916,6 +940,27 @@ woofipro.watchTickers (symbols[, params])
 ```
 
 
+<a name="watchBidsAsks" id="watchbidsasks"></a>
+
+### watchBidsAsks{docsify-ignore}
+watches best bid & ask for symbols
+
+**Kind**: instance method of [<code>woofipro</code>](#woofipro)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/bbos  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woofipro.watchBidsAsks (symbols[, params])
+```
+
+
 <a name="watchOHLCV" id="watchohlcv"></a>
 
 ### watchOHLCV{docsify-ignore}
@@ -946,7 +991,7 @@ woofipro.watchOHLCV (symbol, timeframe[, since, limit, params])
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
 **See**: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/trade  
 

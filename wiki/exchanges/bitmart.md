@@ -49,11 +49,13 @@
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
 * [fetchMyLiquidations](#fetchmyliquidations)
+* [editOrder](#editorder)
 * [watchBalance](#watchbalance)
 * [watchTrades](#watchtrades)
 * [watchTradesForSymbols](#watchtradesforsymbols)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
+* [watchBidsAsks](#watchbidsasks)
 * [watchOrders](#watchorders)
 * [watchPositions](#watchpositions)
 * [watchOHLCV](#watchohlcv)
@@ -106,6 +108,7 @@ retrieves data on all markets for bitmart
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
+**See**: https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -186,6 +189,11 @@ fetches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#get-ticker-of-a-trading-pair-v3
+- https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -206,7 +214,11 @@ fetches price tickers for multiple markets, statistical information calculated o
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v2  
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v3
+- https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -231,6 +243,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 - https://developer-pro.bitmart.com/en/spot/#get-depth-v3
 - https://developer-pro.bitmart.com/en/futures/#get-market-depth
+- https://developer-pro.bitmart.com/en/futuresv2/#get-market-depth
 
 
 | Param | Type | Required | Description |
@@ -248,17 +261,18 @@ bitmart.fetchOrderBook (symbol[, limit, params])
 <a name="fetchTrades" id="fetchtrades"></a>
 
 ### fetchTrades{docsify-ignore}
-get the list of most recent trades for a particular symbol
+get a list of the most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
+**See**: https://developer-pro.bitmart.com/en/spot/#get-recent-trades-v3  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
 | since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| limit | <code>int</code> | No | the maximum number of trades to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -278,7 +292,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 **See**
 
 - https://developer-pro.bitmart.com/en/spot/#get-history-k-line-v3
-- https://developer-pro.bitmart.com/en/futures/#get-k-line
+- https://developer-pro.bitmart.com/en/futuresv2/#get-k-line
 
 
 | Param | Type | Required | Description |
@@ -362,6 +376,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 - https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance
 - https://developer-pro.bitmart.com/en/futures/#get-contract-assets-detail
+- https://developer-pro.bitmart.com/en/futuresv2/#get-contract-assets-keyed
 - https://developer-pro.bitmart.com/en/spot/#get-account-balance
 - https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated
 
@@ -432,6 +447,8 @@ create a trade order
 - https://developer-pro.bitmart.com/en/spot/#place-margin-order
 - https://developer-pro.bitmart.com/en/futures/#submit-order-signed
 - https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+- https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
+- https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
 
 
 | Param | Type | Required | Description |
@@ -440,7 +457,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market', 'limit' or 'trailing' for swap markets only |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated' |
 | params.leverage | <code>string</code> | No | *swap only* leverage level |
@@ -453,6 +470,9 @@ create a trade order
 | params.activation_price_type | <code>int</code> | No | *swap trailing order only* 1: last price, 2: fair price, default is 1 |
 | params.trailingPercent | <code>string</code> | No | *swap only* the percent to trail away from the current market price, min 0.1 max 5 |
 | params.trailingTriggerPrice | <code>string</code> | No | *swap only* the price to trigger a trailing order, default uses the price argument |
+| params.stopLossPrice | <code>string</code> | No | *swap only* the price to trigger a stop-loss order |
+| params.takeProfitPrice | <code>string</code> | No | *swap only* the price to trigger a take-profit order |
+| params.plan_category | <code>int</code> | No | *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1 |
 
 
 ```javascript
@@ -494,6 +514,8 @@ cancels an open order
 - https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
 - https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
 - https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
+- https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
+- https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
 - https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
 
 
@@ -545,7 +567,9 @@ cancel all open orders in a market
 **See**
 
 - https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
+- https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
 - https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
+- https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
 
 
 | Param | Type | Required | Description |
@@ -607,6 +631,7 @@ fetches information on multiple closed orders made by the user
 
 - https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
 - https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
+- https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
 
 
 | Param | Type | Required | Description |
@@ -659,6 +684,7 @@ fetches information on an order made by the user
 - https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
 - https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
 - https://developer-pro.bitmart.com/en/futures/#get-order-detail-keyed
+- https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed
 
 
 | Param | Type | Required | Description |
@@ -905,6 +931,7 @@ transfer currency internally between wallets on the same account, currently only
 
 - https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed
 - https://developer-pro.bitmart.com/en/futures/#transfer-signed
+- https://developer-pro.bitmart.com/en/futuresv2/#transfer-signed
 
 
 | Param | Type | Required | Description |
@@ -978,7 +1005,7 @@ Retrieves the open interest of a currency
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
 **Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/#/?id=open-interest-structure](https://docs.ccxt.com/#/?id=open-interest-structure)
 
-**See**: https://developer-pro.bitmart.com/en/futures/#get-futures-openinterest  
+**See**: https://developer-pro.bitmart.com/en/futuresv2/#get-futures-openinterest  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -999,7 +1026,11 @@ set the level of leverage for a market
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
 **Returns**: <code>object</code> - response from the exchange
 
-**See**: https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed  
+**See**
+
+- https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed
+- https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1022,7 +1053,7 @@ fetch the current funding rate
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
 **Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
 
-**See**: https://developer-pro.bitmart.com/en/futures/#get-current-funding-rate  
+**See**: https://developer-pro.bitmart.com/en/futuresv2/#get-current-funding-rate  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1043,7 +1074,11 @@ fetch data on a single open contract trade position
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
 **Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
 
-**See**: https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed  
+**See**
+
+- https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+- https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1064,7 +1099,11 @@ fetch all open contract positions
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
 
-**See**: https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed  
+**See**
+
+- https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+- https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1101,6 +1140,45 @@ bitmart.fetchMyLiquidations (symbol[, since, limit, params])
 ```
 
 
+<a name="editOrder" id="editorder"></a>
+
+### editOrder{docsify-ignore}
+edits an open order
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**
+
+- https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
+- https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
+- https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market to edit an order in |
+| type | <code>string</code> | Yes | 'market' or 'limit' |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | No | how much you want to trade in units of the base currency |
+| price | <code>float</code> | No | the price to fulfill the order, in units of the quote currency, ignored in market orders |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.triggerPrice | <code>string</code> | No | *swap only* the price to trigger a stop order |
+| params.stopLossPrice | <code>string</code> | No | *swap only* the price to trigger a stop-loss order |
+| params.takeProfitPrice | <code>string</code> | No | *swap only* the price to trigger a take-profit order |
+| params.stopLoss.triggerPrice | <code>string</code> | No | *swap only* the price to trigger a preset stop-loss order |
+| params.takeProfit.triggerPrice | <code>string</code> | No | *swap only* the price to trigger a preset take-profit order |
+| params.clientOrderId | <code>string</code> | No | client order id of the order |
+| params.price_type | <code>int</code> | No | *swap only* 1: last price, 2: fair price, default is 1 |
+| params.plan_category | <code>int</code> | No | *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1 |
+
+
+```javascript
+bitmart.editOrder (id, symbol, type, side[, amount, price, params])
+```
+
+
 <a name="watchBalance" id="watchbalance"></a>
 
 ### watchBalance{docsify-ignore}
@@ -1112,7 +1190,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 **See**
 
 - https://developer-pro.bitmart.com/en/spot/#private-balance-change
-- https://developer-pro.bitmart.com/en/futures/#private-assets-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#private-assets-channel
 
 
 | Param | Type | Required | Description |
@@ -1136,7 +1214,7 @@ get the list of most recent trades for a particular symbol
 **See**
 
 - https://developer-pro.bitmart.com/en/spot/#public-trade-channel
-- https://developer-pro.bitmart.com/en/futures/#public-trade-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
 
 
 | Param | Type | Required | Description |
@@ -1183,7 +1261,11 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://developer-pro.bitmart.com/en/spot/#public-ticker-channel  
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1204,7 +1286,11 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://developer-pro.bitmart.com/en/futures/#overview  
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1214,6 +1300,31 @@ watches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 bitmart.watchTickers (symbols[, params])
+```
+
+
+<a name="watchBidsAsks" id="watchbidsasks"></a>
+
+### watchBidsAsks{docsify-ignore}
+watches best bid & ask for symbols
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.watchBidsAsks (symbols[, params])
 ```
 
 
@@ -1227,8 +1338,8 @@ watches information on multiple orders made by the user
 
 **See**
 
-- https://developer-pro.bitmart.com/en/spot/#private-order-channel
-- https://developer-pro.bitmart.com/en/futures/#private-order-channel
+- https://developer-pro.bitmart.com/en/spot/#private-order-progress
+- https://developer-pro.bitmart.com/en/futuresv2/#private-order-channel
 
 
 | Param | Type | Required | Description |
@@ -1276,7 +1387,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 **See**
 
 - https://developer-pro.bitmart.com/en/spot/#public-kline-channel
-- https://developer-pro.bitmart.com/en/futures/#public-klinebin-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#public-klinebin-channel
 
 
 | Param | Type | Required | Description |
@@ -1305,7 +1416,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 - https://developer-pro.bitmart.com/en/spot/#public-depth-all-channel
 - https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
-- https://developer-pro.bitmart.com/en/futures/#public-depth-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#public-depth-channel
 
 
 | Param | Type | Required | Description |

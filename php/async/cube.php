@@ -2098,7 +2098,7 @@ class cube extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit $addresses for multiple currencies and chain types
@@ -2167,10 +2167,10 @@ class cube extends Exchange {
             }
             $subAccounts = $this->safe_list($rawUsersInfoResponse, 'subaccounts', array());
             $result = array(
-                'info' => array(
-                    'subaccounts' => $subAccounts,
-                    'sources' => $sources,
-                ),
+                // 'info' => array(
+                //     'subaccounts' => $subAccounts,
+                //     'sources' => $sources,
+                // ),
             );
             for ($i = 0; $i < count($subAccounts); $i++) {
                 $subAccount = $subAccounts[$i];

@@ -8,7 +8,7 @@ from ccxt.abstract.cube import ImplicitAPI
 import hashlib
 import math
 import json
-from ccxt.base.types import Balances, Currencies, Currency, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction
 from typing import List
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
@@ -1898,7 +1898,7 @@ class cube(Exchange, ImplicitAPI):
             deposits[i]['type'] = 'deposit'
         return self.parse_transactions(deposits, currency, since, limit, params)
 
-    def fetch_deposit_addresses(self, codes: Strings = None, params={}):
+    def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> List[DepositAddress]:
         """
         fetch deposit addresses for multiple currencies and chain types
         :see: https://cubexch.gitbook.io/cube-api/rest-iridium-api#users-info
@@ -1963,10 +1963,10 @@ class cube(Exchange, ImplicitAPI):
             sourcesByIds[sourceId] = source
         subAccounts = self.safe_list(rawUsersInfoResponse, 'subaccounts', [])
         result = {
-            'info': {
-                'subaccounts': subAccounts,
-                'sources': sources,
-            },
+            # 'info': {
+            #     'subaccounts': subAccounts,
+            #     'sources': sources,
+            # },
         }
         for i in range(0, len(subAccounts)):
             subAccount = subAccounts[i]

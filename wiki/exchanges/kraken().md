@@ -6,6 +6,7 @@
 **Extends**: <code>Exchange</code>  
 
 * [fetchMarkets](#fetchmarkets)
+* [fetchStatus](#fetchstatus)
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchTradingFee](#fetchtradingfee)
 * [fetchOrderBook](#fetchorderbook)
@@ -68,6 +69,26 @@ retrieves data on all markets for kraken
 
 ```javascript
 kraken.fetchMarkets ([params])
+```
+
+
+<a name="fetchStatus" id="fetchstatus"></a>
+
+### fetchStatus{docsify-ignore}
+the latest known information on the availability of the exchange API
+
+**Kind**: instance method of [<code>kraken</code>](#kraken)  
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+
+**See**: https://docs.kraken.com/api/docs/rest-api/get-system-status/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kraken.fetchStatus ([params])
 ```
 
 
@@ -204,7 +225,7 @@ kraken.fetchOHLCV (symbol, timeframe[, since, limit, params])
 <a name="fetchLedger" id="fetchledger"></a>
 
 ### fetchLedger{docsify-ignore}
-fetch the history of changes, actions done by the user or operations that altered balance of the user
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger-structure)
@@ -213,15 +234,16 @@ fetch the history of changes, actions done by the user or operations that altere
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code, default is undefined |
+| code | <code>string</code> | No | unified currency code, default is undefined |
 | since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
-| limit | <code>int</code> | No | max number of ledger entrys to return, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest ledger entry |
+| params.end | <code>int</code> | No | timestamp in seconds of the latest ledger entry |
 
 
 ```javascript
-kraken.fetchLedger (code[, since, limit, params])
+kraken.fetchLedger ([code, since, limit, params])
 ```
 
 
@@ -276,7 +298,7 @@ create a market order by providing the symbol, side and cost
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Trading/operation/addOrder  
+**See**: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -299,7 +321,7 @@ create a market buy order by providing the symbol, side and cost
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Trading/operation/addOrder  
+**See**: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -321,7 +343,7 @@ create a trade order
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Trading/operation/addOrder  
+**See**: https://docs.kraken.com/api/docs/rest-api/add-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -329,14 +351,16 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.postOnly | <code>bool</code> | No | if true, the order will only be posted to the order book and not executed immediately |
 | params.reduceOnly | <code>bool</code> | No | *margin only* indicates if this order is to reduce the size of a position |
 | params.stopLossPrice | <code>float</code> | No | *margin only* the price that a stop loss order is triggered at |
 | params.takeProfitPrice | <code>float</code> | No | *margin only* the price that a take profit order is triggered at |
 | params.trailingAmount | <code>string</code> | No | *margin only* the quote amount to trail away from the current market price |
+| params.trailingPercent | <code>string</code> | No | *margin only* the percent to trail away from the current market price |
 | params.trailingLimitAmount | <code>string</code> | No | *margin only* the quote amount away from the trailingAmount |
+| params.trailingLimitPercent | <code>string</code> | No | *margin only* the percent away from the trailingAmount |
 | params.offset | <code>string</code> | No | *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-' |
 | params.trigger | <code>string</code> | No | *margin only* the activation price type, 'last' or 'index', default is 'last' |
 
@@ -354,7 +378,7 @@ edit a trade order
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Trading/operation/editOrder  
+**See**: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/editOrder  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -363,7 +387,7 @@ edit a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of the currency you want to trade in units of the base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.stopLossPrice | <code>float</code> | No | *margin only* the price that a stop loss order is triggered at |
 | params.takeProfitPrice | <code>float</code> | No | *margin only* the price that a take profit order is triggered at |
@@ -460,6 +484,8 @@ fetch all trades made by the user
 | since | <code>int</code> | No | the earliest time in ms to fetch trades for |
 | limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest trade entry |
+| params.end | <code>int</code> | No | timestamp in seconds of the latest trade entry |
 
 
 ```javascript
@@ -475,7 +501,7 @@ cancels an open order
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrder  
+**See**: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrder  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -497,7 +523,7 @@ cancel multiple orders
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrderBatch  
+**See**: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrderBatch  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -519,7 +545,7 @@ cancel all open orders
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Trading/operation/cancelAllOrders  
+**See**: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -616,6 +642,8 @@ fetch all deposits made to an account
 | since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
 | limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest transaction entry |
+| params.end | <code>int</code> | No | timestamp in seconds of the latest transaction entry |
 
 
 ```javascript
@@ -659,7 +687,8 @@ fetch all withdrawals made from an account
 | since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
 | limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.end | <code>object</code> | No | End timestamp, withdrawals created strictly after will be not be included in the response |
+| params.until | <code>int</code> | No | timestamp in ms of the latest transaction entry |
+| params.end | <code>int</code> | No | timestamp in seconds of the latest transaction entry |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times |
 
 

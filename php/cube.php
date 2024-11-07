@@ -2046,7 +2046,7 @@ class cube extends Exchange {
         return $this->parse_transactions($deposits, $currency, $since, $limit, $params);
     }
 
-    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()): array {
         /**
          * fetch deposit $addresses for multiple currencies and chain types
          * @see https://cubexch.gitbook.io/cube-api/rest-iridium-api#users-info
@@ -2114,10 +2114,10 @@ class cube extends Exchange {
         }
         $subAccounts = $this->safe_list($rawUsersInfoResponse, 'subaccounts', array());
         $result = array(
-            'info' => array(
-                'subaccounts' => $subAccounts,
-                'sources' => $sources,
-            ),
+            // 'info' => array(
+            //     'subaccounts' => $subAccounts,
+            //     'sources' => $sources,
+            // ),
         );
         for ($i = 0; $i < count($subAccounts); $i++) {
             $subAccount = $subAccounts[$i];

@@ -8,6 +8,7 @@
 * [fetchMarkets](#fetchmarkets)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTicker](#fetchticker)
+* [fetchMarkPrice](#fetchmarkprice)
 * [fetchTickers](#fetchtickers)
 * [fetchTrades](#fetchtrades)
 * [fetchOHLCV](#fetchohlcv)
@@ -32,6 +33,18 @@
 * [closePosition](#closeposition)
 * [fetchClosedOrders](#fetchclosedorders)
 * [fetchMarginMode](#fetchmarginmode)
+* [watchTrades](#watchtrades)
+* [watchTradesForSymbols](#watchtradesforsymbols)
+* [watchOrderBook](#watchorderbook)
+* [watchOrderBookForSymbols](#watchorderbookforsymbols)
+* [watchTicker](#watchticker)
+* [watchTickers](#watchtickers)
+* [watchBidsAsks](#watchbidsasks)
+* [watchOHLCV](#watchohlcv)
+* [watchOHLCVForSymbols](#watchohlcvforsymbols)
+* [watchBalance](#watchbalance)
+* [watchOrdersForSymbols](#watchordersforsymbols)
+* [watchPositions](#watchpositions)
 
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
@@ -93,6 +106,28 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 blofin.fetchTicker (symbol[, params])
+```
+
+
+<a name="fetchMarkPrice" id="fetchmarkprice"></a>
+
+### fetchMarkPrice{docsify-ignore}
+fetches mark price for the market
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://docs.blofin.com/index.html#get-mark-price  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
+
+
+```javascript
+blofin.fetchMarkPrice ([symbols, params])
 ```
 
 
@@ -257,7 +292,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' or 'post_only' or 'ioc' or 'fok' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.reduceOnly | <code>bool</code> | No | a mark to reduce the position size for margin, swap and future orders |
 | params.postOnly | <code>bool</code> | No | true to place a post only order |
@@ -433,7 +468,7 @@ blofin.fetchWithdrawals (code[, since, limit, params])
 <a name="fetchLedger" id="fetchledger"></a>
 
 ### fetchLedger{docsify-ignore}
-fetch the history of changes, actions done by the user or operations that altered balance of the user
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>blofin</code>](#blofin)  
 **Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger-structure)
@@ -442,17 +477,17 @@ fetch the history of changes, actions done by the user or operations that altere
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code, default is undefined |
+| code | <code>string</code> | No | unified currency code, default is undefined |
 | since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
-| limit | <code>int</code> | No | max number of ledger entrys to return, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated' |
 | params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
-blofin.fetchLedger (code[, since, limit, params])
+blofin.fetchLedger ([code, since, limit, params])
 ```
 
 
@@ -688,5 +723,269 @@ fetches the margin mode of a trading pair
 
 ```javascript
 blofin.fetchMarginMode (symbol[, params])
+```
+
+
+<a name="watchTrades" id="watchtrades"></a>
+
+### watchTrades{docsify-ignore}
+get the list of most recent trades for a particular symbol
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**: https://docs.blofin.com/index.html#ws-trades-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.watchTrades (symbol[, since, limit, params])
+```
+
+
+<a name="watchTradesForSymbols" id="watchtradesforsymbols"></a>
+
+### watchTradesForSymbols{docsify-ignore}
+get the list of most recent trades for a list of symbols
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**: https://docs.blofin.com/index.html#ws-trades-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.watchTradesForSymbols (symbols[, since, limit, params])
+```
+
+
+<a name="watchOrderBook" id="watchorderbook"></a>
+
+### watchOrderBook{docsify-ignore}
+watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**: https://docs.blofin.com/index.html#ws-order-book-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.watchOrderBook (symbol[, limit, params])
+```
+
+
+<a name="watchOrderBookForSymbols" id="watchorderbookforsymbols"></a>
+
+### watchOrderBookForSymbols{docsify-ignore}
+watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**: https://docs.blofin.com/index.html#ws-order-book-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.depth | <code>string</code> | No | the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50 |
+
+
+```javascript
+blofin.watchOrderBookForSymbols (symbols[, limit, params])
+```
+
+
+<a name="watchTicker" id="watchticker"></a>
+
+### watchTicker{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://docs.blofin.com/index.html#ws-tickers-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.watchTicker (symbol[, params])
+```
+
+
+<a name="watchTickers" id="watchtickers"></a>
+
+### watchTickers{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://docs.blofin.com/index.html#ws-tickers-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.watchTickers (symbols[, params])
+```
+
+
+<a name="watchBidsAsks" id="watchbidsasks"></a>
+
+### watchBidsAsks{docsify-ignore}
+watches best bid & ask for symbols
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://docs.blofin.com/index.html#ws-tickers-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.watchBidsAsks (symbols[, params])
+```
+
+
+<a name="watchOHLCV" id="watchohlcv"></a>
+
+### watchOHLCV{docsify-ignore}
+watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.watchOHLCV (symbol, timeframe[, since, limit, params])
+```
+
+
+<a name="watchOHLCVForSymbols" id="watchohlcvforsymbols"></a>
+
+### watchOHLCVForSymbols{docsify-ignore}
+watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**: https://docs.blofin.com/index.html#ws-candlesticks-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbolsAndTimeframes | <code>Array&lt;Array&lt;string&gt;&gt;</code> | Yes | array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']] |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
+```
+
+
+<a name="watchBalance" id="watchbalance"></a>
+
+### watchBalance{docsify-ignore}
+query for balance and get the amount of funds available for trading or funds locked in orders
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+
+**See**: https://docs.blofin.com/index.html#ws-account-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.watchBalance ([params])
+```
+
+
+<a name="watchOrdersForSymbols" id="watchordersforsymbols"></a>
+
+### watchOrdersForSymbols{docsify-ignore}
+watches information on multiple orders made by the user across multiple symbols
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+
+**See**: https://docs.blofin.com/index.html#ws-order-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.watchOrdersForSymbols (symbol[, since, limit, params])
+```
+
+
+<a name="watchPositions" id="watchpositions"></a>
+
+### watchPositions{docsify-ignore}
+watch all open positions
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/en/latest/manual.html#position-structure)
+
+**See**: https://docs.blofin.com/index.html#ws-positions-channel  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | list of unified market symbols |
+| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.watchPositions (symbols, params[])
 ```
 

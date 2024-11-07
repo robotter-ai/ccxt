@@ -5,9 +5,9 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
-* [setSandboxMode](#setsandboxmode)
 * [enableDemoTrading](#enabledemotrading)
 * [isUnifiedEnabled](#isunifiedenabled)
+* [upgradeUnifiedTradeAccount](#upgradeunifiedtradeaccount)
 * [fetchTime](#fetchtime)
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchMarkets](#fetchmarkets)
@@ -26,6 +26,7 @@
 * [editOrder](#editorder)
 * [cancelOrder](#cancelorder)
 * [cancelOrders](#cancelorders)
+* [cancelAllOrdersAfter](#cancelallordersafter)
 * [cancelOrdersForSymbols](#cancelordersforsymbols)
 * [cancelAllOrders](#cancelallorders)
 * [fetchOrderClassic](#fetchorderclassic)
@@ -56,6 +57,7 @@
 * [fetchOpenInterestHistory](#fetchopeninteresthistory)
 * [fetchCrossBorrowRate](#fetchcrossborrowrate)
 * [fetchBorrowInterest](#fetchborrowinterest)
+* [fetchBorrowRateHistory](#fetchborrowratehistory)
 * [transfer](#transfer)
 * [fetchTransfers](#fetchtransfers)
 * [borrowCrossMargin](#borrowcrossmargin)
@@ -74,39 +76,39 @@
 * [fetchOption](#fetchoption)
 * [fetchOptionChain](#fetchoptionchain)
 * [fetchPositionsHistory](#fetchpositionshistory)
+* [fetchConvertCurrencies](#fetchconvertcurrencies)
+* [fetchConvertQuote](#fetchconvertquote)
+* [createConvertTrade](#createconverttrade)
+* [fetchConvertTrade](#fetchconverttrade)
+* [fetchConvertTradeHistory](#fetchconverttradehistory)
+* [fetchLongShortRatioHistory](#fetchlongshortratiohistory)
 * [createOrderWs](#createorderws)
 * [editOrderWs](#editorderws)
 * [cancelOrderWs](#cancelorderws)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
+* [unWatchTickers](#unwatchtickers)
+* [unWatchTicker](#unwatchticker)
+* [watchBidsAsks](#watchbidsasks)
 * [watchOHLCV](#watchohlcv)
+* [watchOHLCVForSymbols](#watchohlcvforsymbols)
+* [unWatchOHLCVForSymbols](#unwatchohlcvforsymbols)
+* [unWatchOHLCV](#unwatchohlcv)
 * [watchOrderBook](#watchorderbook)
 * [watchOrderBook](#watchorderbook)
+* [unWatchOrderBookForSymbols](#unwatchorderbookforsymbols)
+* [unWatchOrderBook](#unwatchorderbook)
 * [watchTrades](#watchtrades)
 * [watchTradesForSymbols](#watchtradesforsymbols)
+* [unWatchTradesForSymbols](#unwatchtradesforsymbols)
+* [unWatchTrades](#unwatchtrades)
 * [watchMyTrades](#watchmytrades)
+* [unWatchMyTrades](#unwatchmytrades)
 * [watchPositions](#watchpositions)
 * [watchLiquidations](#watchliquidations)
 * [watchOrders](#watchorders)
+* [unWatchOrders](#unwatchorders)
 * [watchBalance](#watchbalance)
-
-<a name="setSandboxMode" id="setsandboxmode"></a>
-
-### setSandboxMode{docsify-ignore}
-enables or disables sandbox mode
-
-**Kind**: instance method of [<code>bybit</code>](#bybit)  
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| enable | <code>boolean</code> | No | true if demo trading should be enabled, false otherwise |
-
-
-```javascript
-bybit.setSandboxMode ([enable])
-```
-
 
 <a name="enableDemoTrading" id="enabledemotrading"></a>
 
@@ -134,9 +136,28 @@ returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if uni
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
 
+**See**
+
+- https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
+- https://bybit-exchange.github.io/docs/v5/account/account-info
+
 
 ```javascript
 bybit.isUnifiedEnabled ()
+```
+
+
+<a name="upgradeUnifiedTradeAccount" id="upgradeunifiedtradeaccount"></a>
+
+### upgradeUnifiedTradeAccount{docsify-ignore}
+upgrades the account to unified trade account *warning* this is irreversible
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+
+**See**: https://bybit-exchange.github.io/docs/v5/account/upgrade-unified-account  
+
+```javascript
+bybit.upgradeUnifiedTradeAccount ()
 ```
 
 
@@ -281,7 +302,7 @@ bybit.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetches funding rates for multiple markets
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - an array of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/market/tickers  
 
@@ -386,7 +407,7 @@ query for balance and get the amount of funds available for trading or funds loc
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.type | <code>string</code> | No | wallet type, ['spot', 'swap', 'fund'] |
+| params.type | <code>string</code> | No | wallet type, ['spot', 'swap', 'funding'] |
 
 
 ```javascript
@@ -458,12 +479,13 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.timeInForce | <code>string</code> | No | "GTC", "IOC", "FOK" |
 | params.postOnly | <code>bool</code> | No | true or false whether the order is post-only |
 | params.reduceOnly | <code>bool</code> | No | true or false whether the order is reduce-only |
-| params.positionIdx | <code>string</code> | No | *contracts only*  0 for one-way mode, 1 buy side  of hedged mode, 2 sell side of hedged mode |
+| params.positionIdx | <code>string</code> | No | *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode |
+| params.hedged | <code>bool</code> | No | *contracts only* true for hedged mode, false for one way mode, default is false |
 | params.isLeverage | <code>boolean</code> | No | *unified spot only* false then spot trading true then margin trading |
 | params.tpslMode | <code>string</code> | No | *contract only* 'full' or 'partial' |
 | params.mmp | <code>string</code> | No | *option only* market maker protection |
@@ -526,7 +548,7 @@ edit a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | Yes | the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders |
+| price | <code>float</code> | Yes | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | The price that a trigger order is triggered at |
 | params.stopLossPrice | <code>float</code> | No | The price that a stop loss order is triggered at |
@@ -592,6 +614,28 @@ bybit.cancelOrders (ids, symbol[, params])
 ```
 
 
+<a name="cancelAllOrdersAfter" id="cancelallordersafter"></a>
+
+### cancelAllOrdersAfter{docsify-ignore}
+dead man's switch, cancel all orders after the given timeout
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - the api result
+
+**See**: https://bybit-exchange.github.io/docs/v5/order/dcp  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| timeout | <code>number</code> | Yes | time in milliseconds |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.product | <code>string</code> | No | OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES' |
+
+
+```javascript
+bybit.cancelAllOrdersAfter (timeout[, params])
+```
+
+
 <a name="cancelOrdersForSymbols" id="cancelordersforsymbols"></a>
 
 ### cancelOrdersForSymbols{docsify-ignore}
@@ -604,14 +648,12 @@ cancel multiple orders for multiple symbols
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| orders | <code>Array&lt;CancellationRequest&gt;</code> | Yes | list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}] |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.clientOrderIds | <code>Array&lt;string&gt;</code> | No | client order ids |
 
 
 ```javascript
-bybit.cancelOrdersForSymbols (ids, symbol[, params])
+bybit.cancelOrdersForSymbols (orders[, params])
 ```
 
 
@@ -653,12 +695,13 @@ fetches information on an order made by the user *classic accounts only*
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bybit.fetchOrderClassic (symbol[, params])
+bybit.fetchOrderClassic (id, symbol[, params])
 ```
 
 
@@ -674,12 +717,14 @@ bybit.fetchOrderClassic (symbol[, params])
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.acknowledged | <code>object</code> | No | to suppress the warning, set to true |
 
 
 ```javascript
-bybit.fetchOrderClassic (symbol[, params])
+bybit.fetchOrderClassic (id, symbol[, params])
 ```
 
 
@@ -904,6 +949,7 @@ fetch all unfilled currently open orders
 | params.baseCoin | <code>string</code> | No | Base coin. Supports linear, inverse & option |
 | params.settleCoin | <code>string</code> | No | Settle coin. Supports linear, inverse & option |
 | params.orderFilter | <code>string</code> | No | 'Order' or 'StopOrder' or 'tpslOrder' |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
@@ -1057,23 +1103,29 @@ bybit.fetchWithdrawals (code[, since, limit, params])
 <a name="fetchLedger" id="fetchledger"></a>
 
 ### fetchLedger{docsify-ignore}
-fetch the history of changes, actions done by the user or operations that altered balance of the user
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
 **Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger-structure)
 
-**See**: https://bybit-exchange.github.io/docs/v5/account/transaction-log  
+**See**
+
+- https://bybit-exchange.github.io/docs/v5/account/transaction-log
+- https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code, default is undefined |
+| code | <code>string</code> | No | unified currency code, default is undefined |
 | since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
-| limit | <code>int</code> | No | max number of ledger entrys to return, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.subType | <code>string</code> | No | if inverse will use v5/account/contract-transaction-log |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bybit.fetchLedger (code[, since, limit, params])
+bybit.fetchLedger ([code, since, limit, params])
 ```
 
 
@@ -1331,6 +1383,30 @@ fetch the interest owed by the user for borrowing currency for margin trading
 
 ```javascript
 bybit.fetchBorrowInterest (code, symbol[, since, limit, params])
+```
+
+
+<a name="fetchBorrowRateHistory" id="fetchborrowratehistory"></a>
+
+### fetchBorrowRateHistory{docsify-ignore}
+retrieves a history of a currencies borrow interest rate at specific time slots
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [borrow rate structures](https://docs.ccxt.com/#/?id=borrow-rate-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/spot-margin-uta/historical-interest  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| since | <code>int</code> | No | timestamp for the earliest borrow rate |
+| limit | <code>int</code> | No | the maximum number of [borrow rate structures](https://docs.ccxt.com/#/?id=borrow-rate-structure) to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
+
+
+```javascript
+bybit.fetchBorrowRateHistory (code[, since, limit, params])
 ```
 
 
@@ -1745,6 +1821,146 @@ bybit.fetchPositionsHistory ([symbol, since, limit, params])
 ```
 
 
+<a name="fetchConvertCurrencies" id="fetchconvertcurrencies"></a>
+
+### fetchConvertCurrencies{docsify-ignore}
+fetches all available currencies that can be converted
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - an associative dictionary of currencies
+
+**See**: https://bybit-exchange.github.io/docs/v5/asset/convert/convert-coin-list  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountType | <code>string</code> | No | eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract |
+
+
+```javascript
+bybit.fetchConvertCurrencies ([params])
+```
+
+
+<a name="fetchConvertQuote" id="fetchconvertquote"></a>
+
+### fetchConvertQuote{docsify-ignore}
+fetch a quote for converting from one currency to another
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/asset/convert/apply-quote  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| fromCode | <code>string</code> | Yes | the currency that you want to sell and convert from |
+| toCode | <code>string</code> | Yes | the currency that you want to buy and convert into |
+| amount | <code>float</code> | No | how much you want to trade in units of the from currency |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountType | <code>string</code> | No | eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract |
+
+
+```javascript
+bybit.fetchConvertQuote (fromCode, toCode[, amount, params])
+```
+
+
+<a name="createConvertTrade" id="createconverttrade"></a>
+
+### createConvertTrade{docsify-ignore}
+convert from one currency to another
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/asset/convert/confirm-quote  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the id of the trade that you want to make |
+| fromCode | <code>string</code> | Yes | the currency that you want to sell and convert from |
+| toCode | <code>string</code> | Yes | the currency that you want to buy and convert into |
+| amount | <code>float</code> | Yes | how much you want to trade in units of the from currency |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.createConvertTrade (id, fromCode, toCode, amount[, params])
+```
+
+
+<a name="fetchConvertTrade" id="fetchconverttrade"></a>
+
+### fetchConvertTrade{docsify-ignore}
+fetch the data for a conversion trade
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-result  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the id of the trade that you want to fetch |
+| code | <code>string</code> | No | the unified currency code of the conversion trade |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountType | <code>string</code> | No | eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract |
+
+
+```javascript
+bybit.fetchConvertTrade (id[, code, params])
+```
+
+
+<a name="fetchConvertTradeHistory" id="fetchconverttradehistory"></a>
+
+### fetchConvertTradeHistory{docsify-ignore}
+fetch the users history of conversion trades
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [conversion structures](https://docs.ccxt.com/#/?id=conversion-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | the unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch conversions for |
+| limit | <code>int</code> | No | the maximum number of conversion structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountType | <code>string</code> | No | eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract |
+
+
+```javascript
+bybit.fetchConvertTradeHistory ([code, since, limit, params])
+```
+
+
+<a name="fetchLongShortRatioHistory" id="fetchlongshortratiohistory"></a>
+
+### fetchLongShortRatioHistory{docsify-ignore}
+fetches the long short ratio history for a unified market symbol
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [long short ratio structures](https://docs.ccxt.com/#/?id=long-short-ratio-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/market/long-short-ratio  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the long short ratio for |
+| timeframe | <code>string</code> | No | the period for the ratio, default is 24 hours |
+| since | <code>int</code> | No | the earliest time in ms to fetch ratios for |
+| limit | <code>int</code> | No | the maximum number of long short ratio structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.fetchLongShortRatioHistory (symbol[, timeframe, since, limit, params])
+```
+
+
 <a name="createOrderWs" id="createorderws"></a>
 
 ### createOrderWs{docsify-ignore}
@@ -1765,7 +1981,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.timeInForce | <code>string</code> | No | "GTC", "IOC", "FOK" |
 | params.postOnly | <code>bool</code> | No | true or false whether the order is post-only |
@@ -1812,7 +2028,7 @@ edit a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | Yes | the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders |
+| price | <code>float</code> | Yes | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | The price that a trigger order is triggered at |
 | params.stopLossPrice | <code>float</code> | No | The price that a stop loss order is triggered at |
@@ -1909,6 +2125,77 @@ bybit.watchTickers (symbols[, params])
 ```
 
 
+<a name="unWatchTickers" id="unwatchtickers"></a>
+
+### unWatchTickers{docsify-ignore}
+unWatches a price ticker
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**
+
+- https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+- https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.unWatchTickers (symbols[, params])
+```
+
+
+<a name="unWatchTicker" id="unwatchticker"></a>
+
+### unWatchTicker{docsify-ignore}
+unWatches a price ticker
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**
+
+- https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+- https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.unWatchTicker (symbol[, params])
+```
+
+
+<a name="watchBidsAsks" id="watchbidsasks"></a>
+
+### watchBidsAsks{docsify-ignore}
+watches best bid & ask for symbols
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.watchBidsAsks (symbols[, params])
+```
+
+
 <a name="watchOHLCV" id="watchohlcv"></a>
 
 ### watchOHLCV{docsify-ignore}
@@ -1934,6 +2221,86 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 ```javascript
 bybit.watchOHLCV (symbol, timeframe[, since, limit, params])
+```
+
+
+<a name="watchOHLCVForSymbols" id="watchohlcvforsymbols"></a>
+
+### watchOHLCVForSymbols{docsify-ignore}
+watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**
+
+- https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+- https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbolsAndTimeframes | <code>Array&lt;Array&lt;string&gt;&gt;</code> | Yes | array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']] |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
+```
+
+
+<a name="unWatchOHLCVForSymbols" id="unwatchohlcvforsymbols"></a>
+
+### unWatchOHLCVForSymbols{docsify-ignore}
+unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**
+
+- https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+- https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbolsAndTimeframes | <code>Array&lt;Array&lt;string&gt;&gt;</code> | Yes | array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']] |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.unWatchOHLCVForSymbols (symbolsAndTimeframes[, params])
+```
+
+
+<a name="unWatchOHLCV" id="unwatchohlcv"></a>
+
+### unWatchOHLCV{docsify-ignore}
+unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**
+
+- https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+- https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.unWatchOHLCV (symbol, timeframe[, since, limit, params])
 ```
 
 
@@ -1981,13 +2348,55 @@ bybit.watchOrderBook (symbols[, limit, params])
 ```
 
 
+<a name="unWatchOrderBookForSymbols" id="unwatchorderbookforsymbols"></a>
+
+### unWatchOrderBookForSymbols{docsify-ignore}
+unsubscribe from the orderbook channel
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to unwatch the trades for |
+| params.limit | <code>int</code> | No | orderbook limit, default is undefined |
+
+
+```javascript
+bybit.unWatchOrderBookForSymbols (symbols, [undefined])
+```
+
+
+<a name="unWatchOrderBook" id="unwatchorderbook"></a>
+
+### unWatchOrderBook{docsify-ignore}
+unsubscribe from the orderbook channel
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to unwatch the trades for |
+| params.limit | <code>int</code> | No | orderbook limit, default is undefined |
+
+
+```javascript
+bybit.unWatchOrderBook (symbols, [undefined])
+```
+
+
 <a name="watchTrades" id="watchtrades"></a>
 
 ### watchTrades{docsify-ignore}
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/public/trade  
 
@@ -2027,13 +2436,53 @@ bybit.watchTradesForSymbols (symbols[, since, limit, params])
 ```
 
 
+<a name="unWatchTradesForSymbols" id="unwatchtradesforsymbols"></a>
+
+### unWatchTradesForSymbols{docsify-ignore}
+unsubscribe from the trades channel
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://bybit-exchange.github.io/docs/v5/websocket/public/trade  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | unified symbol of the market to unwatch the trades for |
+
+
+```javascript
+bybit.unWatchTradesForSymbols (symbols, [undefined])
+```
+
+
+<a name="unWatchTrades" id="unwatchtrades"></a>
+
+### unWatchTrades{docsify-ignore}
+unsubscribe from the trades channel
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://bybit-exchange.github.io/docs/v5/websocket/public/trade  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| symbol | <code>string</code> | unified symbol of the market to unwatch the trades for |
+
+
+```javascript
+bybit.unWatchTrades (symbol, [undefined])
+```
+
+
 <a name="watchMyTrades" id="watchmytrades"></a>
 
 ### watchMyTrades{docsify-ignore}
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/private/execution  
 
@@ -2048,6 +2497,28 @@ watches information on multiple trades made by the user
 
 ```javascript
 bybit.watchMyTrades (symbol[, since, limit, params])
+```
+
+
+<a name="unWatchMyTrades" id="unwatchmytrades"></a>
+
+### unWatchMyTrades{docsify-ignore}
+unWatches information on multiple trades made by the user
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/websocket/private/execution  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.unifiedMargin | <code>boolean</code> | No | use unified margin account |
+
+
+```javascript
+bybit.unWatchMyTrades (symbol[, params])
 ```
 
 
@@ -2101,7 +2572,7 @@ bybit.watchLiquidations (symbol[, since, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/private/order  
 
@@ -2115,6 +2586,28 @@ watches information on multiple orders made by the user
 
 ```javascript
 bybit.watchOrders (symbol[, since, limit, params])
+```
+
+
+<a name="unWatchOrders" id="unwatchorders"></a>
+
+### unWatchOrders{docsify-ignore}
+unWatches information on multiple orders made by the user
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/websocket/private/order  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.unifiedMargin | <code>boolean</code> | No | use unified margin account |
+
+
+```javascript
+bybit.unWatchOrders (symbol[, params])
 ```
 
 

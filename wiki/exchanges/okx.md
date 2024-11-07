@@ -13,6 +13,8 @@
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTicker](#fetchticker)
 * [fetchTickers](#fetchtickers)
+* [fetchMarkPrice](#fetchmarkprice)
+* [fetchMarkPrices](#fetchmarkprices)
 * [fetchTrades](#fetchtrades)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
@@ -47,6 +49,7 @@
 * [fetchPositions](#fetchpositions)
 * [transfer](#transfer)
 * [fetchTransfers](#fetchtransfers)
+* [fetchFundingInterval](#fetchfundinginterval)
 * [fetchFundingRate](#fetchfundingrate)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [setLeverage](#setleverage)
@@ -79,17 +82,29 @@
 * [fetchConvertCurrencies](#fetchconvertcurrencies)
 * [fetchMarginAdjustmentHistory](#fetchmarginadjustmenthistory)
 * [fetchPositionsHistory](#fetchpositionshistory)
+* [fetchLongShortRatioHistory](#fetchlongshortratiohistory)
 * [watchTrades](#watchtrades)
 * [watchTradesForSymbols](#watchtradesforsymbols)
+* [unWatchTradesForSymbols](#unwatchtradesforsymbols)
+* [unWatchTradesForSymbols](#unwatchtradesforsymbols)
 * [watchFundingRate](#watchfundingrate)
 * [watchTicker](#watchticker)
+* [unWatchTicker](#unwatchticker)
 * [watchTickers](#watchtickers)
+* [watchMarkPrice](#watchmarkprice)
+* [watchMarkPrices](#watchmarkprices)
+* [unWatchTickers](#unwatchtickers)
+* [watchBidsAsks](#watchbidsasks)
 * [watchLiquidationsForSymbols](#watchliquidationsforsymbols)
 * [watchMyLiquidationsForSymbols](#watchmyliquidationsforsymbols)
 * [watchOHLCV](#watchohlcv)
+* [unWatchOHLCV](#unwatchohlcv)
 * [watchOHLCVForSymbols](#watchohlcvforsymbols)
+* [unWatchOHLCVForSymbols](#unwatchohlcvforsymbols)
 * [watchOrderBook](#watchorderbook)
 * [watchOrderBookForSymbols](#watchorderbookforsymbols)
+* [unWatchOrderBookForSymbols](#unwatchorderbookforsymbols)
+* [unWatchOrderBook](#unwatchorderbook)
 * [watchBalance](#watchbalance)
 * [watchMyTrades](#watchmytrades)
 * [watchPositions](#watchpositions)
@@ -265,6 +280,48 @@ okx.fetchTickers ([symbols, params])
 ```
 
 
+<a name="fetchMarkPrice" id="fetchmarkprice"></a>
+
+### fetchMarkPrice{docsify-ignore}
+fetches mark price for the market
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+okx.fetchMarkPrice (symbol[, params])
+```
+
+
+<a name="fetchMarkPrices" id="fetchmarkprices"></a>
+
+### fetchMarkPrices{docsify-ignore}
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+okx.fetchMarkPrices ([symbols, params])
+```
+
+
 <a name="fetchTrades" id="fetchtrades"></a>
 
 ### fetchTrades{docsify-ignore}
@@ -390,6 +447,7 @@ query for balance and get the amount of funds available for trading or funds loc
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | wallet type, ['funding' or 'trading'] default is 'trading' |
 
 
 ```javascript
@@ -462,7 +520,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.reduceOnly | <code>bool</code> | No | a mark to reduce the position size for margin, swap and future orders |
 | params.postOnly | <code>bool</code> | No | true to place a post only order |
@@ -477,7 +535,7 @@ create a trade order
 | params.positionSide | <code>string</code> | No | if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short' |
 | params.trailingPercent | <code>string</code> | No | the percent to trail away from the current market price |
 | params.tpOrdKind | <code>string</code> | No | 'condition' or 'limit', the default is 'condition' |
-| params.hedged | <code>string</code> | No | true/false, to automatically set exchange-specific params needed when trading in hedge mode |
+| params.hedged | <code>bool</code> | No | *swap and future only* true for hedged mode, false for one way mode |
 
 
 ```javascript
@@ -526,7 +584,7 @@ edit a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of the currency you want to trade in units of the base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderId | <code>string</code> | No | client order id, uses id if not passed |
 | params.stopLossPrice | <code>float</code> | No | stop loss trigger price |
@@ -623,7 +681,7 @@ cancel multiple orders for multiple symbols
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| orders | <code>Array&lt;CancellationRequest&gt;</code> | Yes | each order should contain the parameters required by cancelOrder namely id and symbol |
+| orders | <code>Array&lt;CancellationRequest&gt;</code> | Yes | each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}] |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>boolean</code> | No | whether the order is a stop/trigger order |
 | params.trailing | <code>boolean</code> | No | set to true if you want to cancel trailing orders |
@@ -847,17 +905,17 @@ fetch the history of changes, actions done by the user or operations that altere
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code, default is undefined |
+| code | <code>string</code> | No | unified currency code, default is undefined |
 | since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
-| limit | <code>int</code> | No | max number of ledger entrys to return, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated' |
 | params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
-okx.fetchLedger (code[, since, limit, params])
+okx.fetchLedger ([code, since, limit, params])
 ```
 
 
@@ -896,6 +954,7 @@ fetch the deposit address for a currency associated with this account
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.network | <code>string</code> | No | the network name for the deposit address |
 
 
 ```javascript
@@ -1157,6 +1216,27 @@ fetch a history of internal transfers made on an account
 
 ```javascript
 okx.fetchTransfers (code[, since, limit, params])
+```
+
+
+<a name="fetchFundingInterval" id="fetchfundinginterval"></a>
+
+### fetchFundingInterval{docsify-ignore}
+fetch the current funding rate interval
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+**See**: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+okx.fetchFundingInterval (symbol[, params])
 ```
 
 
@@ -1894,6 +1974,31 @@ okx.fetchPositionsHistory ([symbols, since, limit, params])
 ```
 
 
+<a name="fetchLongShortRatioHistory" id="fetchlongshortratiohistory"></a>
+
+### fetchLongShortRatioHistory{docsify-ignore}
+fetches the long short ratio history for a unified market symbol
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [long short ratio structures](https://docs.ccxt.com/#/?id=long-short-ratio-structure)
+
+**See**: https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-long-short-ratio  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the long short ratio for |
+| timeframe | <code>string</code> | No | the period for the ratio |
+| since | <code>int</code> | No | the earliest time in ms to fetch ratios for |
+| limit | <code>int</code> | No | the maximum number of long short ratio structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest ratio to fetch |
+
+
+```javascript
+okx.fetchLongShortRatioHistory (symbol[, timeframe, since, limit, params])
+```
+
+
 <a name="watchTrades" id="watchtrades"></a>
 
 ### watchTrades{docsify-ignore}
@@ -1935,6 +2040,46 @@ get the list of most recent trades for a particular symbol
 
 ```javascript
 okx.watchTradesForSymbols (symbol[, since, limit, params])
+```
+
+
+<a name="unWatchTradesForSymbols" id="unwatchtradesforsymbols"></a>
+
+### unWatchTradesForSymbols{docsify-ignore}
+unWatches from the stream channel
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+okx.unWatchTradesForSymbols (symbol[, params])
+```
+
+
+<a name="unWatchTradesForSymbols" id="unwatchtradesforsymbols"></a>
+
+### unWatchTradesForSymbols{docsify-ignore}
+unWatches from the stream channel
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+okx.unWatchTradesForSymbols (symbol[, params])
 ```
 
 
@@ -1981,6 +2126,28 @@ okx.watchTicker (symbol[, params])
 ```
 
 
+<a name="unWatchTicker" id="unwatchticker"></a>
+
+### unWatchTicker{docsify-ignore}
+unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers |
+
+
+```javascript
+okx.unWatchTicker (symbol[, params])
+```
+
+
 <a name="watchTickers" id="watchtickers"></a>
 
 ### watchTickers{docsify-ignore}
@@ -2000,6 +2167,93 @@ watches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 okx.watchTickers ([symbols, params])
+```
+
+
+<a name="watchMarkPrice" id="watchmarkprice"></a>
+
+### watchMarkPrice{docsify-ignore}
+watches a mark price
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers |
+
+
+```javascript
+okx.watchMarkPrice (symbol[, params])
+```
+
+
+<a name="watchMarkPrices" id="watchmarkprices"></a>
+
+### watchMarkPrices{docsify-ignore}
+watches mark prices
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers |
+
+
+```javascript
+okx.watchMarkPrices ([symbols, params])
+```
+
+
+<a name="unWatchTickers" id="unwatchtickers"></a>
+
+### unWatchTickers{docsify-ignore}
+unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers |
+
+
+```javascript
+okx.unWatchTickers ([symbols, params])
+```
+
+
+<a name="watchBidsAsks" id="watchbidsasks"></a>
+
+### watchBidsAsks{docsify-ignore}
+watches best bid & ask for symbols
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+okx.watchBidsAsks (symbols[, params])
 ```
 
 
@@ -2072,6 +2326,27 @@ okx.watchOHLCV (symbol, timeframe[, since, limit, params])
 ```
 
 
+<a name="unWatchOHLCV" id="unwatchohlcv"></a>
+
+### unWatchOHLCV{docsify-ignore}
+watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+okx.unWatchOHLCV (symbol, timeframe[, params])
+```
+
+
 <a name="watchOHLCVForSymbols" id="watchohlcvforsymbols"></a>
 
 ### watchOHLCVForSymbols{docsify-ignore}
@@ -2091,6 +2366,26 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 ```javascript
 okx.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
+```
+
+
+<a name="unWatchOHLCVForSymbols" id="unwatchohlcvforsymbols"></a>
+
+### unWatchOHLCVForSymbols{docsify-ignore}
+unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbolsAndTimeframes | <code>Array&lt;Array&lt;string&gt;&gt;</code> | Yes | array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']] |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+okx.unWatchOHLCVForSymbols (symbolsAndTimeframes[, params])
 ```
 
 
@@ -2140,6 +2435,52 @@ okx.watchOrderBookForSymbols (symbols[, limit, params])
 ```
 
 
+<a name="unWatchOrderBookForSymbols" id="unwatchorderbookforsymbols"></a>
+
+### unWatchOrderBookForSymbols{docsify-ignore}
+unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| params.depth | <code>string</code> | No | okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt |
+
+
+```javascript
+okx.unWatchOrderBookForSymbols (symbols[, params])
+```
+
+
+<a name="unWatchOrderBook" id="unwatchorderbook"></a>
+
+### unWatchOrderBook{docsify-ignore}
+unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified array of symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| params.depth | <code>string</code> | No | okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt |
+
+
+```javascript
+okx.unWatchOrderBook (symbol[, params])
+```
+
+
 <a name="watchBalance" id="watchbalance"></a>
 
 ### watchBalance{docsify-ignore}
@@ -2165,7 +2506,7 @@ okx.watchBalance ([params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel  
 
@@ -2248,7 +2589,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code>, <code>undefined</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code>, <code>undefined</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.test | <code>boolean</code> | Yes | test order, default false |
 
@@ -2279,7 +2620,7 @@ edit a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of the currency you want to trade in units of the base currency |
-| price | <code>float</code>, <code>undefined</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code>, <code>undefined</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 

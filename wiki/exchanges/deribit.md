@@ -46,6 +46,8 @@
 * [fetchOptionChain](#fetchoptionchain)
 * [watchBalance](#watchbalance)
 * [watchTicker](#watchticker)
+* [watchTickers](#watchtickers)
+* [watchBidsAsks](#watchbidsasks)
 * [watchTrades](#watchtrades)
 * [watchTradesForSymbols](#watchtradesforsymbols)
 * [watchMyTrades](#watchmytrades)
@@ -400,8 +402,8 @@ create a trade order
 | symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
-| amount | <code>float</code> | Yes | how much you want to trade in units of the base currency. For inverse perpetual and futures the amount is in the quote currency USD. For options it is in the underlying assets base currency. |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| amount | <code>float</code> | Yes | how much you want to trade in units of the base currency. For perpetual and inverse futures the amount is in USD units. For options it is in the underlying assets base currency. |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>string</code> | No | the trigger type 'index_price', 'mark_price', or 'last_price', default is 'last_price' |
 | params.trailingAmount | <code>float</code> | No | the quote amount to trail away from the current market price |
@@ -428,8 +430,8 @@ edit a trade order
 | symbol | <code>string</code> | No | unified symbol of the market to edit an order in |
 | type | <code>string</code> | No | 'market' or 'limit' |
 | side | <code>string</code> | No | 'buy' or 'sell' |
-| amount | <code>float</code> | Yes | how much you want to trade in units of the base currency, inverse swap and future use the quote currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders |
+| amount | <code>float</code> | Yes | how much you want to trade in units of the base currency. For perpetual and inverse futures the amount is in USD units. For options it is in the underlying assets base currency. |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trailingAmount | <code>float</code> | No | the quote amount to trail away from the current market price |
 
@@ -997,6 +999,49 @@ deribit.watchTicker (symbol[, params])
 ```
 
 
+<a name="watchTickers" id="watchtickers"></a>
+
+### watchTickers{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+**Kind**: instance method of [<code>deribit</code>](#deribit)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://docs.deribit.com/#ticker-instrument_name-interval  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.interval | <code>str</code> | No | specify aggregation and frequency of notifications. Possible values: 100ms, raw |
+
+
+```javascript
+deribit.watchTickers ([symbols, params])
+```
+
+
+<a name="watchBidsAsks" id="watchbidsasks"></a>
+
+### watchBidsAsks{docsify-ignore}
+watches best bid & ask for symbols
+
+**Kind**: instance method of [<code>deribit</code>](#deribit)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://docs.deribit.com/#quote-instrument_name  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+deribit.watchBidsAsks ([symbols, params])
+```
+
+
 <a name="watchTrades" id="watchtrades"></a>
 
 ### watchTrades{docsify-ignore}
@@ -1119,7 +1164,7 @@ deribit.watchOrderBookForSymbols (symbols[, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
 **See**: https://docs.deribit.com/#user-orders-instrument_name-raw  
 

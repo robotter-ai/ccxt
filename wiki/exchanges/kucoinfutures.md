@@ -12,7 +12,9 @@
 * [fetchDepositAddress](#fetchdepositaddress)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTicker](#fetchticker)
+* [fetchMarkPrice](#fetchmarkprice)
 * [fetchTickers](#fetchtickers)
+* [fetchBidsAsks](#fetchbidsasks)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
@@ -20,6 +22,7 @@
 * [createOrder](#createorder)
 * [createOrders](#createorders)
 * [cancelOrder](#cancelorder)
+* [cancelOrders](#cancelorders)
 * [cancelAllOrders](#cancelallorders)
 * [addMargin](#addmargin)
 * [fetchOrdersByStatus](#fetchordersbystatus)
@@ -27,6 +30,7 @@
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchOrder](#fetchorder)
 * [fetchFundingRate](#fetchfundingrate)
+* [fetchFundingInterval](#fetchfundinginterval)
 * [fetchBalance](#fetchbalance)
 * [transfer](#transfer)
 * [fetchMyTrades](#fetchmytrades)
@@ -37,15 +41,22 @@
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [closePosition](#closeposition)
 * [fetchTradingFee](#fetchtradingfee)
+* [fetchMarginMode](#fetchmarginmode)
+* [setMarginMode](#setmarginmode)
+* [setLeverage](#setleverage)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
 * [watchBidsAsks](#watchbidsasks)
 * [watchPosition](#watchposition)
 * [watchTrades](#watchtrades)
-* [watchTrades](#watchtrades)
+* [watchTradesForSymbols](#watchtradesforsymbols)
+* [unWatchTrades](#unwatchtrades)
+* [unWatchTradesForSymbols](#unwatchtradesforsymbols)
 * [watchOHLCV](#watchohlcv)
 * [watchOrderBook](#watchorderbook)
 * [watchOrderBookForSymbols](#watchorderbookforsymbols)
+* [unWatchOrderBook](#unwatchorderbook)
+* [unWatchOrderBookForSymbols](#unwatchorderbookforsymbols)
 * [watchOrders](#watchorders)
 * [watchBalance](#watchbalance)
 
@@ -198,6 +209,27 @@ kucoinfutures.fetchTicker (symbol[, params])
 ```
 
 
+<a name="fetchMarkPrice" id="fetchmarkprice"></a>
+
+### fetchMarkPrice{docsify-ignore}
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-mark-price  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoinfutures.fetchMarkPrice (symbol[, params])
+```
+
+
 <a name="fetchTickers" id="fetchtickers"></a>
 
 ### fetchTickers{docsify-ignore}
@@ -212,10 +244,31 @@ fetches price tickers for multiple markets, statistical information calculated o
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.method | <code>string</code> | No | the method to use, futuresPublicGetAllTickers or futuresPublicGetContractsActive |
 
 
 ```javascript
 kucoinfutures.fetchTickers ([symbols, params])
+```
+
+
+<a name="fetchBidsAsks" id="fetchbidsasks"></a>
+
+### fetchBidsAsks{docsify-ignore}
+fetches the bid and ask price and volume for multiple markets
+
+**Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoinfutures.fetchBidsAsks ([symbols, params])
 ```
 
 
@@ -315,7 +368,11 @@ Create an order on the exchange
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.kucoin.com/futures/#place-an-order  
+**See**
+
+- https://docs.kucoin.com/futures/#place-an-order
+- https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -323,8 +380,10 @@ Create an order on the exchange
 | type | <code>string</code> | Yes | 'limit' or 'market' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | the amount of currency to trade |
-| price | <code>float</code> | No | *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.takeProfit | <code>object</code> | No | *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered |
+| params.stopLoss | <code>object</code> | No | *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered |
 | params.triggerPrice | <code>float</code> | No | The price a trigger order is triggered at |
 | params.stopLossPrice | <code>float</code> | No | price to trigger stop-loss orders |
 | params.takeProfitPrice | <code>float</code> | No | price to trigger take-profit orders |
@@ -387,6 +446,29 @@ cancels an open order
 
 ```javascript
 kucoinfutures.cancelOrder (id, symbol[, params])
+```
+
+
+<a name="cancelOrders" id="cancelorders"></a>
+
+### cancelOrders{docsify-ignore}
+cancel multiple orders
+
+**Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**: https://www.kucoin.com/docs/rest/futures-trading/orders/batch-cancel-orders  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderIds | <code>Array&lt;string&gt;</code> | No | client order ids |
+
+
+```javascript
+kucoinfutures.cancelOrders (ids, symbol[, params])
 ```
 
 
@@ -569,6 +651,27 @@ fetch the current funding rate
 
 ```javascript
 kucoinfutures.fetchFundingRate (symbol[, params])
+```
+
+
+<a name="fetchFundingInterval" id="fetchfundinginterval"></a>
+
+### fetchFundingInterval{docsify-ignore}
+fetch the current funding rate interval
+
+**Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+**See**: https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoinfutures.fetchFundingInterval (symbol[, params])
 ```
 
 
@@ -796,6 +899,71 @@ kucoinfutures.fetchTradingFee (symbol[, params])
 ```
 
 
+<a name="fetchMarginMode" id="fetchmarginmode"></a>
+
+### fetchMarginMode{docsify-ignore}
+fetches the margin mode of a trading pair
+
+**Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
+**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/#/?id=margin-mode-structure)
+
+**See**: https://www.kucoin.com/docs/rest/futures-trading/positions/get-margin-mode  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the margin mode for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoinfutures.fetchMarginMode (symbol[, params])
+```
+
+
+<a name="setMarginMode" id="setmarginmode"></a>
+
+### setMarginMode{docsify-ignore}
+set margin mode to 'cross' or 'isolated'
+
+**Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**: https://www.kucoin.com/docs/rest/futures-trading/positions/modify-margin-mode  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| marginMode | <code>string</code> | Yes | 'cross' or 'isolated' |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoinfutures.setMarginMode (marginMode, symbol[, params])
+```
+
+
+<a name="setLeverage" id="setleverage"></a>
+
+### setLeverage{docsify-ignore}
+set the level of leverage for a market
+
+**Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**: https://www.kucoin.com/docs/rest/futures-trading/positions/modify-cross-margin-leverage  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| leverage | <code>float</code> | Yes | the rate of leverage |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoinfutures.setLeverage (leverage, symbol[, params])
+```
+
+
 <a name="watchTicker" id="watchticker"></a>
 
 ### watchTicker{docsify-ignore}
@@ -902,9 +1070,9 @@ kucoinfutures.watchTrades (symbol[, since, limit, params])
 ```
 
 
-<a name="watchTrades" id="watchtrades"></a>
+<a name="watchTradesForSymbols" id="watchtradesforsymbols"></a>
 
-### watchTrades{docsify-ignore}
+### watchTradesForSymbols{docsify-ignore}
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
@@ -920,7 +1088,48 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-kucoinfutures.watchTrades (symbol[, since, limit, params])
+kucoinfutures.watchTradesForSymbols (symbol[, since, limit, params])
+```
+
+
+<a name="unWatchTrades" id="unwatchtrades"></a>
+
+### unWatchTrades{docsify-ignore}
+unWatches trades stream
+
+**Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**: https://docs.kucoin.com/futures/#execution-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoinfutures.unWatchTrades (symbol[, params])
+```
+
+
+<a name="unWatchTradesForSymbols" id="unwatchtradesforsymbols"></a>
+
+### unWatchTradesForSymbols{docsify-ignore}
+get the list of most recent trades for a particular symbol
+
+**Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoinfutures.unWatchTradesForSymbols (symbol[, params])
 ```
 
 
@@ -978,6 +1187,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
+**See**: https://docs.kucoin.com/futures/#level-2-market-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -988,6 +1198,47 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 ```javascript
 kucoinfutures.watchOrderBookForSymbols (symbols[, limit, params])
+```
+
+
+<a name="unWatchOrderBook" id="unwatchorderbook"></a>
+
+### unWatchOrderBook{docsify-ignore}
+unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**: https://docs.kucoin.com/futures/#level-2-market-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoinfutures.unWatchOrderBook (symbol[, params])
+```
+
+
+<a name="unWatchOrderBookForSymbols" id="unwatchorderbookforsymbols"></a>
+
+### unWatchOrderBookForSymbols{docsify-ignore}
+unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoinfutures.unWatchOrderBookForSymbols (symbols[, params])
 ```
 
 

@@ -193,7 +193,7 @@ create a trade order
 | type | <code>string</code> | Yes | must be 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -356,7 +356,7 @@ coinone.watchTicker (symbol[, params])
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>coinone</code>](#coinone)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
 **See**: https://docs.coinone.co.kr/reference/public-websocket-trade  
 

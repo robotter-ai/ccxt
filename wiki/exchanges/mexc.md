@@ -16,6 +16,7 @@
 * [fetchTicker](#fetchticker)
 * [fetchBidsAsks](#fetchbidsasks)
 * [createMarketBuyOrderWithCost](#createmarketbuyorderwithcost)
+* [createMarketSellOrderWithCost](#createmarketsellorderwithcost)
 * [createOrder](#createorder)
 * [createOrders](#createorders)
 * [fetchOrder](#fetchorder)
@@ -35,6 +36,7 @@
 * [addMargin](#addmargin)
 * [setLeverage](#setleverage)
 * [fetchFundingHistory](#fetchfundinghistory)
+* [fetchFundingInterval](#fetchfundinginterval)
 * [fetchFundingRate](#fetchfundingrate)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchLeverageTiers](#fetchleveragetiers)
@@ -45,14 +47,20 @@
 * [fetchWithdrawals](#fetchwithdrawals)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
+* [fetchTransfer](#fetchtransfer)
 * [fetchTransfers](#fetchtransfers)
 * [transfer](#transfer)
 * [withdraw](#withdraw)
+* [setPositionMode](#setpositionmode)
+* [fetchPositionMode](#fetchpositionmode)
 * [fetchTransactionFees](#fetchtransactionfees)
 * [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
 * [fetchLeverage](#fetchleverage)
 * [fetchPositionsHistory](#fetchpositionshistory)
+* [setMarginMode](#setmarginmode)
 * [watchTicker](#watchticker)
+* [watchTickers](#watchtickers)
+* [watchBidsAsks](#watchbidsasks)
 * [watchOHLCV](#watchohlcv)
 * [watchOrderBook](#watchorderbook)
 * [watchTrades](#watchtrades)
@@ -67,6 +75,11 @@ the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#test-connectivity
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
 
 
 | Param | Type | Required | Description |
@@ -86,6 +99,11 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
+
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#check-server-time
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
 
 
 | Param | Type | Required | Description |
@@ -125,6 +143,11 @@ retrieves data on all markets for mexc
 
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
 
 
 | Param | Type | Required | Description |
@@ -230,6 +253,11 @@ fetches price tickers for multiple markets, statistical information calculated o
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
 
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -249,6 +277,11 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
 
 
 | Param | Type | Required | Description |
@@ -270,6 +303,7 @@ fetches the bid and ask price and volume for multiple markets
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
 
+**See**: https://mexcdevelop.github.io/apidocs/spot_v3_en/#symbol-order-book-ticker  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -304,6 +338,28 @@ mexc.createMarketBuyOrderWithCost (symbol, cost[, params])
 ```
 
 
+<a name="createMarketSellOrderWithCost" id="createmarketsellorderwithcost"></a>
+
+### createMarketSellOrderWithCost{docsify-ignore}
+create a market sell order by providing the symbol and cost
+
+**Kind**: instance method of [<code>mexc</code>](#mexc)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**: https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
+| cost | <code>float</code> | Yes | how much you want to trade in units of the quote currency |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+mexc.createMarketSellOrderWithCost (symbol, cost[, params])
+```
+
+
 <a name="createOrder" id="createorder"></a>
 
 ### createOrder{docsify-ignore}
@@ -325,16 +381,18 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.marginMode | <code>string</code> | No | only 'isolated' is supported for spot-margin trading |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
 | params.postOnly | <code>bool</code> | No | if true, the order will only be posted if it will be a maker order |
-| params.reduceOnly | <code>bool</code> | No | *contract only* indicates if this order is to reduce the size of a position EXCHANGE SPECIFIC PARAMETERS |
+| params.reduceOnly | <code>bool</code> | No | *contract only* indicates if this order is to reduce the size of a position |
+| params.hedged | <code>bool</code> | No | *swap only* true for hedged mode, false for one way mode, default is false EXCHANGE SPECIFIC PARAMETERS |
 | params.leverage | <code>int</code> | No | *contract only* leverage is necessary on isolated margin |
 | params.positionId | <code>long</code> | No | *contract only* it is recommended to fill in this parameter when closing a position |
 | params.externalOid | <code>string</code> | No | *contract only* external order ID |
 | params.positionMode | <code>int</code> | No | *contract only*  1:hedge, 2:one-way, default: the user's current config |
+| params.test | <code>boolean</code> | No | *spot only* whether to use the test endpoint or not, default is false |
 
 
 ```javascript
@@ -371,6 +429,11 @@ fetches information on an order made by the user
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-order
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -392,6 +455,12 @@ fetches information on multiple orders made by the user
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -399,6 +468,7 @@ fetches information on multiple orders made by the user
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
 | params.marginMode | <code>string</code> | No | only 'isolated' is supported, for spot-margin trading |
 
 
@@ -414,6 +484,12 @@ fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#current-open-orders
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
 
 
 | Param | Type | Required | Description |
@@ -438,6 +514,12 @@ fetches information on multiple closed orders made by the user
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -459,6 +541,12 @@ fetches information on multiple canceled orders made by the user
 
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
 
 
 | Param | Type | Required | Description |
@@ -482,6 +570,12 @@ cancels an open order
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-order
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-stop-limit-trigger-order-under-maintenance
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -504,6 +598,7 @@ cancel multiple orders
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
+**See**: https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -524,6 +619,12 @@ cancel all open orders
 
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-all-open-orders-on-a-symbol
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-orders-under-a-contract-under-maintenance
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-trigger-orders-under-maintenance
 
 
 | Param | Type | Required | Description |
@@ -546,6 +647,11 @@ fetch all the accounts associated with a profile
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
 
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -564,6 +670,11 @@ fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
 
 
 | Param | Type | Required | Description |
@@ -610,6 +721,11 @@ fetch all trades made by the user
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-transaction-details-of-the-user-s-order
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -617,6 +733,7 @@ fetch all trades made by the user
 | since | <code>int</code> | No | the earliest time in ms to fetch trades for |
 | limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch trades for |
 
 
 ```javascript
@@ -631,6 +748,11 @@ fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number
 
 
 | Param | Type | Required | Description |
@@ -655,6 +777,7 @@ remove margin from a position
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
 
+**See**: https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -676,6 +799,7 @@ add margin
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
 
+**See**: https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -697,6 +821,7 @@ set the level of leverage for a market
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>object</code> - response from the exchange
 
+**See**: https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -718,6 +843,7 @@ fetch the history of funding payments paid and received on this account
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/#/?id=funding-history-structure)
 
+**See**: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-details-of-user-s-funding-rate  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -732,6 +858,27 @@ mexc.fetchFundingHistory (symbol[, since, limit, params])
 ```
 
 
+<a name="fetchFundingInterval" id="fetchfundinginterval"></a>
+
+### fetchFundingInterval{docsify-ignore}
+fetch the current funding rate interval
+
+**Kind**: instance method of [<code>mexc</code>](#mexc)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+**See**: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+mexc.fetchFundingInterval (symbol[, params])
+```
+
+
 <a name="fetchFundingRate" id="fetchfundingrate"></a>
 
 ### fetchFundingRate{docsify-ignore}
@@ -740,6 +887,7 @@ fetch the current funding rate
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
 
+**See**: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -760,6 +908,7 @@ fetches historical funding rate prices
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
 
+**See**: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -914,6 +1063,7 @@ fetch data on a single open contract trade position
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
 
+**See**: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -934,6 +1084,7 @@ fetch all open positions
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
 
+**See**: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -946,6 +1097,28 @@ mexc.fetchPositions (symbols[, params])
 ```
 
 
+<a name="fetchTransfer" id="fetchtransfer"></a>
+
+### fetchTransfer{docsify-ignore}
+fetches a transfer
+
+**Kind**: instance method of [<code>mexc</code>](#mexc)  
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+
+**See**: https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | transfer id |
+| code | <code>string</code> | No | not used by mexc fetchTransfer |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+
+
+```javascript
+mexc.fetchTransfer (id[, code, params])
+```
+
+
 <a name="fetchTransfers" id="fetchtransfers"></a>
 
 ### fetchTransfers{docsify-ignore}
@@ -953,6 +1126,11 @@ fetch a history of internal transfers made on an account
 
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
 
 
 | Param | Type | Required | Description |
@@ -1001,7 +1179,7 @@ make a withdrawal
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
 
-**See**: https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw  
+**See**: https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1014,6 +1192,49 @@ make a withdrawal
 
 ```javascript
 mexc.withdraw (code, amount, address, tag[, params])
+```
+
+
+<a name="setPositionMode" id="setpositionmode"></a>
+
+### setPositionMode{docsify-ignore}
+set hedged to true or false for a market
+
+**Kind**: instance method of [<code>mexc</code>](#mexc)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**: https://mexcdevelop.github.io/apidocs/contract_v1_en/#change-position-mode  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| hedged | <code>bool</code> | Yes | set to true to use dualSidePosition |
+| symbol | <code>string</code> | Yes | not used by mexc setPositionMode () |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+mexc.setPositionMode (hedged, symbol[, params])
+```
+
+
+<a name="fetchPositionMode" id="fetchpositionmode"></a>
+
+### fetchPositionMode{docsify-ignore}
+fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+
+**Kind**: instance method of [<code>mexc</code>](#mexc)  
+**Returns**: <code>object</code> - an object detailing whether the market is in hedged or one-way mode
+
+**See**: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-position-mode  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | not used by mexc fetchPositionMode |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+mexc.fetchPositionMode (symbol[, params])
 ```
 
 
@@ -1105,6 +1326,30 @@ mexc.fetchPositionsHistory ([symbols, since, limit, params, type, page_num])
 ```
 
 
+<a name="setMarginMode" id="setmarginmode"></a>
+
+### setMarginMode{docsify-ignore}
+set margin mode to 'cross' or 'isolated'
+
+**Kind**: instance method of [<code>mexc</code>](#mexc)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**: https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| marginMode | <code>string</code> | Yes | 'cross' or 'isolated' |
+| symbol | <code>string</code> | No | required when there is no position, else provide params["positionId"] |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.positionId | <code>string</code> | No | required when a position is set |
+| params.direction | <code>string</code> | No | "long" or "short" required when there is no position |
+
+
+```javascript
+mexc.setMarginMode (marginMode[, symbol, params])
+```
+
+
 <a name="watchTicker" id="watchticker"></a>
 
 ### watchTicker{docsify-ignore}
@@ -1112,6 +1357,11 @@ watches a price ticker, a statistical calculation with the information calculate
 
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
 
 
 | Param | Type | Required | Description |
@@ -1125,6 +1375,52 @@ mexc.watchTicker (symbol[, params])
 ```
 
 
+<a name="watchTickers" id="watchtickers"></a>
+
+### watchTickers{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+**Kind**: instance method of [<code>mexc</code>](#mexc)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+mexc.watchTickers (symbols[, params])
+```
+
+
+<a name="watchBidsAsks" id="watchbidsasks"></a>
+
+### watchBidsAsks{docsify-ignore}
+watches best bid & ask for symbols
+
+**Kind**: instance method of [<code>mexc</code>](#mexc)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+mexc.watchBidsAsks (symbols[, params])
+```
+
+
 <a name="watchOHLCV" id="watchohlcv"></a>
 
 ### watchOHLCV{docsify-ignore}
@@ -1133,7 +1429,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://mxcdevelop.github.io/apidocs/spot_v3_en/#kline-streams  
+**See**: https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-streams  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1157,7 +1453,11 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
-**See**: https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream  
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1179,7 +1479,11 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
-**See**: https://mxcdevelop.github.io/apidocs/spot_v3_en/#trade-streams  
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1200,9 +1504,13 @@ mexc.watchTrades (symbol[, since, limit, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
-**See**: https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals  
+**See**
+
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
+- https://mexcdevelop.github.io/apidocs/contract_v1_en/#private-channels
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1227,8 +1535,8 @@ watches information on multiple orders made by the user
 
 **See**
 
-- https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
-- https://mxcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
+- https://mexcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
 
 
 | Param | Type | Required | Description |
@@ -1253,7 +1561,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 **Kind**: instance method of [<code>mexc</code>](#mexc)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
 
-**See**: https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte  
+**See**: https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

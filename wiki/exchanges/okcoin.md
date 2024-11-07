@@ -21,6 +21,8 @@
 * [fetchOrder](#fetchorder)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchClosedOrders](#fetchclosedorders)
+* [fetchDepositAddress](#fetchdepositaddress)
+* [fetchDepositAddressesByNetwork](#fetchdepositaddressesbynetwork)
 * [transfer](#transfer)
 * [withdraw](#withdraw)
 * [fetchDeposits](#fetchdeposits)
@@ -275,7 +277,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | Yes | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | Yes | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.reduceOnly | <code>bool</code> | No | MARGIN orders only, or swap/future orders in net mode |
 | params.postOnly | <code>bool</code> | No | true to place a post only order |
@@ -436,6 +438,48 @@ okcoin.fetchClosedOrders (symbol[, since, limit, params])
 ```
 
 
+<a name="fetchDepositAddress" id="fetchdepositaddress"></a>
+
+### fetchDepositAddress{docsify-ignore}
+fetch the deposit address for a currency associated with this account
+
+**Kind**: instance method of [<code>okcoin</code>](#okcoin)  
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+
+**See**: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+okcoin.fetchDepositAddress (code[, params])
+```
+
+
+<a name="fetchDepositAddressesByNetwork" id="fetchdepositaddressesbynetwork"></a>
+
+### fetchDepositAddressesByNetwork{docsify-ignore}
+fetch a dictionary of addresses for a currency, indexed by network
+
+**Kind**: instance method of [<code>okcoin</code>](#okcoin)  
+**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/#/?id=address-structure) indexed by the network
+
+**See**: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code of the currency for the deposit address |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+okcoin.fetchDepositAddressesByNetwork (code[, params])
+```
+
+
 <a name="transfer" id="transfer"></a>
 
 ### transfer{docsify-ignore}
@@ -583,7 +627,7 @@ okcoin.fetchOrderTrades (id, symbol[, since, limit, params])
 <a name="fetchLedger" id="fetchledger"></a>
 
 ### fetchLedger{docsify-ignore}
-fetch the history of changes, actions done by the user or operations that altered balance of the user
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>okcoin</code>](#okcoin)  
 **Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger-structure)
@@ -597,14 +641,14 @@ fetch the history of changes, actions done by the user or operations that altere
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code, default is undefined |
+| code | <code>string</code> | No | unified currency code, default is undefined |
 | since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
-| limit | <code>int</code> | No | max number of ledger entrys to return, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-okcoin.fetchLedger (code[, since, limit, params])
+okcoin.fetchLedger ([code, since, limit, params])
 ```
 
 
@@ -616,6 +660,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>okcoin</code>](#okcoin)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
+**See**: https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-trades-channel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -638,6 +683,7 @@ watches information on multiple orders made by the user
 **Kind**: instance method of [<code>okcoin</code>](#okcoin)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
+**See**: https://www.okcoin.com/docs-v5/en/#websocket-api-private-channel-order-channel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -660,6 +706,7 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>okcoin</code>](#okcoin)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
+**See**: https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-tickers-channel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -680,6 +727,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>okcoin</code>](#okcoin)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
+**See**: https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-candlesticks-channel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -703,6 +751,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>okcoin</code>](#okcoin)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
+**See**: https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-order-book-channel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -724,6 +773,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 **Kind**: instance method of [<code>okcoin</code>](#okcoin)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
 
+**See**: https://www.okcoin.com/docs-v5/en/#websocket-api-private-channel-account-channel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

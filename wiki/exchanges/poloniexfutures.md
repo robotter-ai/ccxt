@@ -23,6 +23,7 @@
 * [fetchClosedOrders](#fetchclosedorders)
 * [fetchOrder](#fetchorder)
 * [fetchFundingRate](#fetchfundingrate)
+* [fetchFundingInterval](#fetchfundinginterval)
 * [fetchMyTrades](#fetchmytrades)
 * [setMarginMode](#setmarginmode)
 * [watchTicker](#watchticker)
@@ -39,7 +40,7 @@ retrieves data on all markets for poloniexfutures
 **Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
-**See**: https://futures-docs.poloniex.com/#symbol-2  
+**See**: https://api-docs.poloniex.com/futures/api/symbol  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -59,7 +60,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://futures-docs.poloniex.com/#get-real-time-ticker-2-0  
+**See**: https://api-docs.poloniex.com/futures/api/ticker#get-real-time-ticker-20  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -80,7 +81,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 **Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols  
+**See**: https://api-docs.poloniex.com/futures/api/ticker#get-real-time-ticker-of-all-symbols  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -101,7 +102,7 @@ fetches level 3 information on open orders with bid (buy) and ask (sell) prices,
 **Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
 **Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
 
-**See**: https://futures-docs.poloniex.com/#get-full-order-book-level-3  
+**See**: https://api-docs.poloniex.com/futures/api/orderbook#get-full-order-book--level-3  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -123,7 +124,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
-**See**: https://futures-docs.poloniex.com/#historical-data  
+**See**: https://api-docs.poloniex.com/futures/api/historical#transaction-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -146,7 +147,7 @@ fetches the current integer timestamp in milliseconds from the poloniexfutures s
 **Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the poloniexfutures server
 
-**See**: https://futures-docs.poloniex.com/#time  
+**See**: https://api-docs.poloniex.com/futures/api/time#server-time  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -166,7 +167,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://futures-docs.poloniex.com/#k-chart  
+**See**: https://api-docs.poloniex.com/futures/api/kline#get-k-line-data-of-contract  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -190,7 +191,7 @@ query for balance and get the amount of funds available for trading or funds loc
 **Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
 
-**See**: https://futures-docs.poloniex.com/#get-account-overview  
+**See**: https://api-docs.poloniex.com/futures/api/account#get-account-overview  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -210,7 +211,7 @@ Create an order on the exchange
 **Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://futures-docs.poloniex.com/#place-an-order  
+**See**: https://api-docs.poloniex.com/futures/api/orders#place-an-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -218,7 +219,7 @@ Create an order on the exchange
 | type | <code>string</code> | Yes | 'limit' or 'market' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | the amount of currency to trade |
-| price | <code>float</code> | No | *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.leverage | <code>float</code> | No | Leverage size of the order |
 | params.stopPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
@@ -246,7 +247,7 @@ cancels an open order
 **Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
 **Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://futures-docs.poloniex.com/#cancel-an-order  
+**See**: https://api-docs.poloniex.com/futures/api/orders#cancel-an-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -268,7 +269,7 @@ fetch all open positions
 **Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
 
-**See**: https://futures-docs.poloniex.com/#get-position-list  
+**See**: https://api-docs.poloniex.com/futures/api/positions#get-position-list  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -289,7 +290,7 @@ fetch the history of funding payments paid and received on this account
 **Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
 **Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/#/?id=funding-history-structure)
 
-**See**: https://futures-docs.poloniex.com/#get-funding-history  
+**See**: https://api-docs.poloniex.com/futures/api/funding-fees#get-funding-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -335,8 +336,8 @@ fetches a list of orders placed on the exchange
 
 **See**
 
-- https://futures-docs.poloniex.com/#get-order-list
-- https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
+- https://api-docs.poloniex.com/futures/api/orders#get-order-listdeprecated
+- https://api-docs.poloniex.com/futures/api/orders#get-untriggered-stop-order-list
 
 
 | Param | Type | Required | Description |
@@ -367,8 +368,8 @@ fetch all unfilled currently open orders
 
 **See**
 
-- https://futures-docs.poloniex.com/#get-order-list
-- https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
+- https://api-docs.poloniex.com/futures/api/orders#get-order-listdeprecated
+- https://api-docs.poloniex.com/futures/api/orders#get-untriggered-stop-order-list
 
 
 | Param | Type | Required | Description |
@@ -397,8 +398,8 @@ fetches information on multiple closed orders made by the user
 
 **See**
 
-- https://futures-docs.poloniex.com/#get-order-list
-- https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
+- https://api-docs.poloniex.com/futures/api/orders#get-order-listdeprecated
+- https://api-docs.poloniex.com/futures/api/orders#get-untriggered-stop-order-list
 
 
 | Param | Type | Required | Description |
@@ -427,18 +428,19 @@ fetches information on an order made by the user
 
 **See**
 
-- https://futures-docs.poloniex.com/#get-details-of-a-single-order
-- https://futures-docs.poloniex.com/#get-single-order-by-clientoid
+- https://api-docs.poloniex.com/futures/api/orders#get-details-of-a-single-order
+- https://api-docs.poloniex.com/futures/api/orders#get-single-order-by-clientoid
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-poloniexfutures.fetchOrder (symbol[, params])
+poloniexfutures.fetchOrder (id, symbol[, params])
 ```
 
 
@@ -450,7 +452,7 @@ fetch the current funding rate
 **Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
 **Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
 
-**See**: https://futures-docs.poloniex.com/#get-premium-index  
+**See**: https://api-docs.poloniex.com/futures/api/futures-index#get-premium-index  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -463,6 +465,27 @@ poloniexfutures.fetchFundingRate (symbol[, params])
 ```
 
 
+<a name="fetchFundingInterval" id="fetchfundinginterval"></a>
+
+### fetchFundingInterval{docsify-ignore}
+fetch the current funding rate interval
+
+**Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+**See**: https://api-docs.poloniex.com/futures/api/futures-index#get-premium-index  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+poloniexfutures.fetchFundingInterval (symbol[, params])
+```
+
+
 <a name="fetchMyTrades" id="fetchmytrades"></a>
 
 ### fetchMyTrades{docsify-ignore}
@@ -471,7 +494,7 @@ fetch all trades made by the user
 **Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
-**See**: https://futures-docs.poloniex.com/#get-fills  
+**See**: https://api-docs.poloniex.com/futures/api/fills#get-fillsdeprecated  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -498,7 +521,7 @@ set margin mode to 'cross' or 'isolated'
 **Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
 **Returns**: <code>object</code> - response from the exchange
 
-**See**: https://futures-docs.poloniex.com/#change-margin-mode  
+**See**: https://api-docs.poloniex.com/futures/api/margin-mode#change-margin-mode  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -520,7 +543,7 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://futures-docs.poloniex.com/#get-real-time-symbol-ticker  
+**See**: https://api-docs.poloniex.com/futures/websocket/public#get-real-time-symbol-ticker  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -541,7 +564,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
-**See**: https://futures-docs.poloniex.com/#full-matching-engine-data-level-3  
+**See**: https://api-docs.poloniex.com/futures/websocket/public#full-matching-engine-datalevel-3  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -564,7 +587,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
-**See**: https://futures-docs.poloniex.com/#level-2-market-data  
+**See**: https://api-docs.poloniex.com/futures/websocket/public#level-2-market-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -587,7 +610,7 @@ watches information on multiple orders made by the user
 **Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://futures-docs.poloniex.com/#private-messages  
+**See**: https://api-docs.poloniex.com/futures/websocket/user-messages#private-messages  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -611,7 +634,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 **Kind**: instance method of [<code>poloniexfutures</code>](#poloniexfutures)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
 
-**See**: https://futures-docs.poloniex.com/#account-balance-events  
+**See**: https://api-docs.poloniex.com/futures/websocket/user-messages#account-balance-events  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

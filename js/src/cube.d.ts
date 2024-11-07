@@ -1,5 +1,5 @@
 import Exchange from './abstract/cube.js';
-import { Balances, Currencies, Currency, IndexType, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction } from './base/types.js';
+import { Balances, Currencies, Currency, DepositAddress, IndexType, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction } from './base/types.js';
 /**
  * @class cube
  * @augments Exchange
@@ -92,12 +92,7 @@ export default class cube extends Exchange {
         info: any;
     }>;
     fetchDeposits(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchDepositAddresses(codes?: Strings, params?: {}): Promise<{
-        info: {
-            subaccounts: any[];
-            sources: any[];
-        };
-    }>;
+    fetchDepositAddresses(codes?: Strings, params?: {}): Promise<DepositAddress[]>;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     fetchWithdrawals(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;

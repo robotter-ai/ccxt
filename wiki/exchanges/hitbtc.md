@@ -30,7 +30,7 @@
 * [cancelAllOrders](#cancelallorders)
 * [cancelOrder](#cancelorder)
 * [createOrder](#createorder)
-* [fetchMarginMode](#fetchmarginmode)
+* [fetchMarginModes](#fetchmarginmodes)
 * [transfer](#transfer)
 * [withdraw](#withdraw)
 * [fetchFundingRates](#fetchfundingrates)
@@ -48,6 +48,7 @@
 * [watchOrderBook](#watchorderbook)
 * [watchTicker](#watchticker)
 * [watchTicker](#watchticker)
+* [watchBidsAsks](#watchbidsasks)
 * [watchTrades](#watchtrades)
 * [watchOHLCV](#watchohlcv)
 * [watchOrders](#watchorders)
@@ -679,7 +680,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross' |
 | params.margin | <code>bool</code> | No | true for creating a margin order |
@@ -693,9 +694,9 @@ hitbtc.createOrder (symbol, type, side, amount[, price, params])
 ```
 
 
-<a name="fetchMarginMode" id="fetchmarginmode"></a>
+<a name="fetchMarginModes" id="fetchmarginmodes"></a>
 
-### fetchMarginMode{docsify-ignore}
+### fetchMarginModes{docsify-ignore}
 fetches margin mode of the user
 
 **Kind**: instance method of [<code>hitbtc</code>](#hitbtc)  
@@ -714,7 +715,7 @@ fetches margin mode of the user
 
 
 ```javascript
-hitbtc.fetchMarginMode (symbol[, params])
+hitbtc.fetchMarginModes (symbol[, params])
 ```
 
 
@@ -772,7 +773,7 @@ hitbtc.withdraw (code, amount, address, tag[, params])
 fetches funding rates for multiple markets
 
 **Kind**: instance method of [<code>hitbtc</code>](#hitbtc)  
-**Returns**: <code>object</code> - an array of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
 
 **See**: https://api.hitbtc.com/#futures-info  
 
@@ -1078,7 +1079,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.method | <code>string</code> | No | 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch', 'orderbook/top/{speed}', or 'orderbook/top/{speed}/batch' |
+| params.method | <code>string</code> | No | 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch' |
 | params.depth | <code>int</code> | No | 5 , 10, or 20 (default) |
 | params.speed | <code>int</code> | No | 100 (default), 500, or 1000 |
 
@@ -1130,12 +1131,35 @@ watches a price ticker, a statistical calculation with the information calculate
 | --- | --- | --- |
 | symbol | <code>string</code> | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | extra parameters specific to the exchange API endpoint |
-| params.method | <code>string</code> | 'ticker/{speed}' (default),'ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/{speed}/price/batch'' |
+| params.method | <code>string</code> | 'ticker/{speed}' ,'ticker/price/{speed}', 'ticker/{speed}/batch' (default), or 'ticker/{speed}/price/batch'' |
 | params.speed | <code>string</code> | '1s' (default), or '3s' |
 
 
 ```javascript
 hitbtc.watchTicker (symbol, params[])
+```
+
+
+<a name="watchBidsAsks" id="watchbidsasks"></a>
+
+### watchBidsAsks{docsify-ignore}
+watches best bid & ask for symbols
+
+**Kind**: instance method of [<code>hitbtc</code>](#hitbtc)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://api.hitbtc.com/#subscribe-to-top-of-book  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.method | <code>string</code> | No | 'orderbook/top/{speed}' or 'orderbook/top/{speed}/batch (default)' |
+| params.speed | <code>string</code> | No | '100ms' (default) or '500ms' or '1000ms' |
+
+
+```javascript
+hitbtc.watchBidsAsks (symbols[, params])
 ```
 
 
@@ -1261,7 +1285,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross' |
 | params.margin | <code>bool</code> | No | true for creating a margin order |

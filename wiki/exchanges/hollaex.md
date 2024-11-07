@@ -377,7 +377,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | the price at which a trigger order is triggered at |
 | params.postOnly | <code>bool</code> | No | if true, the order will only be posted to the order book and not executed immediately |
@@ -596,6 +596,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
+**See**: https://apidocs.hollaex.com/#sending-receiving-messages  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -617,6 +618,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
+**See**: https://apidocs.hollaex.com/#sending-receiving-messages  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -637,8 +639,9 @@ hollaex.watchTrades (symbol[, since, limit, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
+**See**: https://apidocs.hollaex.com/#sending-receiving-messages  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -661,6 +664,7 @@ watches information on multiple orders made by the user
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
+**See**: https://apidocs.hollaex.com/#sending-receiving-messages  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -683,6 +687,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 **Kind**: instance method of [<code>hollaex</code>](#hollaex)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
 
+**See**: https://apidocs.hollaex.com/#sending-receiving-messages  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

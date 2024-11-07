@@ -15,6 +15,7 @@
 * [fetchDepositAddress](#fetchdepositaddress)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTicker](#fetchticker)
+* [fetchMarkPrice](#fetchmarkprice)
 * [fetchTickers](#fetchtickers)
 * [fetchTrades](#fetchtrades)
 * [fetchTradingFee](#fetchtradingfee)
@@ -66,13 +67,20 @@
 * [createConvertTrade](#createconverttrade)
 * [fetchConvertTradeHistory](#fetchconverttradehistory)
 * [fetchConvertCurrencies](#fetchconvertcurrencies)
+* [fetchFundingInterval](#fetchfundinginterval)
+* [fetchLongShortRatioHistory](#fetchlongshortratiohistory)
 * [watchTicker](#watchticker)
+* [unWatchTicker](#unwatchticker)
 * [watchTickers](#watchtickers)
+* [watchBidsAsks](#watchbidsasks)
 * [watchOHLCV](#watchohlcv)
+* [unWatchOHLCV](#unwatchohlcv)
 * [watchOrderBook](#watchorderbook)
+* [unWatchOrderBook](#unwatchorderbook)
 * [watchOrderBookForSymbols](#watchorderbookforsymbols)
 * [watchTrades](#watchtrades)
 * [watchTradesForSymbols](#watchtradesforsymbols)
+* [unWatchTrades](#unwatchtrades)
 * [watchPositions](#watchpositions)
 * [watchOrders](#watchorders)
 * [watchMyTrades](#watchmytrades)
@@ -110,6 +118,7 @@ retrieves data on all markets for bitget
 
 - https://www.bitget.com/api-doc/spot/market/Get-Symbols
 - https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
+- https://www.bitget.com/api-doc/margin/common/support-currencies
 
 
 | Param | Type | Required | Description |
@@ -317,6 +326,27 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 bitget.fetchTicker (symbol[, params])
+```
+
+
+<a name="fetchMarkPrice" id="fetchmarkprice"></a>
+
+### fetchMarkPrice{docsify-ignore}
+fetches the mark price for a specific market
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://www.bitget.com/api-doc/contract/market/Get-Symbol-Price  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitget.fetchMarkPrice (symbol[, params])
 ```
 
 
@@ -543,7 +573,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much you want to trade in units of the base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.cost | <code>float</code> | No | *spot only* how much you want to trade in units of the quote currency, for market buy orders only |
 | params.triggerPrice | <code>float</code> | No | *swap only* The price at which a trigger order is triggered at |
@@ -565,6 +595,8 @@ create a trade order
 | params.trailingTriggerPrice | <code>string</code> | No | *swap and future only* the price to trigger a trailing stop order, default uses the price argument |
 | params.triggerType | <code>string</code> | No | *swap and future only* 'fill_price', 'mark_price' or 'index_price' |
 | params.oneWayMode | <code>boolean</code> | No | *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method |
+| params.hedged | <code>bool</code> | No | *swap and future only* true for hedged mode, false for one way mode, default is false |
+| params.reduceOnly | <code>bool</code> | No | true or false whether the order is reduce-only |
 
 
 ```javascript
@@ -622,7 +654,7 @@ edit a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much you want to trade in units of the base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | the price that a trigger order is triggered at |
 | params.stopLossPrice | <code>float</code> | No | *swap only* The price at which a stop loss order is triggered at |
@@ -756,12 +788,13 @@ fetches information on an order made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitget.fetchOrder (symbol[, params])
+bitget.fetchOrder (id, symbol[, params])
 ```
 
 
@@ -908,7 +941,7 @@ bitget.fetchCanceledAndClosedOrders (symbol[, since, limit, params])
 <a name="fetchLedger" id="fetchledger"></a>
 
 ### fetchLedger{docsify-ignore}
-fetch the history of changes, actions done by the user or operations that altered balance of the user
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
 **Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger-structure)
@@ -921,9 +954,9 @@ fetch the history of changes, actions done by the user or operations that altere
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code, default is undefined |
+| code | <code>string</code> | No | unified currency code, default is undefined |
 | since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
-| limit | <code>int</code> | No | max number of ledger entrys to return, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | end time in ms |
 | params.symbol | <code>string</code> | No | *contract only* unified market symbol |
@@ -932,7 +965,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-bitget.fetchLedger (code[, since, limit, params])
+bitget.fetchLedger ([code, since, limit, params])
 ```
 
 
@@ -1686,6 +1719,55 @@ bitget.fetchConvertCurrencies ([params])
 ```
 
 
+<a name="fetchFundingInterval" id="fetchfundinginterval"></a>
+
+### fetchFundingInterval{docsify-ignore}
+fetch the current funding rate interval
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+**See**: https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitget.fetchFundingInterval (symbol[, params])
+```
+
+
+<a name="fetchLongShortRatioHistory" id="fetchlongshortratiohistory"></a>
+
+### fetchLongShortRatioHistory{docsify-ignore}
+fetches the long short ratio history for a unified market symbol
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [long short ratio structures](https://docs.ccxt.com/#/?id=long-short-ratio-structure)
+
+**See**
+
+- https://www.bitget.com/api-doc/common/apidata/Margin-Ls-Ratio
+- https://www.bitget.com/api-doc/common/apidata/Account-Long-Short
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the long short ratio for |
+| timeframe | <code>string</code> | No | the period for the ratio |
+| since | <code>int</code> | No | the earliest time in ms to fetch ratios for |
+| limit | <code>int</code> | No | the maximum number of long short ratio structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitget.fetchLongShortRatioHistory (symbol[, timeframe, since, limit, params])
+```
+
+
 <a name="bitget" id="bitget"></a>
 
 ### bitget{docsify-ignore}
@@ -1723,6 +1805,30 @@ bitget.watchTicker (symbol[, params])
 ```
 
 
+<a name="unWatchTicker" id="unwatchticker"></a>
+
+### unWatchTicker{docsify-ignore}
+unsubscribe from the ticker channel
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**
+
+- https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+- https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| symbol | <code>string</code> | unified symbol of the market to unwatch the ticker for |
+
+
+```javascript
+bitget.unWatchTicker (symbol, [undefined])
+```
+
+
 <a name="watchTickers" id="watchtickers"></a>
 
 ### watchTickers{docsify-ignore}
@@ -1745,6 +1851,31 @@ watches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 bitget.watchTickers (symbols[, params])
+```
+
+
+<a name="watchBidsAsks" id="watchbidsasks"></a>
+
+### watchBidsAsks{docsify-ignore}
+watches best bid & ask for symbols
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**
+
+- https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+- https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitget.watchBidsAsks (symbols[, params])
 ```
 
 
@@ -1776,6 +1907,30 @@ bitget.watchOHLCV (symbol, timeframe[, since, limit, params])
 ```
 
 
+<a name="unWatchOHLCV" id="unwatchohlcv"></a>
+
+### unWatchOHLCV{docsify-ignore}
+unsubscribe from the ohlcv channel
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**
+
+- https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
+- https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| symbol | <code>string</code> | unified symbol of the market to unwatch the ohlcv for |
+
+
+```javascript
+bitget.unWatchOHLCV (symbol, [undefined])
+```
+
+
 <a name="watchOrderBook" id="watchorderbook"></a>
 
 ### watchOrderBook{docsify-ignore}
@@ -1799,6 +1954,31 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 ```javascript
 bitget.watchOrderBook (symbol[, limit, params])
+```
+
+
+<a name="unWatchOrderBook" id="unwatchorderbook"></a>
+
+### unWatchOrderBook{docsify-ignore}
+unsubscribe from the orderbook channel
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**
+
+- https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
+- https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| params.limit | <code>int</code> | No | orderbook limit, default is undefined |
+
+
+```javascript
+bitget.unWatchOrderBook (symbol, [undefined])
 ```
 
 
@@ -1882,6 +2062,30 @@ bitget.watchTradesForSymbols (symbol[, since, limit, params])
 ```
 
 
+<a name="unWatchTrades" id="unwatchtrades"></a>
+
+### unWatchTrades{docsify-ignore}
+unsubscribe from the trades channel
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**
+
+- https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
+- https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| symbol | <code>string</code> | unified symbol of the market to unwatch the trades for |
+
+
+```javascript
+bitget.unWatchTrades (symbol, [undefined])
+```
+
+
 <a name="watchPositions" id="watchpositions"></a>
 
 ### watchPositions{docsify-ignore}
@@ -1910,7 +2114,7 @@ bitget.watchPositions (symbols, params[])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
 **See**
 
@@ -2006,6 +2210,7 @@ bitget.watchBalance ([params])
 * [fetchDepositAddress](#fetchdepositaddress)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTicker](#fetchticker)
+* [fetchMarkPrice](#fetchmarkprice)
 * [fetchTickers](#fetchtickers)
 * [fetchTrades](#fetchtrades)
 * [fetchTradingFee](#fetchtradingfee)
@@ -2057,13 +2262,20 @@ bitget.watchBalance ([params])
 * [createConvertTrade](#createconverttrade)
 * [fetchConvertTradeHistory](#fetchconverttradehistory)
 * [fetchConvertCurrencies](#fetchconvertcurrencies)
+* [fetchFundingInterval](#fetchfundinginterval)
+* [fetchLongShortRatioHistory](#fetchlongshortratiohistory)
 * [watchTicker](#watchticker)
+* [unWatchTicker](#unwatchticker)
 * [watchTickers](#watchtickers)
+* [watchBidsAsks](#watchbidsasks)
 * [watchOHLCV](#watchohlcv)
+* [unWatchOHLCV](#unwatchohlcv)
 * [watchOrderBook](#watchorderbook)
+* [unWatchOrderBook](#unwatchorderbook)
 * [watchOrderBookForSymbols](#watchorderbookforsymbols)
 * [watchTrades](#watchtrades)
 * [watchTradesForSymbols](#watchtradesforsymbols)
+* [unWatchTrades](#unwatchtrades)
 * [watchPositions](#watchpositions)
 * [watchOrders](#watchorders)
 * [watchMyTrades](#watchmytrades)
@@ -2101,6 +2313,7 @@ retrieves data on all markets for bitget
 
 - https://www.bitget.com/api-doc/spot/market/Get-Symbols
 - https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
+- https://www.bitget.com/api-doc/margin/common/support-currencies
 
 
 | Param | Type | Required | Description |
@@ -2308,6 +2521,27 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 bitget.fetchTicker (symbol[, params])
+```
+
+
+<a name="fetchMarkPrice" id="fetchmarkprice"></a>
+
+### fetchMarkPrice{docsify-ignore}
+fetches the mark price for a specific market
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://www.bitget.com/api-doc/contract/market/Get-Symbol-Price  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitget.fetchMarkPrice (symbol[, params])
 ```
 
 
@@ -2534,7 +2768,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much you want to trade in units of the base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.cost | <code>float</code> | No | *spot only* how much you want to trade in units of the quote currency, for market buy orders only |
 | params.triggerPrice | <code>float</code> | No | *swap only* The price at which a trigger order is triggered at |
@@ -2556,6 +2790,8 @@ create a trade order
 | params.trailingTriggerPrice | <code>string</code> | No | *swap and future only* the price to trigger a trailing stop order, default uses the price argument |
 | params.triggerType | <code>string</code> | No | *swap and future only* 'fill_price', 'mark_price' or 'index_price' |
 | params.oneWayMode | <code>boolean</code> | No | *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method |
+| params.hedged | <code>bool</code> | No | *swap and future only* true for hedged mode, false for one way mode, default is false |
+| params.reduceOnly | <code>bool</code> | No | true or false whether the order is reduce-only |
 
 
 ```javascript
@@ -2613,7 +2849,7 @@ edit a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much you want to trade in units of the base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | the price that a trigger order is triggered at |
 | params.stopLossPrice | <code>float</code> | No | *swap only* The price at which a stop loss order is triggered at |
@@ -2747,12 +2983,13 @@ fetches information on an order made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitget.fetchOrder (symbol[, params])
+bitget.fetchOrder (id, symbol[, params])
 ```
 
 
@@ -2899,7 +3136,7 @@ bitget.fetchCanceledAndClosedOrders (symbol[, since, limit, params])
 <a name="fetchLedger" id="fetchledger"></a>
 
 ### fetchLedger{docsify-ignore}
-fetch the history of changes, actions done by the user or operations that altered balance of the user
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
 **Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger-structure)
@@ -2912,9 +3149,9 @@ fetch the history of changes, actions done by the user or operations that altere
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code, default is undefined |
+| code | <code>string</code> | No | unified currency code, default is undefined |
 | since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
-| limit | <code>int</code> | No | max number of ledger entrys to return, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | end time in ms |
 | params.symbol | <code>string</code> | No | *contract only* unified market symbol |
@@ -2923,7 +3160,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-bitget.fetchLedger (code[, since, limit, params])
+bitget.fetchLedger ([code, since, limit, params])
 ```
 
 
@@ -3677,6 +3914,55 @@ bitget.fetchConvertCurrencies ([params])
 ```
 
 
+<a name="fetchFundingInterval" id="fetchfundinginterval"></a>
+
+### fetchFundingInterval{docsify-ignore}
+fetch the current funding rate interval
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+**See**: https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitget.fetchFundingInterval (symbol[, params])
+```
+
+
+<a name="fetchLongShortRatioHistory" id="fetchlongshortratiohistory"></a>
+
+### fetchLongShortRatioHistory{docsify-ignore}
+fetches the long short ratio history for a unified market symbol
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [long short ratio structures](https://docs.ccxt.com/#/?id=long-short-ratio-structure)
+
+**See**
+
+- https://www.bitget.com/api-doc/common/apidata/Margin-Ls-Ratio
+- https://www.bitget.com/api-doc/common/apidata/Account-Long-Short
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the long short ratio for |
+| timeframe | <code>string</code> | No | the period for the ratio |
+| since | <code>int</code> | No | the earliest time in ms to fetch ratios for |
+| limit | <code>int</code> | No | the maximum number of long short ratio structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitget.fetchLongShortRatioHistory (symbol[, timeframe, since, limit, params])
+```
+
+
 <a name="bitget" id="bitget"></a>
 
 ### bitget{docsify-ignore}
@@ -3714,6 +4000,30 @@ bitget.watchTicker (symbol[, params])
 ```
 
 
+<a name="unWatchTicker" id="unwatchticker"></a>
+
+### unWatchTicker{docsify-ignore}
+unsubscribe from the ticker channel
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**
+
+- https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+- https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| symbol | <code>string</code> | unified symbol of the market to unwatch the ticker for |
+
+
+```javascript
+bitget.unWatchTicker (symbol, [undefined])
+```
+
+
 <a name="watchTickers" id="watchtickers"></a>
 
 ### watchTickers{docsify-ignore}
@@ -3736,6 +4046,31 @@ watches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 bitget.watchTickers (symbols[, params])
+```
+
+
+<a name="watchBidsAsks" id="watchbidsasks"></a>
+
+### watchBidsAsks{docsify-ignore}
+watches best bid & ask for symbols
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**
+
+- https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+- https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitget.watchBidsAsks (symbols[, params])
 ```
 
 
@@ -3767,6 +4102,30 @@ bitget.watchOHLCV (symbol, timeframe[, since, limit, params])
 ```
 
 
+<a name="unWatchOHLCV" id="unwatchohlcv"></a>
+
+### unWatchOHLCV{docsify-ignore}
+unsubscribe from the ohlcv channel
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**
+
+- https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
+- https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| symbol | <code>string</code> | unified symbol of the market to unwatch the ohlcv for |
+
+
+```javascript
+bitget.unWatchOHLCV (symbol, [undefined])
+```
+
+
 <a name="watchOrderBook" id="watchorderbook"></a>
 
 ### watchOrderBook{docsify-ignore}
@@ -3790,6 +4149,31 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 ```javascript
 bitget.watchOrderBook (symbol[, limit, params])
+```
+
+
+<a name="unWatchOrderBook" id="unwatchorderbook"></a>
+
+### unWatchOrderBook{docsify-ignore}
+unsubscribe from the orderbook channel
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**
+
+- https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
+- https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| params.limit | <code>int</code> | No | orderbook limit, default is undefined |
+
+
+```javascript
+bitget.unWatchOrderBook (symbol, [undefined])
 ```
 
 
@@ -3873,6 +4257,30 @@ bitget.watchTradesForSymbols (symbol[, since, limit, params])
 ```
 
 
+<a name="unWatchTrades" id="unwatchtrades"></a>
+
+### unWatchTrades{docsify-ignore}
+unsubscribe from the trades channel
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**
+
+- https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
+- https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| symbol | <code>string</code> | unified symbol of the market to unwatch the trades for |
+
+
+```javascript
+bitget.unWatchTrades (symbol, [undefined])
+```
+
+
 <a name="watchPositions" id="watchpositions"></a>
 
 ### watchPositions{docsify-ignore}
@@ -3901,7 +4309,7 @@ bitget.watchPositions (symbols, params[])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
 **See**
 

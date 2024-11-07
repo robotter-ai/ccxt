@@ -5,15 +5,36 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
+* [fetchMarkets](#fetchmarkets)
 * [fetchBalance](#fetchbalance)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTicker](#fetchticker)
+* [fetchTickers](#fetchtickers)
 * [fetchTrades](#fetchtrades)
 * [createOrder](#createorder)
 * [cancelOrder](#cancelorder)
 * [fetchOrder](#fetchorder)
 * [fetchOrders](#fetchorders)
 * [fetchOpenOrders](#fetchopenorders)
+
+<a name="fetchMarkets" id="fetchmarkets"></a>
+
+### fetchMarkets{docsify-ignore}
+retrieves data on all markets for ace
+
+**Kind**: instance method of [<code>btcbox</code>](#btcbox)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+btcbox.fetchMarkets ([params])
+```
+
 
 <a name="fetchBalance" id="fetchbalance"></a>
 
@@ -78,6 +99,26 @@ btcbox.fetchTicker (symbol[, params])
 ```
 
 
+<a name="fetchTickers" id="fetchtickers"></a>
+
+### fetchTickers{docsify-ignore}
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+**Kind**: instance method of [<code>btcbox</code>](#btcbox)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+btcbox.fetchTickers ([symbols, params])
+```
+
+
 <a name="fetchTrades" id="fetchtrades"></a>
 
 ### fetchTrades{docsify-ignore}
@@ -117,7 +158,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -160,12 +201,13 @@ fetches information on an order made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-btcbox.fetchOrder (symbol[, params])
+btcbox.fetchOrder (id, symbol[, params])
 ```
 
 

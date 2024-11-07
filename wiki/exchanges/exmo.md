@@ -36,9 +36,11 @@
 * [fetchDeposits](#fetchdeposits)
 * [watchBalance](#watchbalance)
 * [watchTicker](#watchticker)
+* [watchTickers](#watchtickers)
 * [watchTrades](#watchtrades)
 * [watchTrades](#watchtrades)
 * [watchOrderBook](#watchorderbook)
+* [watchOrders](#watchorders)
 
 <a name="reduceMargin" id="reducemargin"></a>
 
@@ -403,7 +405,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.stopPrice | <code>float</code> | No | the price at which a trigger order is triggered at |
 | params.timeInForce | <code>string</code> | No | *spot only* 'fok', 'ioc' or 'post_only' |
@@ -567,7 +569,7 @@ exmo.fetchCanceledOrders (symbol[, since, limit, params])
 | type | <code>string</code> | Yes | not used by exmo editOrder |
 | side | <code>string</code> | Yes | not used by exmo editOrder |
 | amount | <code>float</code> | No | how much of the currency you want to trade in units of the base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | stop price for stop-market and stop-limit orders |
 | params.marginMode | <code>string</code> | Yes | must be set to isolated EXCHANGE SPECIFIC PARAMETERS |
@@ -766,6 +768,7 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
+**See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -775,6 +778,27 @@ watches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 exmo.watchTicker (symbol[, params])
+```
+
+
+<a name="watchTickers" id="watchtickers"></a>
+
+### watchTickers{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+**Kind**: instance method of [<code>exmo</code>](#exmo)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+exmo.watchTickers ([symbols, params])
 ```
 
 
@@ -840,5 +864,32 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 ```javascript
 exmo.watchOrderBook (symbol[, limit, params])
+```
+
+
+<a name="watchOrders" id="watchorders"></a>
+
+### watchOrders{docsify-ignore}
+watches information on multiple orders made by the user
+
+**Kind**: instance method of [<code>exmo</code>](#exmo)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**
+
+- https://documenter.getpostman.com/view/10287440/SzYXWKPi#85f7bc03-b1c9-4cd2-bd22-8fd422272825
+- https://documenter.getpostman.com/view/10287440/SzYXWKPi#95e4ed18-1791-4e6d-83ad-cbfe9be1051c
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+exmo.watchOrders (symbol[, since, limit, params])
 ```
 

@@ -42,6 +42,7 @@
 * [watchOHLCV](#watchohlcv)
 * [watchOrderBook](#watchorderbook)
 * [watchTicker](#watchticker)
+* [watchTickers](#watchtickers)
 * [watchTrades](#watchtrades)
 * [watchMyTrades](#watchmytrades)
 * [watchOrders](#watchorders)
@@ -391,7 +392,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.cost | <code>float</code> | No | *market orders only* the cost of the order in units of the base currency |
 
@@ -418,7 +419,7 @@ edit a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | Yes | the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders |
+| price | <code>float</code> | Yes | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -531,14 +532,14 @@ fetch all unfilled currently open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbol | <code>string</code> | No | unified market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
 | limit | <code>int</code> | No | the maximum number of open order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-whitebit.fetchOpenOrders (symbol[, since, limit, params])
+whitebit.fetchOpenOrders ([symbol, since, limit, params])
 ```
 
 
@@ -780,7 +781,7 @@ whitebit.fetchFundingRate (symbol[, params])
 fetch the funding rate for multiple markets
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - a dictionary of [funding rates structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexe by market symbols
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexed by market symbols
 
 **See**: https://docs.whitebit.com/public/http-v4/#available-futures-markets-list  
 
@@ -832,6 +833,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
+**See**: https://docs.whitebit.com/public/websocket/#kline  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -855,6 +857,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
+**See**: https://docs.whitebit.com/public/websocket/#market-depth  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -876,6 +879,7 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
+**See**: https://docs.whitebit.com/public/websocket/#market-statistics  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -888,6 +892,27 @@ whitebit.watchTicker (symbol[, params])
 ```
 
 
+<a name="watchTickers" id="watchtickers"></a>
+
+### watchTickers{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+**Kind**: instance method of [<code>whitebit</code>](#whitebit)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://docs.whitebit.com/public/websocket/#market-statistics  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+whitebit.watchTickers ([symbols, params])
+```
+
+
 <a name="watchTrades" id="watchtrades"></a>
 
 ### watchTrades{docsify-ignore}
@@ -896,6 +921,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
+**See**: https://docs.whitebit.com/public/websocket/#market-trades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -918,6 +944,7 @@ watches trades made by the user
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
+**See**: https://docs.whitebit.com/private/websocket/#deals  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -938,8 +965,9 @@ whitebit.watchMyTrades (symbol[, since, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
+**See**: https://docs.whitebit.com/private/websocket/#orders-pending  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -961,6 +989,11 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+
+**See**
+
+- https://docs.whitebit.com/private/websocket/#balance-spot
+- https://docs.whitebit.com/private/websocket/#balance-margin
 
 
 | Param | Type | Required | Description |

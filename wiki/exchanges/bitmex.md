@@ -143,12 +143,13 @@ fetches information on an order made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitmex.fetchOrder (symbol[, params])
+bitmex.fetchOrder (id, symbol[, params])
 ```
 
 
@@ -250,7 +251,7 @@ bitmex.fetchMyTrades (symbol[, since, limit, params])
 <a name="fetchLedger" id="fetchledger"></a>
 
 ### fetchLedger{docsify-ignore}
-fetch the history of changes, actions done by the user or operations that altered balance of the user
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
 **Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger-structure)
@@ -259,14 +260,14 @@ fetch the history of changes, actions done by the user or operations that altere
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code, default is undefined |
+| code | <code>string</code> | No | unified currency code, default is undefined |
 | since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
-| limit | <code>int</code> | No | max number of ledger entrys to return, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitmex.fetchLedger (code[, since, limit, params])
+bitmex.fetchLedger ([code, since, limit, params])
 ```
 
 
@@ -400,7 +401,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>object</code> | No | the price at which a trigger order is triggered at |
 | params.triggerDirection | <code>object</code> | No | the direction whenever the trigger happens with relation to price - 'above' or 'below' |
@@ -570,7 +571,7 @@ bitmex.withdraw (code, amount, address, tag[, params])
 fetch the funding rate for multiple markets
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - a dictionary of [funding rates structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexe by market symbols
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexed by market symbols
 
 **See**: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices  
 
@@ -733,6 +734,7 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
+**See**: https://www.bitmex.com/app/wsAPI#Subscriptions  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -753,6 +755,7 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
+**See**: https://www.bitmex.com/app/wsAPI#Subscriptions  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -819,6 +822,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
 
+**See**: https://www.bitmex.com/app/wsAPI#Subscriptions  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -838,6 +842,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
+**See**: https://www.bitmex.com/app/wsAPI#Subscriptions  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -860,7 +865,7 @@ watch all open positions
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/en/latest/manual.html#position-structure)
 
-**See**: https://www.bitmex.com/app/wsAPI  
+**See**: https://www.bitmex.com/app/wsAPI#Subscriptions  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -881,6 +886,7 @@ watches information on multiple orders made by the user
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
+**See**: https://www.bitmex.com/app/wsAPI#Subscriptions  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -901,8 +907,9 @@ bitmex.watchOrders (symbol[, since, limit, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
+**See**: https://www.bitmex.com/app/wsAPI#Subscriptions  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -925,6 +932,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
+**See**: https://www.bitmex.com/app/wsAPI#OrderBookL2  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -946,6 +954,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
+**See**: https://www.bitmex.com/app/wsAPI#OrderBookL2  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -967,6 +976,7 @@ get the list of most recent trades for a list of symbols
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
+**See**: https://www.bitmex.com/app/wsAPI#Subscriptions  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -989,6 +999,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
+**See**: https://www.bitmex.com/app/wsAPI#Subscriptions  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

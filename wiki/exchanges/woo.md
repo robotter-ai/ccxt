@@ -12,6 +12,7 @@
 * [fetchTradingFees](#fetchtradingfees)
 * [fetchCurrencies](#fetchcurrencies)
 * [createMarketBuyOrderWithCost](#createmarketbuyorderwithcost)
+* [createMarketSellOrderWithCost](#createmarketsellorderwithcost)
 * [createTrailingAmountOrder](#createtrailingamountorder)
 * [createTrailingPercentOrder](#createtrailingpercentorder)
 * [createOrder](#createorder)
@@ -38,9 +39,16 @@
 * [fetchTransfers](#fetchtransfers)
 * [withdraw](#withdraw)
 * [repayMargin](#repaymargin)
+* [fetchFundingHistory](#fetchfundinghistory)
+* [fetchFundingInterval](#fetchfundinginterval)
+* [fetchFundingRate](#fetchfundingrate)
+* [fetchFundingRates](#fetchfundingrates)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [setPositionMode](#setpositionmode)
 * [fetchLeverage](#fetchleverage)
+* [setLeverage](#setleverage)
+* [addMargin](#addmargin)
+* [reduceMargin](#reducemargin)
 * [fetchConvertQuote](#fetchconvertquote)
 * [createConvertTrade](#createconverttrade)
 * [fetchConvertTrade](#fetchconverttrade)
@@ -49,10 +57,11 @@
 * [watchOrderBook](#watchorderbook)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
+* [watchBidsAsks](#watchbidsasks)
 * [watchOHLCV](#watchohlcv)
 * [watchTrades](#watchtrades)
 * [watchOrders](#watchorders)
-* [watchOrders](#watchorders)
+* [watchMyTrades](#watchmytrades)
 * [watchPositions](#watchpositions)
 * [watchBalance](#watchbalance)
 
@@ -201,6 +210,28 @@ woo.createMarketBuyOrderWithCost (symbol, cost[, params])
 ```
 
 
+<a name="createMarketSellOrderWithCost" id="createmarketsellorderwithcost"></a>
+
+### createMarketSellOrderWithCost{docsify-ignore}
+create a market sell order by providing the symbol and cost
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**: https://docs.woo.org/#send-order  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
+| cost | <code>float</code> | Yes | how much you want to trade in units of the quote currency |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woo.createMarketSellOrderWithCost (symbol, cost[, params])
+```
+
+
 <a name="createTrailingAmountOrder" id="createtrailingamountorder"></a>
 
 ### createTrailingAmountOrder{docsify-ignore}
@@ -275,18 +306,20 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.marginMode | <code>string</code> | No | *for swap markets only* 'cross' or 'isolated', default 'cross' |
 | params.triggerPrice | <code>float</code> | No | The price a trigger order is triggered at |
 | params.takeProfit | <code>object</code> | No | *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only) |
 | params.takeProfit.triggerPrice | <code>float</code> | No | take profit trigger price |
 | params.stopLoss | <code>object</code> | No | *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only) |
 | params.stopLoss.triggerPrice | <code>float</code> | No | stop loss trigger price |
-| params.algoType | <code>float</code> | No | 'STOP'or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION' |
+| params.algoType | <code>float</code> | No | 'STOP' or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION' |
 | params.cost | <code>float</code> | No | *spot market buy only* the quote quantity that can be used as an alternative for the amount |
 | params.trailingAmount | <code>string</code> | No | the quote amount to trail away from the current market price |
 | params.trailingPercent | <code>string</code> | No | the percent to trail away from the current market price |
 | params.trailingTriggerPrice | <code>string</code> | No | the price to trigger a trailing order, default uses the price argument |
+| params.position_side | <code>string</code> | No | 'SHORT' or 'LONG' - if position mode is HEDGE_MODE and the trading involves futures, then is required, otherwise this parameter is not required |
 
 
 ```javascript
@@ -317,7 +350,7 @@ edit a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | The price a trigger order is triggered at |
 | params.stopLossPrice | <code>float</code> | No | price to trigger stop-loss orders |
@@ -425,13 +458,14 @@ fetches information on an order made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.stop | <code>boolean</code> | No | whether the order is a stop/algo order |
 
 
 ```javascript
-woo.fetchOrder (symbol[, params])
+woo.fetchOrder (id, symbol[, params])
 ```
 
 
@@ -702,14 +736,14 @@ fetch the history of changes, actions done by the user or operations that altere
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code, default is undefined |
+| code | <code>string</code> | No | unified currency code, default is undefined |
 | since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
-| limit | <code>int</code> | No | max number of ledger entrys to return, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-woo.fetchLedger (code[, since, limit, params])
+woo.fetchLedger ([code, since, limit, params])
 ```
 
 
@@ -877,6 +911,93 @@ woo.repayMargin (code, amount, symbol[, params])
 ```
 
 
+<a name="fetchFundingHistory" id="fetchfundinghistory"></a>
+
+### fetchFundingHistory{docsify-ignore}
+fetch the history of funding payments paid and received on this account
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/#/?id=funding-history-structure)
+
+**See**: https://docs.woo.org/#get-funding-fee-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch funding history for |
+| limit | <code>int</code> | No | the maximum number of funding history structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+woo.fetchFundingHistory ([symbol, since, limit, params])
+```
+
+
+<a name="fetchFundingInterval" id="fetchfundinginterval"></a>
+
+### fetchFundingInterval{docsify-ignore}
+fetch the current funding rate interval
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+**See**: https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woo.fetchFundingInterval (symbol[, params])
+```
+
+
+<a name="fetchFundingRate" id="fetchfundingrate"></a>
+
+### fetchFundingRate{docsify-ignore}
+fetch the current funding rate
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+**See**: https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woo.fetchFundingRate (symbol[, params])
+```
+
+
+<a name="fetchFundingRates" id="fetchfundingrates"></a>
+
+### fetchFundingRates{docsify-ignore}
+fetch the funding rate for multiple markets
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexed by market symbols
+
+**See**: https://docs.woox.io/#get-predicted-funding-rate-for-all-markets-public  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woo.fetchFundingRates (symbols[, params])
+```
+
+
 <a name="fetchFundingRateHistory" id="fetchfundingratehistory"></a>
 
 ### fetchFundingRateHistory{docsify-ignore}
@@ -938,10 +1059,86 @@ fetch the set leverage for a market
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.marginMode | <code>string</code> | No | *for swap markets only* 'cross' or 'isolated' |
+| params.position_mode | <code>string</code> | No | *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE' |
 
 
 ```javascript
 woo.fetchLeverage (symbol[, params])
+```
+
+
+<a name="setLeverage" id="setleverage"></a>
+
+### setLeverage{docsify-ignore}
+set the level of leverage for a market
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**
+
+- https://docs.woo.org/#update-leverage-setting
+- https://docs.woo.org/#update-futures-leverage-setting
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| leverage | <code>float</code> | Yes | the rate of leverage (1, 2, 3, 4 or 5 for spot markets, 1, 2, 3, 4, 5, 10, 15, 20 for swap markets) |
+| symbo | <code>string</code> | No | unified market symbol (is mandatory for swap markets) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.marginMode | <code>string</code> | No | *for swap markets only* 'cross' or 'isolated' |
+| params.position_side | <code>string</code> | No | *for swap markets only* 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode. |
+
+
+```javascript
+woo.setLeverage (leverage[, symbo, params])
+```
+
+
+<a name="addMargin" id="addmargin"></a>
+
+### addMargin{docsify-ignore}
+add margin
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+
+**See**: https://docs.woo.org/#update-isolated-margin-setting  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| amount | <code>float</code> | Yes | amount of margin to add |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.position_side | <code>string</code> | No | 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode |
+
+
+```javascript
+woo.addMargin (symbol, amount[, params])
+```
+
+
+<a name="reduceMargin" id="reducemargin"></a>
+
+### reduceMargin{docsify-ignore}
+remove margin from a position
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+
+**See**: https://docs.woo.org/#update-isolated-margin-setting  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| amount | <code>float</code> | Yes | amount of margin to remove |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.position_side | <code>string</code> | No | 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode |
+
+
+```javascript
+woo.reduceMargin (symbol, amount[, params])
 ```
 
 
@@ -1066,13 +1263,18 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
-**See**: https://docs.woo.org/#orderbook  
+**See**
+
+- https://docs.woo.org/#orderbookupdate
+- https://docs.woo.org/#orderbook
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return. |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.method | <code>string</code> | No | either (default) 'orderbook' or 'orderbookupdate', default is 'orderbook' |
 
 
 ```javascript
@@ -1121,6 +1323,27 @@ woo.watchTickers (symbols[, params])
 ```
 
 
+<a name="watchBidsAsks" id="watchbidsasks"></a>
+
+### watchBidsAsks{docsify-ignore}
+watches best bid & ask for symbols
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://docs.woox.io/#bbos  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woo.watchBidsAsks (symbols[, params])
+```
+
+
 <a name="watchOHLCV" id="watchohlcv"></a>
 
 ### watchOHLCV{docsify-ignore}
@@ -1151,7 +1374,7 @@ woo.watchOHLCV (symbol, timeframe[, since, limit, params])
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
 **See**: https://docs.woo.org/#trade  
 
@@ -1196,13 +1419,13 @@ woo.watchOrders (symbol[, since, limit, params])
 ```
 
 
-<a name="watchOrders" id="watchorders"></a>
+<a name="watchMyTrades" id="watchmytrades"></a>
 
-### watchOrders{docsify-ignore}
+### watchMyTrades{docsify-ignore}
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
 **See**
 
@@ -1220,7 +1443,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-woo.watchOrders (symbol[, since, limit, params])
+woo.watchMyTrades (symbol[, since, limit, params])
 ```
 
 

@@ -8,12 +8,15 @@
 * [fetchTime](#fetchtime)
 * [fetchStatus](#fetchstatus)
 * [fetchMarkets](#fetchmarkets)
+* [loadMigrationStatus](#loadmigrationstatus)
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchAccounts](#fetchaccounts)
 * [fetchTransactionFee](#fetchtransactionfee)
 * [fetchDepositWithdrawFee](#fetchdepositwithdrawfee)
 * [fetchTickers](#fetchtickers)
+* [fetchMarkPrices](#fetchmarkprices)
 * [fetchTicker](#fetchticker)
+* [fetchMarkPrice](#fetchmarkprice)
 * [fetchOHLCV](#fetchohlcv)
 * [createDepositAddress](#createdepositaddress)
 * [fetchDepositAddress](#fetchdepositaddress)
@@ -49,14 +52,19 @@
 * [repayCrossMargin](#repaycrossmargin)
 * [repayIsolatedMargin](#repayisolatedmargin)
 * [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
+* [setLeverage](#setleverage)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
 * [watchBidsAsks](#watchbidsasks)
 * [watchOHLCV](#watchohlcv)
 * [watchTrades](#watchtrades)
 * [watchTrades](#watchtrades)
+* [unWatchTradesForSymbols](#unwatchtradesforsymbols)
+* [unWatchTrades](#unwatchtrades)
 * [watchOrderBook](#watchorderbook)
+* [unWatchOrderBook](#unwatchorderbook)
 * [watchOrderBookForSymbols](#watchorderbookforsymbols)
+* [unWatchOrderBookForSymbols](#unwatchorderbookforsymbols)
 * [watchOrders](#watchorders)
 * [watchMyTrades](#watchmytrades)
 * [watchBalance](#watchbalance)
@@ -122,6 +130,20 @@ retrieves data on all markets for kucoin
 
 ```javascript
 kucoin.fetchMarkets ([params])
+```
+
+
+<a name="loadMigrationStatus" id="loadmigrationstatus"></a>
+
+### loadMigrationStatus{docsify-ignore}
+loads the migration status for the account (hf or not)
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+
+**See**: https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type  
+
+```javascript
+kucoin.loadMigrationStatus ()
 ```
 
 
@@ -229,6 +251,27 @@ kucoin.fetchTickers (symbols[, params])
 ```
 
 
+<a name="fetchMarkPrices" id="fetchmarkprices"></a>
+
+### fetchMarkPrices{docsify-ignore}
+fetches the mark price for multiple markets
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-all-margin-trading-pairs-mark-prices  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.fetchMarkPrices ([symbols, params])
+```
+
+
 <a name="fetchTicker" id="fetchticker"></a>
 
 ### fetchTicker{docsify-ignore}
@@ -247,6 +290,27 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 kucoin.fetchTicker (symbol[, params])
+```
+
+
+<a name="fetchMarkPrice" id="fetchmarkprice"></a>
+
+### fetchMarkPrice{docsify-ignore}
+fetches the mark price for a specific market
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-mark-price  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.fetchMarkPrice (symbol[, params])
 ```
 
 
@@ -283,7 +347,7 @@ create a currency deposit address
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
 
-**See**: https://docs.kucoin.com/#create-deposit-address  
+**See**: https://www.kucoin.com/docs/rest/funding/deposit/create-deposit-address-v3-  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -382,6 +446,7 @@ Create an order on the exchange
 - https://docs.kucoin.com/spot-hf/#place-hf-order
 - https://www.kucoin.com/docs/rest/spot-trading/orders/place-order-test
 - https://www.kucoin.com/docs/rest/margin-trading/orders/place-margin-order-test
+- https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-hf-order
 
 
 | Param | Type | Required | Description |
@@ -390,7 +455,7 @@ Create an order on the exchange
 | type | <code>string</code> | Yes | 'limit' or 'market' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | the amount of currency to trade |
-| price | <code>float</code> | No | *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
 | params.marginMode | <code>string</code> | No | 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned |
@@ -410,6 +475,7 @@ Create an order on the exchange
 | params.autoBorrow | <code>bool</code> | No | false, // The system will first borrow you funds at the optimal interest rate and then place an order for you |
 | params.hf | <code>bool</code> | No | false, // true for hf order |
 | params.test | <code>bool</code> | No | set to true to test an order, no order will be created but the request will be validated |
+| params.sync | <code>bool</code> | No | set to true to use the hf sync call |
 
 
 ```javascript
@@ -496,6 +562,7 @@ create a list of trade orders
 
 - https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-orders
 - https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/place-multiple-hf-orders
+- https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-multiple-hf-orders
 
 
 | Param | Type | Required | Description |
@@ -503,6 +570,7 @@ create a list of trade orders
 | orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.hf | <code>bool</code> | No | false, // true for hf orders |
+| params.sync | <code>bool</code> | No | false, // true to use the hf sync call |
 
 
 ```javascript
@@ -527,7 +595,7 @@ edit an order, kucoin currently only supports the modification of HF orders
 | type | <code>string</code> | Yes | not used |
 | side | <code>string</code> | Yes | not used |
 | amount | <code>float</code> | Yes | how much of the currency you want to trade in units of the base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderId | <code>string</code> | No | client order id, defaults to id if not passed |
 
@@ -553,6 +621,8 @@ cancels an open order
 - https://docs.kucoin.com/spot#cancel-single-order-by-clientoid-2
 - https://docs.kucoin.com/spot-hf/#cancel-orders-by-orderid
 - https://docs.kucoin.com/spot-hf/#cancel-order-by-clientoid
+- https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-orderid
+- https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-clientoid
 
 
 | Param | Type | Required | Description |
@@ -562,6 +632,7 @@ cancels an open order
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.stop | <code>bool</code> | No | True if cancelling a stop order |
 | params.hf | <code>bool</code> | No | false, // true for hf order |
+| params.sync | <code>bool</code> | No | false, // true to use the hf sync call |
 
 
 ```javascript
@@ -857,7 +928,7 @@ make a withdrawal
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
 
-**See**: https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw  
+**See**: https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw-v3-  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -991,7 +1062,7 @@ kucoin.transfer (code, amount, fromAccount, toAccount[, params])
 <a name="fetchLedger" id="fetchledger"></a>
 
 ### fetchLedger{docsify-ignore}
-fetch the history of changes, actions done by the user or operations that altered balance of the user
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger-structure)
@@ -1005,17 +1076,17 @@ fetch the history of changes, actions done by the user or operations that altere
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code, default is undefined |
+| code | <code>string</code> | No | unified currency code, default is undefined |
 | since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
-| limit | <code>int</code> | No | max number of ledger entrys to return, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.hf | <code>boolean</code> | No | default false, when true will fetch ledger entries for the high frequency trading account |
 | params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
-kucoin.fetchLedger (code[, since, limit, params])
+kucoin.fetchLedger ([code, since, limit, params])
 ```
 
 
@@ -1211,6 +1282,27 @@ kucoin.fetchDepositWithdrawFees (codes[, params])
 ```
 
 
+<a name="setLeverage" id="setleverage"></a>
+
+### setLeverage{docsify-ignore}
+set the level of leverage for a market
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**: https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/modify-leverage-multiplier  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.setLeverage (symbol[, params])
+```
+
+
 <a name="watchTicker" id="watchticker"></a>
 
 ### watchTicker{docsify-ignore}
@@ -1219,6 +1311,7 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
+**See**: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1282,6 +1375,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
+**See**: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1305,6 +1399,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
+**See**: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1327,6 +1422,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
+**See**: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1338,6 +1434,48 @@ get the list of most recent trades for a particular symbol
 
 ```javascript
 kucoin.watchTrades (symbol[, since, limit, params])
+```
+
+
+<a name="unWatchTradesForSymbols" id="unwatchtradesforsymbols"></a>
+
+### unWatchTradesForSymbols{docsify-ignore}
+unWatches trades stream
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.unWatchTradesForSymbols (symbol[, params])
+```
+
+
+<a name="unWatchTrades" id="unwatchtrades"></a>
+
+### unWatchTrades{docsify-ignore}
+unWatches trades stream
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.unWatchTrades (symbol[, params])
 ```
 
 
@@ -1370,6 +1508,34 @@ kucoin.watchOrderBook (symbol[, limit, params])
 ```
 
 
+<a name="unWatchOrderBook" id="unwatchorderbook"></a>
+
+### unWatchOrderBook{docsify-ignore}
+unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**
+
+- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.method | <code>string</code> | No | either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2' |
+
+
+```javascript
+kucoin.unWatchOrderBook (symbol[, params])
+```
+
+
 <a name="watchOrderBookForSymbols" id="watchorderbookforsymbols"></a>
 
 ### watchOrderBookForSymbols{docsify-ignore}
@@ -1399,6 +1565,35 @@ kucoin.watchOrderBookForSymbols (symbols[, limit, params])
 ```
 
 
+<a name="unWatchOrderBookForSymbols" id="unwatchorderbookforsymbols"></a>
+
+### unWatchOrderBookForSymbols{docsify-ignore}
+unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**
+
+- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+- https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.method | <code>string</code> | No | either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2' |
+
+
+```javascript
+kucoin.unWatchOrderBookForSymbols (symbols[, limit, params])
+```
+
+
 <a name="watchOrders" id="watchorders"></a>
 
 ### watchOrders{docsify-ignore}
@@ -1406,6 +1601,11 @@ watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**
+
+- https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
+- https://www.kucoin.com/docs/websocket/spot-trading/private-channels/stop-order-event
 
 
 | Param | Type | Required | Description |
@@ -1428,8 +1628,9 @@ kucoin.watchOrders (symbol[, since, limit, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
+**See**: https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1437,6 +1638,7 @@ watches information on multiple trades made by the user
 | since | <code>int</code> | No | the earliest time in ms to fetch trades for |
 | limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.method | <code>string</code> | No | '/spotMarket/tradeOrders' or '/spot/tradeFills' default is '/spotMarket/tradeOrders' |
 
 
 ```javascript
@@ -1452,6 +1654,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
 
+**See**: https://www.kucoin.com/docs/websocket/spot-trading/private-channels/account-balance-change  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

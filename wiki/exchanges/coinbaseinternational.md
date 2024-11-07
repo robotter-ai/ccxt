@@ -6,7 +6,10 @@
 **Extends**: <code>Exchange</code>  
 
 * [fetchAccounts](#fetchaccounts)
+* [fetchOHLCV](#fetchohlcv)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
+* [fetchFundingHistory](#fetchfundinghistory)
+* [fetchTransfers](#fetchtransfers)
 * [createDepositAddress](#createdepositaddress)
 * [setMargin](#setmargin)
 * [fetchPosition](#fetchposition)
@@ -30,6 +33,8 @@
 * [watchFundingRate](#watchfundingrate)
 * [watchFundingRates](#watchfundingrates)
 * [watchTicker](#watchticker)
+* [watchTickers](#watchtickers)
+* [watchOHLCV](#watchohlcv)
 * [watchTrades](#watchtrades)
 * [watchTradesForSymbols](#watchtradesforsymbols)
 * [watchOrderBook](#watchorderbook)
@@ -55,6 +60,32 @@ coinbaseinternational.fetchAccounts ([params])
 ```
 
 
+<a name="fetchOHLCV" id="fetchohlcv"></a>
+
+### fetchOHLCV{docsify-ignore}
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**: https://docs.cdp.coinbase.com/intx/reference/getinstrumentcandles  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch, default 100 max 10000 |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+coinbaseinternational.fetchOHLCV (symbol, timeframe[, since, limit, params])
+```
+
+
 <a name="fetchFundingRateHistory" id="fetchfundingratehistory"></a>
 
 ### fetchFundingRateHistory{docsify-ignore}
@@ -75,6 +106,52 @@ fetches historical funding rate prices
 
 ```javascript
 coinbaseinternational.fetchFundingRateHistory (symbol[, since, limit, params])
+```
+
+
+<a name="fetchFundingHistory" id="fetchfundinghistory"></a>
+
+### fetchFundingHistory{docsify-ignore}
+fetch the history of funding payments paid and received on this account
+
+**Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
+**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/#/?id=funding-history-structure)
+
+**See**: https://docs.cdp.coinbase.com/intx/reference/gettransfers  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch funding history for |
+| limit | <code>int</code> | No | the maximum number of funding history structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coinbaseinternational.fetchFundingHistory ([symbol, since, limit, params])
+```
+
+
+<a name="fetchTransfers" id="fetchtransfers"></a>
+
+### fetchTransfers{docsify-ignore}
+fetch a history of internal transfers made on an account
+
+**Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+
+**See**: https://docs.cdp.coinbase.com/intx/reference/gettransfers  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code of the currency transferred |
+| since | <code>int</code> | No | the earliest time in ms to fetch transfers for |
+| limit | <code>int</code> | No | the maximum number of  transfers structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coinbaseinternational.fetchTransfers (code[, since, limit, params])
 ```
 
 
@@ -443,7 +520,7 @@ edit a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderId | <code>string</code> | Yes | client order id |
 
@@ -613,10 +690,57 @@ watches a price ticker, a statistical calculation with the information calculate
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | No | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'LEVEL1' |
 
 
 ```javascript
 coinbaseinternational.watchTicker ([symbol, params])
+```
+
+
+<a name="watchTickers" id="watchtickers"></a>
+
+### watchTickers{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://docs.cloud.coinbase.com/intx/docs/websocket-channels#instruments-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'INSTLEVEL1UMENTS' |
+
+
+```javascript
+coinbaseinternational.watchTickers ([symbols, params])
+```
+
+
+<a name="watchOHLCV" id="watchohlcv"></a>
+
+### watchOHLCV{docsify-ignore}
+watches historical candlestick data containing the open, high, low, close price, and the volume of a market
+
+**Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**: https://docs.cdp.coinbase.com/intx/docs/websocket-channels#candles-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coinbaseinternational.watchOHLCV (symbol, timeframe[, since, limit, params])
 ```
 
 

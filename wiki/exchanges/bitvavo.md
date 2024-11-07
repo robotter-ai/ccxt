@@ -29,6 +29,7 @@
 * [fetchDeposits](#fetchdeposits)
 * [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
 * [watchTicker](#watchticker)
+* [watchTickers](#watchtickers)
 * [watchTrades](#watchtrades)
 * [watchOHLCV](#watchohlcv)
 * [watchOrderBook](#watchorderbook)
@@ -300,7 +301,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | Yes | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | Yes | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
 | params.timeInForce | <code>string</code> | No | "GTC", "IOC", or "PO" |
 | params.stopPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
@@ -337,7 +338,7 @@ edit a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | No | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
 
 
@@ -405,12 +406,13 @@ fetches information on an order made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitvavo.fetchOrder (symbol[, params])
+bitvavo.fetchOrder (id, symbol[, params])
 ```
 
 
@@ -584,6 +586,7 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
+**See**: https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -593,6 +596,27 @@ watches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 bitvavo.watchTicker (symbol[, params])
+```
+
+
+<a name="watchTickers" id="watchtickers"></a>
+
+### watchTickers{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+**Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitvavo.watchTickers ([symbols, params])
 ```
 
 
@@ -690,7 +714,7 @@ bitvavo.watchOrders (symbol[, since, limit, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures]{@link https://docs.ccxt.com/#/?id=ortradeder-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -722,7 +746,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | Yes | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | Yes | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
 | params.timeInForce | <code>string</code> | No | "GTC", "IOC", or "PO" |
 | params.stopPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
@@ -759,7 +783,7 @@ edit a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | No | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
 
 
@@ -823,12 +847,13 @@ fetches information on an order made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
 
 
 ```javascript
-bitvavo.fetchOrderWs (symbol[, params])
+bitvavo.fetchOrderWs (id, symbol[, params])
 ```
 
 

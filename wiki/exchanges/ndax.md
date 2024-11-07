@@ -225,7 +225,7 @@ ndax.fetchBalance ([params])
 <a name="fetchLedger" id="fetchledger"></a>
 
 ### fetchLedger{docsify-ignore}
-fetch the history of changes, actions done by the user or operations that altered balance of the user
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
 **Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger-structure)
@@ -234,14 +234,14 @@ fetch the history of changes, actions done by the user or operations that altere
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code, default is undefined |
+| code | <code>string</code> | No | unified currency code, default is undefined |
 | since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
-| limit | <code>int</code> | No | max number of ledger entrys to return, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-ndax.fetchLedger (code[, since, limit, params])
+ndax.fetchLedger ([code, since, limit, params])
 ```
 
 
@@ -261,7 +261,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | the price at which a trigger order would be triggered |
 
@@ -545,6 +545,7 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
+**See**: https://apidoc.ndax.io/#subscribelevel1  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -565,6 +566,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
+**See**: https://apidoc.ndax.io/#subscribetrades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -587,6 +589,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
+**See**: https://apidoc.ndax.io/#subscribeticker  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -610,6 +613,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
+**See**: https://apidoc.ndax.io/#subscribelevel2  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

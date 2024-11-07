@@ -38,6 +38,7 @@
 * [watchTicker](#watchticker)
 * [watchTicker](#watchticker)
 * [watchTrades](#watchtrades)
+* [watchTradesForSymbols](#watchtradesforsymbols)
 * [watchOrderBook](#watchorderbook)
 * [watchOrders](#watchorders)
 * [watchMyTrades](#watchmytrades)
@@ -51,7 +52,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://docs.poloniex.com/#public-endpoints-market-data-candles  
+**See**: https://api-docs.poloniex.com/spot/api/public/market-data#candles  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -77,7 +78,7 @@ retrieves data on all markets for poloniex
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
-**See**: https://docs.poloniex.com/#public-endpoints-reference-data-symbol-information  
+**See**: https://api-docs.poloniex.com/spot/api/public/reference-data#symbol-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -97,7 +98,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
-**See**: https://docs.poloniex.com/#public-endpoints-reference-data-system-timestamp  
+**See**: https://api-docs.poloniex.com/spot/api/public/reference-data#system-timestamp  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -117,7 +118,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://docs.poloniex.com/#public-endpoints-market-data-ticker  
+**See**: https://api-docs.poloniex.com/spot/api/public/market-data#ticker  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -138,7 +139,7 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>object</code> - an associative dictionary of currencies
 
-**See**: https://docs.poloniex.com/#public-endpoints-reference-data-currency-information  
+**See**: https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -158,7 +159,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://docs.poloniex.com/#public-endpoints-market-data-ticker  
+**See**: https://api-docs.poloniex.com/spot/api/public/market-data#ticker  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -179,7 +180,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
-**See**: https://docs.poloniex.com/#public-endpoints-market-data-trades  
+**See**: https://api-docs.poloniex.com/spot/api/public/market-data#trades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -202,7 +203,7 @@ fetch all trades made by the user
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
-**See**: https://docs.poloniex.com/#authenticated-endpoints-trades-trade-history  
+**See**: https://api-docs.poloniex.com/spot/api/private/trade#trade-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -229,8 +230,8 @@ fetch all unfilled currently open orders
 
 **See**
 
-- https://docs.poloniex.com/#authenticated-endpoints-orders-open-orders
-- https://docs.poloniex.com/#authenticated-endpoints-smart-orders-open-orders  // trigger orders
+- https://api-docs.poloniex.com/spot/api/private/order#open-orders
+- https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders  // trigger orders
 
 
 | Param | Type | Required | Description |
@@ -257,8 +258,8 @@ create a trade order
 
 **See**
 
-- https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
-- https://docs.poloniex.com/#authenticated-endpoints-smart-orders-create-order  // trigger orders
+- https://api-docs.poloniex.com/spot/api/private/order#create-order
+- https://api-docs.poloniex.com/spot/api/private/smart-order#create-order  // trigger orders
 
 
 | Param | Type | Required | Description |
@@ -267,7 +268,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | *spot only* The price at which a trigger order is triggered at |
 | params.cost | <code>float</code> | No | *spot market buy only* the quote quantity that can be used as an alternative for the amount |
@@ -288,8 +289,8 @@ edit a trade order
 
 **See**
 
-- https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
-- https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-replace-order
+- https://api-docs.poloniex.com/spot/api/private/order#cancel-replace-order
+- https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-replace-order
 
 
 | Param | Type | Required | Description |
@@ -299,7 +300,7 @@ edit a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | No | how much of the currency you want to trade in units of the base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
 
@@ -319,8 +320,8 @@ cancel all open orders
 
 **See**
 
-- https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-all-orders
-- https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-all-orders  // trigger orders
+- https://api-docs.poloniex.com/spot/api/private/order#cancel-all-orders
+- https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-all-orders  // trigger orders
 
 
 | Param | Type | Required | Description |
@@ -345,8 +346,8 @@ fetch an order by it's id
 
 **See**
 
-- https://docs.poloniex.com/#authenticated-endpoints-orders-order-details
-- https://docs.poloniex.com/#authenticated-endpoints-smart-orders-open-orders  // trigger orders
+- https://api-docs.poloniex.com/spot/api/private/order#order-details
+- https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders  // trigger orders
 
 
 | Param | Type | Required | Description |
@@ -370,7 +371,7 @@ fetch all the trades made from a single order
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
-**See**: https://docs.poloniex.com/#authenticated-endpoints-trades-trades-by-order-id  
+**See**: https://api-docs.poloniex.com/spot/api/private/trade#trades-by-order-id  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -394,7 +395,7 @@ query for balance and get the amount of funds available for trading or funds loc
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
 
-**See**: https://docs.poloniex.com/#authenticated-endpoints-accounts-all-account-balances  
+**See**: https://api-docs.poloniex.com/spot/api/private/account#all-account-balances  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -414,7 +415,7 @@ fetch the trading fees for multiple markets
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
 
-**See**: https://docs.poloniex.com/#authenticated-endpoints-accounts-fee-info  
+**See**: https://api-docs.poloniex.com/spot/api/private/account#fee-info  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -434,7 +435,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
-**See**: https://docs.poloniex.com/#public-endpoints-market-data-order-book  
+**See**: https://api-docs.poloniex.com/spot/api/public/market-data#order-book  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -456,7 +457,7 @@ create a currency deposit address
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
 
-**See**: https://docs.poloniex.com/#authenticated-endpoints-wallets-deposit-addresses  
+**See**: https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -477,7 +478,7 @@ fetch the deposit address for a currency associated with this account
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
 
-**See**: https://docs.poloniex.com/#authenticated-endpoints-wallets-deposit-addresses  
+**See**: https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -498,7 +499,7 @@ transfer currency internally between wallets on the same account
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
 
-**See**: https://docs.poloniex.com/#authenticated-endpoints-accounts-accounts-transfer  
+**See**: https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -522,7 +523,7 @@ make a withdrawal
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
 
-**See**: https://docs.poloniex.com/#authenticated-endpoints-wallets-withdraw-currency  
+**See**: https://api-docs.poloniex.com/spot/api/private/wallet#withdraw-currency  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -546,7 +547,7 @@ fetch history of deposits and withdrawals
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
 
-**See**: https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records  
+**See**: https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -569,7 +570,7 @@ fetch all withdrawals made from an account
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
 
-**See**: https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records  
+**See**: https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -592,7 +593,7 @@ fetch deposit and withdraw fees
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [fees structures](https://docs.ccxt.com/#/?id=fee-structure)
 
-**See**: https://docs.poloniex.com/#public-endpoints-reference-data-currency-information  
+**See**: https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -613,7 +614,7 @@ fetch all deposits made to an account
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
 
-**See**: https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records  
+**See**: https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -636,7 +637,7 @@ create a trade order
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>object</code> - an [order structure](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
 
-**See**: https://docs.poloniex.com/#authenticated-channels-trade-requests-create-order  
+**See**: https://api-docs.poloniex.com/spot/websocket/trade-request#create-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -644,7 +645,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the poloniex api endpoint |
 | params.timeInForce | <code>string</code> | No | GTC (default), IOC, FOK |
 | params.clientOrderId | <code>string</code> | No | Maximum 64-character length.* |
@@ -668,7 +669,7 @@ cancel multiple orders
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>object</code> - an list of [order structures](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
 
-**See**: https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders  
+**See**: https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -691,7 +692,7 @@ cancel multiple orders
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>object</code> - an list of [order structures](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
 
-**See**: https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders  
+**See**: https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -714,7 +715,7 @@ cancel all open orders of a type. Only applicable to Option in Portfolio Margin 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
 
-**See**: https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-all-orders  
+**See**: https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -735,7 +736,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://docs.poloniex.com/#public-channels-market-data-candlesticks  
+**See**: https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -759,7 +760,7 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://docs.poloniex.com/#public-channels-market-data-ticker  
+**See**: https://api-docs.poloniex.com/spot/websocket/market-data#ticker  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -780,7 +781,7 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://docs.poloniex.com/#public-channels-market-data-ticker  
+**See**: https://api-docs.poloniex.com/spot/websocket/market-data#ticker  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -801,7 +802,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
-**See**: https://docs.poloniex.com/#public-channels-market-data-trades  
+**See**: https://api-docs.poloniex.com/spot/websocket/market-data#trades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -816,6 +817,29 @@ poloniex.watchTrades (symbol[, since, limit, params])
 ```
 
 
+<a name="watchTradesForSymbols" id="watchtradesforsymbols"></a>
+
+### watchTradesForSymbols{docsify-ignore}
+get the list of most recent trades for a list of symbols
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**: https://api-docs.poloniex.com/spot/websocket/market-data#trades  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+poloniex.watchTradesForSymbols (symbols[, since, limit, params])
+```
+
+
 <a name="watchOrderBook" id="watchorderbook"></a>
 
 ### watchOrderBook{docsify-ignore}
@@ -824,7 +848,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
-**See**: https://docs.poloniex.com/#public-channels-market-data-book-level-2  
+**See**: https://api-docs.poloniex.com/spot/websocket/market-data#book-level-2  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -846,7 +870,7 @@ watches information on multiple orders made by the user
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.poloniex.com/#authenticated-channels-market-data-orders  
+**See**: https://api-docs.poloniex.com/spot/websocket/order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -869,7 +893,7 @@ watches information on multiple trades made by the user using orders stream
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
-**See**: https://docs.poloniex.com/#authenticated-channels-market-data-orders  
+**See**: https://api-docs.poloniex.com/spot/websocket/order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -892,7 +916,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
 
-**See**: https://docs.poloniex.com/#authenticated-channels-market-data-balances  
+**See**: https://api-docs.poloniex.com/spot/websocket/balance  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

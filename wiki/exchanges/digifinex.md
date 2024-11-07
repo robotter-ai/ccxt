@@ -33,6 +33,7 @@
 * [fetchCrossBorrowRate](#fetchcrossborrowrate)
 * [fetchCrossBorrowRates](#fetchcrossborrowrates)
 * [fetchFundingRate](#fetchfundingrate)
+* [fetchFundingInterval](#fetchfundinginterval)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchTradingFee](#fetchtradingfee)
 * [fetchPositions](#fetchpositions)
@@ -299,7 +300,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much you want to trade in units of the base currency, spot market orders use the quote currency, swap requires the number of contracts |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.timeInForce | <code>string</code> | No | "GTC", "IOC", "FOK", or "PO" |
 | params.postOnly | <code>bool</code> | No | true or false |
@@ -517,7 +518,7 @@ digifinex.fetchMyTrades (symbol[, since, limit, params])
 <a name="fetchLedger" id="fetchledger"></a>
 
 ### fetchLedger{docsify-ignore}
-fetch the history of changes, actions done by the user or operations that altered balance of the user
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>digifinex</code>](#digifinex)  
 **Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger-structure)
@@ -530,14 +531,14 @@ fetch the history of changes, actions done by the user or operations that altere
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code, default is undefined |
+| code | <code>string</code> | No | unified currency code, default is undefined |
 | since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
-| limit | <code>int</code> | No | max number of ledger entrys to return, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-digifinex.fetchLedger (code[, since, limit, params])
+digifinex.fetchLedger ([code, since, limit, params])
 ```
 
 
@@ -710,6 +711,27 @@ fetch the current funding rate
 
 ```javascript
 digifinex.fetchFundingRate (symbol[, params])
+```
+
+
+<a name="fetchFundingInterval" id="fetchfundinginterval"></a>
+
+### fetchFundingInterval{docsify-ignore}
+fetch the current funding rate interval
+
+**Kind**: instance method of [<code>digifinex</code>](#digifinex)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+**See**: https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+digifinex.fetchFundingInterval (symbol[, params])
 ```
 
 

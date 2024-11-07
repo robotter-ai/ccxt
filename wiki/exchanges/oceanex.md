@@ -23,6 +23,7 @@
 * [cancelOrder](#cancelorder)
 * [cancelOrders](#cancelorders)
 * [cancelAllOrders](#cancelallorders)
+* [fetchDepositAddressesByNetwork](#fetchdepositaddressesbynetwork)
 
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
@@ -229,7 +230,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -414,5 +415,26 @@ cancel all open orders
 
 ```javascript
 oceanex.cancelAllOrders (symbol[, params])
+```
+
+
+<a name="fetchDepositAddressesByNetwork" id="fetchdepositaddressesbynetwork"></a>
+
+### fetchDepositAddressesByNetwork{docsify-ignore}
+fetch the deposit addresses for a currency associated with this account
+
+**Kind**: instance method of [<code>oceanex</code>](#oceanex)  
+**Returns**: <code>object</code> - a dictionary [address structures](https://docs.ccxt.com/#/?id=address-structure), indexed by the network
+
+**See**: https://api.oceanex.pro/doc/v1/#deposit-addresses-post  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+oceanex.fetchDepositAddressesByNetwork (code[, params])
 ```
 

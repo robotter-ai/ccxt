@@ -327,7 +327,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -472,6 +472,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>wazirx</code>](#wazirx)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
+**See**: https://docs.wazirx.com/#trade-streams  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -517,6 +518,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>wazirx</code>](#wazirx)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
+**See**: https://docs.wazirx.com/#kline-candlestick-stream  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

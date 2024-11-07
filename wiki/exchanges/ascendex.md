@@ -37,10 +37,11 @@
 * [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
 * [transfer](#transfer)
 * [fetchFundingHistory](#fetchfundinghistory)
-* [fetchMarginMode](#fetchmarginmode)
+* [fetchMarginModes](#fetchmarginmodes)
 * [fetchLeverages](#fetchleverages)
 * [watchOHLCV](#watchohlcv)
 * [watchTrades](#watchtrades)
+* [watchTradesForSymbols](#watchtradesforsymbols)
 * [watchOrderBook](#watchorderbook)
 * [watchBalance](#watchbalance)
 * [watchOrders](#watchorders)
@@ -299,7 +300,7 @@ create a trade order on the exchange
 | type | <code>string</code> | Yes | "limit" or "market" |
 | side | <code>string</code> | Yes | "buy" or "sell" |
 | amount | <code>float</code> | Yes | the amount of currency to trade |
-| price | <code>float</code> | No | *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.timeInForce | <code>string</code> | No | "GTC", "IOC", "FOK", or "PO" |
 | params.postOnly | <code>bool</code> | No | true or false |
@@ -359,12 +360,13 @@ fetches information on an order made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-ascendex.fetchOrder (symbol[, params])
+ascendex.fetchOrder (id, symbol[, params])
 ```
 
 
@@ -455,7 +457,7 @@ ascendex.cancelOrder (id, symbol[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list with a single [order structure](https://docs.ccxt.com/#/?id=order-structure) with the response assigned to the info property
 
 **See**
 
@@ -588,7 +590,7 @@ ascendex.fetchPositions (symbols[, params])
 fetch the funding rate for multiple markets
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - a dictionary of [funding rates structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexe by market symbols
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rates structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexe by market symbols
 
 
 | Param | Type | Required | Description |
@@ -776,9 +778,9 @@ ascendex.fetchFundingHistory ([symbol, since, limit, params])
 ```
 
 
-<a name="fetchMarginMode" id="fetchmarginmode"></a>
+<a name="fetchMarginModes" id="fetchmarginmodes"></a>
 
-### fetchMarginMode{docsify-ignore}
+### fetchMarginModes{docsify-ignore}
 fetches the set margin mode of the user
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
@@ -793,7 +795,7 @@ fetches the set margin mode of the user
 
 
 ```javascript
-ascendex.fetchMarginMode ([symbols, params])
+ascendex.fetchMarginModes ([symbols, params])
 ```
 
 
@@ -826,6 +828,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
+**See**: https://ascendex.github.io/ascendex-pro-api/#channel-bar-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -849,6 +852,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
+**See**: https://ascendex.github.io/ascendex-pro-api/#channel-market-trades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -863,6 +867,30 @@ ascendex.watchTrades (symbol[, since, limit, params])
 ```
 
 
+<a name="watchTradesForSymbols" id="watchtradesforsymbols"></a>
+
+### watchTradesForSymbols{docsify-ignore}
+get the list of most recent trades for a list of symbols
+
+**Kind**: instance method of [<code>ascendex</code>](#ascendex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**: https://ascendex.github.io/ascendex-pro-api/#channel-market-trades  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.name | <code>string</code> | No | the name of the method to call, 'trade' or 'aggTrade', default is 'trade' |
+
+
+```javascript
+ascendex.watchTradesForSymbols (symbols[, since, limit, params])
+```
+
+
 <a name="watchOrderBook" id="watchorderbook"></a>
 
 ### watchOrderBook{docsify-ignore}
@@ -871,6 +899,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
+**See**: https://ascendex.github.io/ascendex-pro-api/#channel-level-2-order-book-updates  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -892,6 +921,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
 
+**See**: https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

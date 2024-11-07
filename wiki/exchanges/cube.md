@@ -12,8 +12,6 @@
 * [fetchTickers](#fetchtickers)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchBalance](#fetchbalance)
-* [createOrder](#createorder)
-* [cancelOrder](#cancelorder)
 * [cancelAllOrders](#cancelallorders)
 * [fetchOrder](#fetchorder)
 * [fetchRawOrder](#fetchraworder)
@@ -186,53 +184,6 @@ query for balance and get the amount of funds available for trading or funds loc
 
 ```javascript
 cube.fetchBalance ([params])
-```
-
-
-<a name="createOrder" id="createorder"></a>
-
-### createOrder{docsify-ignore}
-create a trade order
-
-**Kind**: instance method of [<code>cube</code>](#cube)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
-
-**See**: https://cubexch.gitbook.io/cube-api/rest-osmium-api#order  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
-| type | <code>string</code> | Yes | 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP' |
-| side | <code>string</code> | Yes | 'buy' or 'sell' |
-| amount | <code>float</code> | Yes | how much of you want to trade in units of the base currency |
-| price | <code>float</code> | No | the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-cube.createOrder (symbol, type, side, amount[, price, params])
-```
-
-
-<a name="cancelOrder" id="cancelorder"></a>
-
-### cancelOrder{docsify-ignore}
-cancels an open order
-
-**Kind**: instance method of [<code>cube</code>](#cube)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
-
-**See**: https://cubexch.gitbook.io/cube-api/rest-osmium-api#order-1  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-cube.cancelOrder (id, symbol[, params])
 ```
 
 

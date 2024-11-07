@@ -11,6 +11,7 @@
 * [createDepositAddress](#createdepositaddress)
 * [fetchWithdrawals](#fetchwithdrawals)
 * [fetchDeposits](#fetchdeposits)
+* [fetchDepositsWithdrawals](#fetchdepositswithdrawals)
 * [fetchMarkets](#fetchmarkets)
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchTickers](#fetchtickers)
@@ -82,7 +83,7 @@ fetch all the accounts associated with a profile
 
 **See**
 
-- https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts
+- https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
 - https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
 
 
@@ -105,7 +106,7 @@ fetch all the portfolios
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
 
-**See**: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getportfolios  
+**See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -141,12 +142,12 @@ coinbase.createDepositAddress (code[, params])
 <a name="fetchWithdrawals" id="fetchwithdrawals"></a>
 
 ### fetchWithdrawals{docsify-ignore}
-fetch all withdrawals made from an account
+Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
 
-**See**: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-withdrawals#list-withdrawals  
+**See**: https://docs.cdp.coinbase.com/coinbase-app/docs/api-withdrawals#list-withdrawals  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -154,6 +155,7 @@ fetch all withdrawals made from an account
 | since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
 | limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.currencyType | <code>string</code> | No | "fiat" or "crypto" |
 
 
 ```javascript
@@ -164,12 +166,12 @@ coinbase.fetchWithdrawals (code[, since, limit, params])
 <a name="fetchDeposits" id="fetchdeposits"></a>
 
 ### fetchDeposits{docsify-ignore}
-fetch all deposits made to an account
+Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
 
-**See**: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#list-deposits  
+**See**: https://docs.cdp.coinbase.com/coinbase-app/docs/api-deposits#list-deposits  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -177,10 +179,34 @@ fetch all deposits made to an account
 | since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
 | limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.currencyType | <code>string</code> | No | "fiat" or "crypto" |
 
 
 ```javascript
 coinbase.fetchDeposits (code[, since, limit, params])
+```
+
+
+<a name="fetchDepositsWithdrawals" id="fetchdepositswithdrawals"></a>
+
+### fetchDepositsWithdrawals{docsify-ignore}
+fetch history of deposits and withdrawals
+
+**Kind**: instance method of [<code>coinbase</code>](#coinbase)  
+**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+
+**See**: https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code for the currency of the deposit/withdrawals, default is undefined |
+| since | <code>int</code> | No | timestamp in ms of the earliest deposit/withdrawal, default is undefined |
+| limit | <code>int</code> | No | max number of deposit/withdrawals to return, default = 50, Min: 1, Max: 100 |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coinbase.fetchDepositsWithdrawals ([code, since, limit, params])
 ```
 
 
@@ -194,7 +220,7 @@ retrieves data on all markets for coinbase
 
 **See**
 
-- https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpublicproducts
+- https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproducts
 - https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
 - https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
 
@@ -244,7 +270,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 **See**
 
-- https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproducts
+- https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getproducts
 - https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
 
 
@@ -270,7 +296,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 **See**
 
-- https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades
+- https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getmarkettrades
 - https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-spot-price
 - https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-buy-price
 - https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-sell-price
@@ -298,9 +324,9 @@ query for balance and get the amount of funds available for trading or funds loc
 
 **See**
 
-- https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts
+- https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
 - https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
-- https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmbalancesummary
+- https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmbalancesummary
 
 
 | Param | Type | Required | Description |
@@ -318,24 +344,24 @@ coinbase.fetchBalance ([params])
 <a name="fetchLedger" id="fetchledger"></a>
 
 ### fetchLedger{docsify-ignore}
-fetch the history of changes, actions done by the user or operations that altered balance of the user
+Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger-structure)
 
-**See**: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions  
+**See**: https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code, default is undefined |
+| code | <code>string</code> | No | unified currency code, default is undefined |
 | since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
-| limit | <code>int</code> | No | max number of ledger entrys to return, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
-coinbase.fetchLedger (code[, since, limit, params])
+coinbase.fetchLedger ([code, since, limit, params])
 ```
 
 
@@ -347,7 +373,7 @@ create a market buy order by providing the symbol and cost
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder  
+**See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -369,7 +395,7 @@ create a trade order
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder  
+**See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -409,7 +435,7 @@ cancels an open order
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders  
+**See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -431,7 +457,7 @@ cancel multiple orders
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders  
+**See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -453,7 +479,7 @@ edit a trade order
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_editorder  
+**See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_editorder  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -462,7 +488,7 @@ edit a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.preview | <code>boolean</code> | No | default to false, wether to use the test/preview endpoint or not |
 
@@ -480,7 +506,7 @@ fetches information on an order made by the user
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorder  
+**See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorder  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -502,7 +528,7 @@ fetches information on multiple orders made by the user
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders  
+**See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -527,7 +553,7 @@ fetches information on all currently open orders
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders  
+**See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -552,7 +578,7 @@ fetches information on multiple closed orders made by the user
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders  
+**See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -577,7 +603,7 @@ fetches information on multiple canceled orders made by the user
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders  
+**See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -600,7 +626,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpubliccandles  
+**See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpubliccandles  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -627,7 +653,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
-**See**: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpublicmarkettrades  
+**See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicmarkettrades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -651,7 +677,7 @@ fetch all trades made by the user
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
-**See**: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfills  
+**See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfills  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -676,7 +702,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
-**See**: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpublicproductbook  
+**See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproductbook  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -699,7 +725,7 @@ fetches the bid and ask price and volume for multiple markets
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getbestbidask  
+**See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getbestbidask  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -812,7 +838,7 @@ fetch a quote for converting from one currency to another
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
 
-**See**: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_createconvertquote  
+**See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_createconvertquote  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -838,7 +864,7 @@ convert from one currency to another
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
 
-**See**: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_commitconverttrade  
+**See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_commitconverttrade  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -862,7 +888,7 @@ fetch the data for a conversion trade
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
 
-**See**: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getconverttrade  
+**See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getconverttrade  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -911,8 +937,8 @@ fetch all open positions
 
 **See**
 
-- https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmpositions
-- https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getintxpositions
+- https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmpositions
+- https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxpositions
 
 
 | Param | Type | Required | Description |
@@ -937,8 +963,8 @@ fetch data on a single open contract trade position
 
 **See**
 
-- https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getintxposition
-- https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmposition
+- https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxposition
+- https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmposition
 
 
 | Param | Type | Required | Description |

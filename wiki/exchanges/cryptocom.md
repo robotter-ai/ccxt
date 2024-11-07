@@ -35,13 +35,24 @@
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
 * [closePositions](#closepositions)
+* [fetchTradingFee](#fetchtradingfee)
+* [fetchTradingFees](#fetchtradingfees)
 * [watchOrderBook](#watchorderbook)
+* [unWatchOrderBook](#unwatchorderbook)
 * [watchOrderBook](#watchorderbook)
+* [unWatchOrderBookForSymbols](#unwatchorderbookforsymbols)
 * [watchTrades](#watchtrades)
+* [unWatchTrades](#unwatchtrades)
 * [watchTradesForSymbols](#watchtradesforsymbols)
+* [unWatchTradesForSymbols](#unwatchtradesforsymbols)
 * [watchMyTrades](#watchmytrades)
 * [watchTicker](#watchticker)
+* [unWatchTicker](#unwatchticker)
+* [watchTickers](#watchtickers)
+* [unWatchTickers](#unwatchtickers)
+* [watchBidsAsks](#watchbidsasks)
 * [watchOHLCV](#watchohlcv)
+* [unWatchOHLCV](#unwatchohlcv)
 * [watchOrders](#watchorders)
 * [watchPositions](#watchpositions)
 * [watchBalance](#watchbalance)
@@ -79,7 +90,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 **See**
 
-- https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
+- https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
 - https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
 
 
@@ -270,7 +281,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.timeInForce | <code>string</code> | No | 'GTC', 'IOC', 'FOK' or 'PO' |
 | params.ref_price_type | <code>string</code> | No | 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE |
@@ -385,7 +396,7 @@ cancel multiple orders for multiple symbols
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| orders | <code>Array&lt;CancellationRequest&gt;</code> | Yes | each order should contain the parameters required by cancelOrder namely id and symbol |
+| orders | <code>Array&lt;CancellationRequest&gt;</code> | Yes | each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}] |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -495,6 +506,7 @@ fetch the deposit address for a currency associated with this account
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
 **Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
 
+**See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -588,7 +600,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
+| code | <code>string</code> | No | unified currency code |
 | since | <code>int</code> | No | timestamp in ms of the earliest ledger entry |
 | limit | <code>int</code> | No | max number of ledger entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -596,7 +608,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-cryptocom.fetchLedger (code[, since, limit, params])
+cryptocom.fetchLedger ([code, since, limit, params])
 ```
 
 
@@ -736,6 +748,47 @@ cryptocom.closePositions (symbol[, marginMode, side, params])
 ```
 
 
+<a name="fetchTradingFee" id="fetchtradingfee"></a>
+
+### fetchTradingFee{docsify-ignore}
+fetch the trading fees for a market
+
+**Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+
+**See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-instrument-fee-rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+cryptocom.fetchTradingFee (symbol[, params])
+```
+
+
+<a name="fetchTradingFees" id="fetchtradingfees"></a>
+
+### fetchTradingFees{docsify-ignore}
+fetch the trading fees for multiple markets
+
+**Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+
+**See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-fee-rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+cryptocom.fetchTradingFees ([params])
+```
+
+
 <a name="watchOrderBook" id="watchorderbook"></a>
 
 ### watchOrderBook{docsify-ignore}
@@ -757,6 +810,29 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 ```javascript
 cryptocom.watchOrderBook (symbol[, limit, params])
+```
+
+
+<a name="unWatchOrderBook" id="unwatchorderbook"></a>
+
+### unWatchOrderBook{docsify-ignore}
+unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.bookSubscriptionType | <code>string</code> | No | The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates |
+| params.bookUpdateFrequency | <code>int</code> | No | Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription |
+
+
+```javascript
+cryptocom.unWatchOrderBook (symbol[, params])
 ```
 
 
@@ -784,6 +860,30 @@ cryptocom.watchOrderBook (symbols[, limit, params])
 ```
 
 
+<a name="unWatchOrderBookForSymbols" id="unwatchorderbookforsymbols"></a>
+
+### unWatchOrderBookForSymbols{docsify-ignore}
+unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.limit | <code>int</code> | No | orderbook limit, default is 50 |
+| params.bookSubscriptionType | <code>string</code> | No | The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates |
+| params.bookUpdateFrequency | <code>int</code> | No | Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription |
+
+
+```javascript
+cryptocom.unWatchOrderBookForSymbols (symbols[, params])
+```
+
+
 <a name="watchTrades" id="watchtrades"></a>
 
 ### watchTrades{docsify-ignore}
@@ -804,6 +904,29 @@ get the list of most recent trades for a particular symbol
 
 ```javascript
 cryptocom.watchTrades (symbol[, since, limit, params])
+```
+
+
+<a name="unWatchTrades" id="unwatchtrades"></a>
+
+### unWatchTrades{docsify-ignore}
+get the list of most recent trades for a particular symbol
+
+**Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+cryptocom.unWatchTrades (symbol[, since, limit, params])
 ```
 
 
@@ -830,13 +953,34 @@ cryptocom.watchTradesForSymbols (symbol[, since, limit, params])
 ```
 
 
+<a name="unWatchTradesForSymbols" id="unwatchtradesforsymbols"></a>
+
+### unWatchTradesForSymbols{docsify-ignore}
+get the list of most recent trades for a particular symbol
+
+**Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+cryptocom.unWatchTradesForSymbols (symbol[, params])
+```
+
+
 <a name="watchMyTrades" id="watchmytrades"></a>
 
 ### watchMyTrades{docsify-ignore}
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-trade-instrument_name  
 
@@ -874,6 +1018,90 @@ cryptocom.watchTicker (symbol[, params])
 ```
 
 
+<a name="unWatchTicker" id="unwatchticker"></a>
+
+### unWatchTicker{docsify-ignore}
+unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+cryptocom.unWatchTicker (symbol[, params])
+```
+
+
+<a name="watchTickers" id="watchtickers"></a>
+
+### watchTickers{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+**Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+cryptocom.watchTickers (symbols[, params])
+```
+
+
+<a name="unWatchTickers" id="unwatchtickers"></a>
+
+### unWatchTickers{docsify-ignore}
+unWatches a price ticker
+
+**Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+cryptocom.unWatchTickers (symbols[, params])
+```
+
+
+<a name="watchBidsAsks" id="watchbidsasks"></a>
+
+### watchBidsAsks{docsify-ignore}
+watches best bid & ask for symbols
+
+**Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+cryptocom.watchBidsAsks (symbols[, params])
+```
+
+
 <a name="watchOHLCV" id="watchohlcv"></a>
 
 ### watchOHLCV{docsify-ignore}
@@ -895,6 +1123,28 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 ```javascript
 cryptocom.watchOHLCV (symbol, timeframe[, since, limit, params])
+```
+
+
+<a name="unWatchOHLCV" id="unwatchohlcv"></a>
+
+### unWatchOHLCV{docsify-ignore}
+unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#candlestick-time_frame-instrument_name  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+cryptocom.unWatchOHLCV (symbol, timeframe[, params])
 ```
 
 
@@ -978,7 +1228,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 

@@ -8,7 +8,9 @@
 * [fetchMarkets](#fetchmarkets)
 * [fetchTickers](#fetchtickers)
 * [fetchTicker](#fetchticker)
+* [fetchOrderBook](#fetchorderbook)
 * [fetchTrades](#fetchtrades)
+* [fetchOHLCV](#fetchohlcv)
 * [fetchBalance](#fetchbalance)
 * [createOrder](#createorder)
 * [cancelOrder](#cancelorder)
@@ -18,7 +20,9 @@
 * [fetchClosedOrders](#fetchclosedorders)
 * [watchOHLCV](#watchohlcv)
 * [watchTicker](#watchticker)
+* [watchTickers](#watchtickers)
 * [watchTrades](#watchtrades)
+* [watchTradesForSymbols](#watchtradesforsymbols)
 * [watchOrderBook](#watchorderbook)
 
 <a name="fetchMarkets" id="fetchmarkets"></a>
@@ -83,6 +87,29 @@ p2b.fetchTicker (symbol[, params])
 ```
 
 
+<a name="fetchOrderBook" id="fetchorderbook"></a>
+
+### fetchOrderBook{docsify-ignore}
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>p2b</code>](#p2b)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#depth-result  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS |
+| params.interval | <code>string</code> | No | 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1 |
+
+
+```javascript
+p2b.fetchOrderBook (symbol[, limit, params])
+```
+
+
 <a name="fetchTrades" id="fetchtrades"></a>
 
 ### fetchTrades{docsify-ignore}
@@ -104,6 +131,31 @@ get the list of most recent trades for a particular symbol
 
 ```javascript
 p2b.fetchTrades (symbol[, since, limit, params])
+```
+
+
+<a name="fetchOHLCV" id="fetchohlcv"></a>
+
+### fetchOHLCV{docsify-ignore}
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>p2b</code>](#p2b)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#kline  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | 1m, 1h, or 1d |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | 1-500, default=50 |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.offset | <code>int</code> | No | default=0, with this value the last candles are returned |
+
+
+```javascript
+p2b.fetchOHLCV (symbol, timeframe[, since, limit, params])
 ```
 
 
@@ -143,7 +195,7 @@ create a trade order
 | type | <code>string</code> | Yes | must be 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | Yes | the price at which the order is to be fullfilled, in units of the quote currency |
+| price | <code>float</code> | Yes | the price at which the order is to be fulfilled, in units of the quote currency |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -323,6 +375,32 @@ p2b.watchTicker (symbol[, params])
 ```
 
 
+<a name="watchTickers" id="watchtickers"></a>
+
+### watchTickers{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+**Kind**: instance method of [<code>p2b</code>](#p2b)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**
+
+- https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#last-price
+- https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#market-status
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.method | <code>object</code> | No | 'state' (default) or 'price' |
+
+
+```javascript
+p2b.watchTickers ([symbols, params])
+```
+
+
 <a name="watchTrades" id="watchtrades"></a>
 
 ### watchTrades{docsify-ignore}
@@ -343,6 +421,29 @@ get the list of most recent trades for a particular symbol
 
 ```javascript
 p2b.watchTrades (symbol[, since, limit, params])
+```
+
+
+<a name="watchTradesForSymbols" id="watchtradesforsymbols"></a>
+
+### watchTradesForSymbols{docsify-ignore}
+get the list of most recent trades for a list of symbols
+
+**Kind**: instance method of [<code>p2b</code>](#p2b)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**: https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+p2b.watchTradesForSymbols (symbols[, since, limit, params])
 ```
 
 

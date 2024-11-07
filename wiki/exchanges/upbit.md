@@ -29,8 +29,13 @@
 * [createDepositAddress](#createdepositaddress)
 * [withdraw](#withdraw)
 * [watchTicker](#watchticker)
+* [watchTicker](#watchticker)
 * [watchTrades](#watchtrades)
+* [watchTradesForSymbols](#watchtradesforsymbols)
 * [watchOrderBook](#watchorderbook)
+* [watchOrders](#watchorders)
+* [watchMyTrades](#watchmytrades)
+* [watchBalance](#watchbalance)
 
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
@@ -246,7 +251,7 @@ create a trade order
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much you want to trade in units of the base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.cost | <code>float</code> | No | for market buy orders, the quote quantity that can be used as an alternative for the amount |
 | params.timeInForce | <code>string</code> | No | 'IOC' or 'FOK' |
@@ -379,14 +384,15 @@ fetch all unfilled currently open orders
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C  
+**See**: https://global-docs.upbit.com/reference/open-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
-| limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
+| limit | <code>int</code> | No | the maximum number of open order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.state | <code>string</code> | No | default is 'wait', set to 'watch' for stop limit orders |
 
 
 ```javascript
@@ -402,7 +408,7 @@ fetches information on multiple closed orders made by the user
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C  
+**See**: https://global-docs.upbit.com/reference/closed-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -410,6 +416,7 @@ fetches information on multiple closed orders made by the user
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest order |
 
 
 ```javascript
@@ -425,7 +432,7 @@ fetches information on multiple canceled orders made by the user
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
 **Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C  
+**See**: https://global-docs.upbit.com/reference/closed-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -433,6 +440,7 @@ fetches information on multiple canceled orders made by the user
 | since | <code>int</code> | No | timestamp in ms of the earliest order, default is undefined |
 | limit | <code>int</code> | No | max number of orders to return, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest order |
 
 
 ```javascript
@@ -561,6 +569,28 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
+**See**: https://global-docs.upbit.com/reference/websocket-ticker  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+upbit.watchTicker (symbol[, params])
+```
+
+
+<a name="watchTicker" id="watchticker"></a>
+
+### watchTicker{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>upbit</code>](#upbit)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://global-docs.upbit.com/reference/websocket-ticker  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -581,6 +611,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
+**See**: https://global-docs.upbit.com/reference/websocket-trade  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -595,6 +626,29 @@ upbit.watchTrades (symbol[, since, limit, params])
 ```
 
 
+<a name="watchTradesForSymbols" id="watchtradesforsymbols"></a>
+
+### watchTradesForSymbols{docsify-ignore}
+get the list of most recent trades for a list of symbols
+
+**Kind**: instance method of [<code>upbit</code>](#upbit)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**: https://global-docs.upbit.com/reference/websocket-trade  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+upbit.watchTradesForSymbols (symbols[, since, limit, params])
+```
+
+
 <a name="watchOrderBook" id="watchorderbook"></a>
 
 ### watchOrderBook{docsify-ignore}
@@ -603,6 +657,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>upbit</code>](#upbit)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
+**See**: https://global-docs.upbit.com/reference/websocket-orderbook  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -613,5 +668,71 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 ```javascript
 upbit.watchOrderBook (symbol[, limit, params])
+```
+
+
+<a name="watchOrders" id="watchorders"></a>
+
+### watchOrders{docsify-ignore}
+watches information on multiple orders made by the user
+
+**Kind**: instance method of [<code>upbit</code>](#upbit)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**: https://global-docs.upbit.com/reference/websocket-myorder  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+upbit.watchOrders (symbol[, since, limit, params])
+```
+
+
+<a name="watchMyTrades" id="watchmytrades"></a>
+
+### watchMyTrades{docsify-ignore}
+watches information on multiple trades made by the user
+
+**Kind**: instance method of [<code>upbit</code>](#upbit)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+
+**See**: https://global-docs.upbit.com/reference/websocket-myorder  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+upbit.watchMyTrades (symbol[, since, limit, params])
+```
+
+
+<a name="watchBalance" id="watchbalance"></a>
+
+### watchBalance{docsify-ignore}
+query for balance and get the amount of funds available for trading or funds locked in orders
+
+**Kind**: instance method of [<code>upbit</code>](#upbit)  
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+
+**See**: https://global-docs.upbit.com/reference/websocket-myasset  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+upbit.watchBalance ([params])
 ```
 
