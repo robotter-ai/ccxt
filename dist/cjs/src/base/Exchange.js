@@ -50,13 +50,14 @@ function _interopNamespace(e) {
 }
 
 // ----------------------------------------------------------------------------
-const { isNode, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep } = functions;
+const { isNode, selfIsDefined, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep } = functions;
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
  */
 class Exchange {
     constructor(userConfig = {}) {
+        this.isSandboxModeEnabled = false;
         this.throttleProp = undefined;
         this.sleep = sleep;
         this.api = undefined;
@@ -159,6 +160,7 @@ class Exchange {
         this.flatten = flatten;
         this.unique = unique;
         this.indexBy = indexBy;
+        this.roundTimeframe = roundTimeframe;
         this.sortBy = sortBy;
         this.sortBy2 = sortBy2;
         this.groupBy = groupBy;
@@ -640,7 +642,7 @@ class Exchange {
                 }
             }
             else {
-                this.fetchImplementation = self.fetch;
+                this.fetchImplementation = (selfIsDefined()) ? self.fetch : fetch;
                 this.AbortError = DOMException;
                 this.FetchError = TypeError;
             }
@@ -810,7 +812,15 @@ class Exchange {
         }
         else {
             try {
-                return this.number(value);
+                // we should handle scientific notation here
+                // so if the exchanges returns 1e-8
+                // this function will return 0.00000001
+                // check https://github.com/ccxt/ccxt/issues/24135
+                const numberNormalized = this.numberToString(value);
+                if (numberNormalized.indexOf('e-') > -1) {
+                    return this.number(numberToString(parseFloat(numberNormalized)));
+                }
+                return this.number(numberNormalized);
             }
             catch (e) {
                 return d;
@@ -1237,6 +1247,13 @@ class Exchange {
         rng$1.nextBytes(x);
         return Buffer.from(x).toString('hex');
     }
+    randNumber(size) {
+        let number = '';
+        for (let i = 0; i < size; i++) {
+            number += Math.floor(Math.random() * 10);
+        }
+        return parseInt(number, 10);
+    }
     /* eslint-enable */
     // ------------------------------------------------------------------------
     // ########################################################################
@@ -1393,6 +1410,8 @@ class Exchange {
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': undefined,
                 'fetchFundingRateHistory': undefined,
+                'fetchFundingInterval': undefined,
+                'fetchFundingIntervals': undefined,
                 'fetchFundingRates': undefined,
                 'fetchGreeks': undefined,
                 'fetchIndexOHLCV': undefined,
@@ -1409,6 +1428,8 @@ class Exchange {
                 'fetchLeverages': undefined,
                 'fetchLeverageTiers': undefined,
                 'fetchLiquidations': undefined,
+                'fetchLongShortRatio': undefined,
+                'fetchLongShortRatioHistory': undefined,
                 'fetchMarginMode': undefined,
                 'fetchMarginModes': undefined,
                 'fetchMarketLeverageTiers': undefined,
@@ -1453,6 +1474,7 @@ class Exchange {
                 'fetchTicker': true,
                 'fetchTickerWs': undefined,
                 'fetchTickers': undefined,
+                'fetchMarkPrices': undefined,
                 'fetchTickersWs': undefined,
                 'fetchTime': undefined,
                 'fetchTrades': true,
@@ -1965,6 +1987,8 @@ class Exchange {
             else {
                 throw new errors.NotSupported(this.id + ' does not have a sandbox URL');
             }
+            // set flag
+            this.isSandboxModeEnabled = true;
         }
         else if ('apiBackup' in this.urls) {
             if (typeof this.urls['api'] === 'string') {
@@ -1975,6 +1999,8 @@ class Exchange {
             }
             const newUrls = this.omit(this.urls, 'apiBackup');
             this.urls = newUrls;
+            // set flag
+            this.isSandboxModeEnabled = false;
         }
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -2010,8 +2036,14 @@ class Exchange {
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchTrades() is not supported yet');
     }
+    async unWatchTrades(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' unWatchTrades() is not supported yet');
+    }
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchTradesForSymbols() is not supported yet');
+    }
+    async unWatchTradesForSymbols(symbols, params = {}) {
+        throw new errors.NotSupported(this.id + ' unWatchTradesForSymbols() is not supported yet');
     }
     async watchMyTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchMyTradesForSymbols() is not supported yet');
@@ -2022,8 +2054,14 @@ class Exchange {
     async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchOHLCVForSymbols() is not supported yet');
     }
+    async unWatchOHLCVForSymbols(symbolsAndTimeframes, params = {}) {
+        throw new errors.NotSupported(this.id + ' unWatchOHLCVForSymbols() is not supported yet');
+    }
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchOrderBookForSymbols() is not supported yet');
+    }
+    async unWatchOrderBookForSymbols(symbols, params = {}) {
+        throw new errors.NotSupported(this.id + ' unWatchOrderBookForSymbols() is not supported yet');
     }
     async fetchDepositAddresses(codes = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchDepositAddresses() is not supported yet');
@@ -2061,11 +2099,27 @@ class Exchange {
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchOrderBook() is not supported yet');
     }
+    async unWatchOrderBook(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' unWatchOrderBook() is not supported yet');
+    }
     async fetchTime(params = {}) {
         throw new errors.NotSupported(this.id + ' fetchTime() is not supported yet');
     }
     async fetchTradingLimits(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchTradingLimits() is not supported yet');
+    }
+    parseCurrency(rawCurrency) {
+        throw new errors.NotSupported(this.id + ' parseCurrency() is not supported yet');
+    }
+    parseCurrencies(rawCurrencies) {
+        const result = {};
+        const arr = this.toArray(rawCurrencies);
+        for (let i = 0; i < arr.length; i++) {
+            const parsed = this.parseCurrency(arr[i]);
+            const code = parsed['code'];
+            result[code] = parsed;
+        }
+        return result;
     }
     parseMarket(market) {
         throw new errors.NotSupported(this.id + ' parseMarket() is not supported yet');
@@ -2140,6 +2194,9 @@ class Exchange {
     async fetchFundingRates(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchFundingRates() is not supported yet');
     }
+    async fetchFundingIntervals(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchFundingIntervals() is not supported yet');
+    }
     async watchFundingRate(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' watchFundingRate() is not supported yet');
     }
@@ -2184,6 +2241,12 @@ class Exchange {
     }
     async setMargin(symbol, amount, params = {}) {
         throw new errors.NotSupported(this.id + ' setMargin() is not supported yet');
+    }
+    async fetchLongShortRatio(symbol, timeframe = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchLongShortRatio() is not supported yet');
+    }
+    async fetchLongShortRatioHistory(symbol = undefined, timeframe = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchLongShortRatioHistory() is not supported yet');
     }
     async fetchMarginAdjustmentHistory(symbol = undefined, type = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -2265,6 +2328,7 @@ class Exchange {
                 'ETH': { 'ERC20': 'ETH' },
                 'TRX': { 'TRC20': 'TRX' },
                 'CRO': { 'CRC20': 'CRONOS' },
+                'BRC20': { 'BRC20': 'BTC' },
             },
         };
     }
@@ -2596,9 +2660,10 @@ class Exchange {
         const isTriggerOrSLTpOrder = ((this.safeString(order, 'triggerPrice') !== undefined || (this.safeString(order, 'stopLossPrice') !== undefined)) || (this.safeString(order, 'takeProfitPrice') !== undefined));
         if (parseFilled || parseCost || shouldParseFees) {
             const rawTrades = this.safeValue(order, 'trades', trades);
-            const oldNumber = this.number;
+            // const oldNumber = this.number;
             // we parse trades as strings here!
-            this.number = String;
+            // i don't think this is needed anymore
+            // (this as any).number = String;
             const firstTrade = this.safeValue(rawTrades, 0);
             // parse trades if they haven't already been parsed
             const tradesAreParsed = ((firstTrade !== undefined) && ('info' in firstTrade) && ('id' in firstTrade));
@@ -2608,7 +2673,7 @@ class Exchange {
             else {
                 trades = rawTrades;
             }
-            this.number = oldNumber;
+            // this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
             let tradesLength = 0;
             const isArray = Array.isArray(trades);
             if (isArray) {
@@ -3206,6 +3271,8 @@ class Exchange {
             'baseVolume': this.parseNumber(baseVolume),
             'quoteVolume': this.parseNumber(quoteVolume),
             'previousClose': this.safeNumber(ticker, 'previousClose'),
+            'indexPrice': this.safeNumber(ticker, 'indexPrice'),
+            'markPrice': this.safeNumber(ticker, 'markPrice'),
         });
     }
     async fetchBorrowRate(code, amount, params = {}) {
@@ -4406,6 +4473,24 @@ class Exchange {
             throw new errors.NotSupported(this.id + ' fetchTicker() is not supported yet');
         }
     }
+    async fetchMarkPrice(symbol, params = {}) {
+        if (this.has['fetchMarkPrices']) {
+            await this.loadMarkets();
+            const market = this.market(symbol);
+            symbol = market['symbol'];
+            const tickers = await this.fetchMarkPrices([symbol], params);
+            const ticker = this.safeDict(tickers, symbol);
+            if (ticker === undefined) {
+                throw new errors.NullResponse(this.id + ' fetchMarkPrices() could not find a ticker for ' + symbol);
+            }
+            else {
+                return ticker;
+            }
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchMarkPrices() is not supported yet');
+        }
+    }
     async fetchTickerWs(symbol, params = {}) {
         if (this.has['fetchTickersWs']) {
             await this.loadMarkets();
@@ -4430,6 +4515,9 @@ class Exchange {
     async fetchTickers(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchTickers() is not supported yet');
     }
+    async fetchMarkPrices(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchMarkPrices() is not supported yet');
+    }
     async fetchTickersWs(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchTickers() is not supported yet');
     }
@@ -4441,6 +4529,9 @@ class Exchange {
     }
     async watchTickers(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchTickers() is not supported yet');
+    }
+    async unWatchTickers(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' unWatchTickers() is not supported yet');
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOrder() is not supported yet');
@@ -5187,7 +5278,8 @@ class Exchange {
             return this.forceString(fee);
         }
         else {
-            return this.decimalToPrecision(fee, ROUND, precision, this.precisionMode, this.paddingMode);
+            const roundingMode = this.safeInteger(this.options, 'currencyToPrecisionRoundingMode', ROUND);
+            return this.decimalToPrecision(fee, roundingMode, precision, this.precisionMode, this.paddingMode);
         }
     }
     forceString(value) {
@@ -5460,7 +5552,7 @@ class Exchange {
             result = this.filterByArray(result, 'currency', codes, false);
         }
         if (indexed) {
-            return this.indexBy(result, 'currency');
+            result = this.filterByArray(result, 'currency', undefined, indexed);
         }
         return result;
     }
@@ -5471,6 +5563,19 @@ class Exchange {
             interests.push(this.parseBorrowInterest(row, market));
         }
         return interests;
+    }
+    parseBorrowRate(info, currency = undefined) {
+        throw new errors.NotSupported(this.id + ' parseBorrowRate() is not supported yet');
+    }
+    parseBorrowRateHistory(response, code, since, limit) {
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const borrowRate = this.parseBorrowRate(item);
+            result.push(borrowRate);
+        }
+        const sorted = this.sortBy(result, 'timestamp');
+        return this.filterByCurrencySinceLimit(sorted, code, since, limit);
     }
     parseIsolatedBorrowRates(info) {
         const result = {};
@@ -5506,6 +5611,19 @@ class Exchange {
             result[parsed['symbol']] = parsed;
         }
         return result;
+    }
+    parseLongShortRatio(info, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseLongShortRatio() is not supported yet');
+    }
+    parseLongShortRatioHistory(response, market = undefined, since = undefined, limit = undefined) {
+        const rates = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            rates.push(this.parseLongShortRatio(entry, market));
+        }
+        const sorted = this.sortBy(rates, 'timestamp');
+        const symbol = (market === undefined) ? undefined : market['symbol'];
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
     handleTriggerAndParams(params) {
         const isTrigger = this.safeBool2(params, 'trigger', 'stop');
@@ -5633,6 +5751,27 @@ class Exchange {
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchFundingRate () is not supported yet');
+        }
+    }
+    async fetchFundingInterval(symbol, params = {}) {
+        if (this.has['fetchFundingIntervals']) {
+            await this.loadMarkets();
+            const market = this.market(symbol);
+            symbol = market['symbol'];
+            if (!market['contract']) {
+                throw new errors.BadSymbol(this.id + ' fetchFundingInterval() supports contract markets only');
+            }
+            const rates = await this.fetchFundingIntervals([symbol], params);
+            const rate = this.safeValue(rates, symbol);
+            if (rate === undefined) {
+                throw new errors.NullResponse(this.id + ' fetchFundingInterval() returned no data for ' + symbol);
+            }
+            else {
+                return rate;
+            }
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchFundingInterval() is not supported yet');
         }
     }
     async fetchMarkOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -6092,6 +6231,8 @@ class Exchange {
         let i = 0;
         let errors = 0;
         let result = [];
+        const timeframe = this.safeString(params, 'timeframe');
+        params = this.omit(params, 'timeframe'); // reading the timeframe from the method arguments to avoid changing the signature
         while (i < maxCalls) {
             try {
                 if (cursorValue !== undefined) {
@@ -6106,6 +6247,9 @@ class Exchange {
                 }
                 else if (method === 'getLeverageTiersPaginated' || method === 'fetchPositions') {
                     response = await this[method](symbol, params);
+                }
+                else if (method === 'fetchOpenInterestHistory') {
+                    response = await this[method](symbol, timeframe, since, maxEntriesPerRequest, params);
                 }
                 else {
                     response = await this[method](symbol, since, maxEntriesPerRequest, params);
@@ -6122,8 +6266,19 @@ class Exchange {
                     break;
                 }
                 result = this.arrayConcat(result, response);
-                const last = this.safeValue(response, responseLength - 1);
-                cursorValue = this.safeValue(last['info'], cursorReceived);
+                const last = this.safeDict(response, responseLength - 1);
+                // cursorValue = this.safeValue (last['info'], cursorReceived);
+                cursorValue = undefined; // search for the cursor
+                for (let j = 0; j < responseLength; j++) {
+                    const index = responseLength - j - 1;
+                    const entry = this.safeDict(response, index);
+                    const info = this.safeDict(entry, 'info');
+                    const cursor = this.safeValue(info, cursorReceived);
+                    if (cursor !== undefined) {
+                        cursorValue = cursor;
+                        break;
+                    }
+                }
                 if (cursorValue === undefined) {
                     break;
                 }

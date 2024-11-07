@@ -103,7 +103,7 @@ public partial class ascendex : Exchange
             } },
             { "version", "v2" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/55bab6b9-d4ca-42a8-a0e6-fac81ae557f1" },
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://ascendex.com" },
                 } },
@@ -2523,11 +2523,11 @@ public partial class ascendex : Exchange
         object chainName = this.safeString(depositAddress, "blockchain");
         object network = this.networkIdToCode(chainName, code);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", code },
+            { "network", network },
             { "address", address },
             { "tag", tag },
-            { "network", network },
-            { "info", depositAddress },
         };
     }
 
@@ -2952,6 +2952,7 @@ public partial class ascendex : Exchange
             { "fundingRate", nextFundingRate },
             { "fundingTimestamp", nextFundingRateTimestamp },
             { "fundingDatetime", this.iso8601(nextFundingRateTimestamp) },
+            { "interval", null },
         };
     }
 
@@ -2963,7 +2964,7 @@ public partial class ascendex : Exchange
         * @description fetch the funding rate for multiple markets
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+        * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

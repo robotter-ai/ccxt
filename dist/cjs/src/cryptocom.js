@@ -51,6 +51,7 @@ class cryptocom extends cryptocom$1 {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
@@ -160,6 +161,7 @@ class cryptocom extends cryptocom$1 {
                             'public/get-valuations': 1,
                             'public/get-expired-settlement-price': 10 / 3,
                             'public/get-insurance': 1,
+                            'public/get-risk-parameters': 1,
                         },
                         'post': {
                             'public/staking/get-conversion-rate': 2,
@@ -1613,7 +1615,7 @@ class cryptocom extends cryptocom$1 {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params, 100);
         }
         const request = {};
         let market = undefined;
@@ -1784,9 +1786,9 @@ class cryptocom extends cryptocom$1 {
             result[network] = {
                 'info': value,
                 'currency': responseCode,
+                'network': network,
                 'address': address,
                 'tag': tag,
-                'network': network,
             };
         }
         return result;
@@ -2393,7 +2395,7 @@ class cryptocom extends cryptocom$1 {
          * @name cryptocom#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions
-         * @param {string} code unified currency code
+         * @param {string} [code] unified currency code
          * @param {int} [since] timestamp in ms of the earliest ledger entry
          * @param {int} [limit] max number of ledger entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2474,6 +2476,8 @@ class cryptocom extends cryptocom$1 {
         //
         const timestamp = this.safeInteger(item, 'event_timestamp_ms');
         const currencyId = this.safeString(item, 'instrument_name');
+        const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         let amount = this.safeString(item, 'transaction_qty');
         let direction = undefined;
         if (Precise["default"].stringLt(amount, '0')) {
@@ -2483,14 +2487,15 @@ class cryptocom extends cryptocom$1 {
         else {
             direction = 'in';
         }
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': this.safeString(item, 'order_id'),
             'direction': direction,
             'account': this.safeString(item, 'account_id'),
             'referenceId': this.safeString(item, 'trade_id'),
             'referenceAccount': this.safeString(item, 'trade_match_id'),
             'type': this.parseLedgerEntryType(this.safeString(item, 'journal_type')),
-            'currency': this.safeCurrencyCode(currencyId, currency),
+            'currency': code,
             'amount': this.parseNumber(amount),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -2501,8 +2506,7 @@ class cryptocom extends cryptocom$1 {
                 'currency': undefined,
                 'cost': undefined,
             },
-            'info': item,
-        };
+        }, currency);
     }
     parseLedgerEntryType(type) {
         const ledgerType = {

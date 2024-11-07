@@ -32,6 +32,8 @@ public partial class bitbank : Exchange
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
@@ -84,7 +86,7 @@ public partial class bitbank : Exchange
             } },
             { "hostname", "bitbank.cc" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/9d616de0-8a88-4468-8e38-d269acab0348" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://public.{hostname}" },
                     { "private", "https://api.{hostname}" },
@@ -859,11 +861,11 @@ public partial class bitbank : Exchange
         object firstAccount = this.safeValue(accounts, 0, new Dictionary<string, object>() {});
         object address = this.safeString(firstAccount, "address");
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", currency },
+            { "network", null },
             { "address", address },
             { "tag", null },
-            { "network", null },
-            { "info", response },
         };
     }
 

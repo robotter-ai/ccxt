@@ -25,6 +25,8 @@ class okx(ccxt.async_support.okx):
             'has': {
                 'ws': True,
                 'watchTicker': True,
+                'watchMarkPrice': True,
+                'watchMarkPrices': True,
                 'watchTickers': True,
                 'watchBidsAsks': True,
                 'watchOrderBook': True,
@@ -403,6 +405,41 @@ class okx(ccxt.async_support.okx):
         symbols = self.market_symbols(symbols, None, False)
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'tickers')
+        newTickers = await self.subscribe_multiple('public', channel, symbols, params)
+        if self.newUpdates:
+            return newTickers
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
+
+    async def watch_mark_price(self, symbol: str, params={}) -> Ticker:
+        """
+        :see: https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+        watches a mark price
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        channel = None
+        channel, params = self.handle_option_and_params(params, 'watchMarkPrice', 'channel', 'mark-price')
+        params['channel'] = channel
+        market = self.market(symbol)
+        symbol = market['symbol']
+        ticker = await self.watch_mark_prices([symbol], params)
+        return ticker[symbol]
+
+    async def watch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        :see: https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+        watches mark prices
+        :param str[] [symbols]: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        channel = None
+        channel, params = self.handle_option_and_params(params, 'watchMarkPrices', 'channel', 'mark-price')
         newTickers = await self.subscribe_multiple('public', channel, symbols, params)
         if self.newUpdates:
             return newTickers
@@ -893,7 +930,7 @@ class okx(ccxt.async_support.okx):
         filtered = self.filter_by_since_limit(candles, since, limit, 0, True)
         return self.create_ohlcv_object(symbol, timeframe, filtered)
 
-    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], params={}):
+    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], params={}) -> Any:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
@@ -1340,8 +1377,10 @@ class okx(ccxt.async_support.okx):
                     },
                 ],
             }
-            message = self.extend(request, params)
-            self.watch(url, messageHash, message, messageHash)
+            # Only add params['access'] to prevent sending custom parameters, such.
+            if 'access' in params:
+                request['access'] = params['access']
+            self.watch(url, messageHash, request, messageHash)
         return await future
 
     async def watch_balance(self, params={}) -> Balances:
@@ -1499,7 +1538,7 @@ class okx(ccxt.async_support.okx):
                 'channel': 'positions',
                 'instType': 'ANY',
             }
-            args = [arg]
+            args = [self.extend(arg, params)]
             nonSymbolRequest: dict = {
                 'op': 'subscribe',
                 'args': args,
@@ -1811,7 +1850,13 @@ class okx(ccxt.async_support.okx):
         tradeSymbols = list(symbols.keys())
         for i in range(0, len(tradeSymbols)):
             symbolMessageHash = messageHash + '::' + tradeSymbols[i]
-            client.resolve(self.orders, symbolMessageHash)
+            client.resolve(self.myTrades, symbolMessageHash)
+
+    def request_id(self):
+        ts = str(self.milliseconds())
+        randomNumber = self.rand_number(4)
+        randomPart = str(randomNumber)
+        return ts + randomPart
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
@@ -1829,7 +1874,7 @@ class okx(ccxt.async_support.okx):
         await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
-        messageHash = str(self.milliseconds())
+        messageHash = self.request_id()
         op = None
         op, params = self.handle_option_and_params(params, 'createOrderWs', 'op', 'batch-orders')
         args = self.create_order_request(symbol, type, side, amount, price, params)
@@ -1894,7 +1939,7 @@ class okx(ccxt.async_support.okx):
         await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
-        messageHash = str(self.milliseconds())
+        messageHash = self.request_id()
         op = None
         op, params = self.handle_option_and_params(params, 'editOrderWs', 'op', 'amend-order')
         args = self.edit_order_request(id, symbol, type, side, amount, price, params)
@@ -1920,7 +1965,7 @@ class okx(ccxt.async_support.okx):
         await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
-        messageHash = str(self.milliseconds())
+        messageHash = self.request_id()
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         params = self.omit(params, ['clientOrderId', 'clOrdId'])
         arg: dict = {
@@ -1954,7 +1999,7 @@ class okx(ccxt.async_support.okx):
         await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
-        messageHash = str(self.milliseconds())
+        messageHash = self.request_id()
         args = []
         for i in range(0, idsLength):
             arg: dict = {
@@ -1985,7 +2030,7 @@ class okx(ccxt.async_support.okx):
         if market['type'] != 'option':
             raise BadRequest(self.id + 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.')
         url = self.get_url('private', 'private')
-        messageHash = str(self.milliseconds())
+        messageHash = self.request_id()
         request: dict = {
             'id': messageHash,
             'op': 'mass-cancel',
@@ -2047,10 +2092,21 @@ class okx(ccxt.async_support.okx):
         try:
             if errorCode and errorCode != '0':
                 feedback = self.id + ' ' + self.json(message)
-                self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+                if errorCode != '1':
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
                 messageString = self.safe_value(message, 'msg')
                 if messageString is not None:
                     self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
+                else:
+                    data = self.safe_list(message, 'data', [])
+                    for i in range(0, len(data)):
+                        d = data[i]
+                        errorCode = self.safe_string(d, 'sCode')
+                        if errorCode is not None:
+                            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+                        messageString = self.safe_value(message, 'sMsg')
+                        if messageString is not None:
+                            self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
                 raise ExchangeError(feedback)
         except Exception as e:
             # if the message contains an id, it means it is a response to a request
@@ -2138,6 +2194,7 @@ class okx(ccxt.async_support.okx):
                 'books50-l2-tbt': self.handle_order_book,  # only users who're VIP4 and above can subscribe, identity verification required before subscription
                 'books-l2-tbt': self.handle_order_book,  # only users who're VIP5 and above can subscribe, identity verification required before subscription
                 'tickers': self.handle_ticker,
+                'mark-price': self.handle_ticker,
                 'positions': self.handle_positions,
                 'index-tickers': self.handle_ticker,
                 'sprd-tickers': self.handle_ticker,

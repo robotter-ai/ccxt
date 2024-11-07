@@ -79,6 +79,7 @@ class coinbase extends coinbase$1 {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -767,31 +768,59 @@ class coinbase extends coinbase$1 {
         /**
          * @method
          * @name coinbase#fetchWithdrawals
-         * @description fetch all withdrawals made from an account
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-withdrawals#list-withdrawals
+         * @description Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
+         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-withdrawals#list-withdrawals
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.currencyType] "fiat" or "crypto"
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        // fiat only, for crypto transactions use fetchLedger
+        let currencyType = undefined;
+        [currencyType, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'currencyType');
+        if (currencyType === 'crypto') {
+            const results = await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params);
+            return this.filterByArray(results, 'type', 'withdrawal', false);
+        }
         return await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, params);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchDeposits
-         * @description fetch all deposits made to an account
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#list-deposits
+         * @description Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
+         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-deposits#list-deposits
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.currencyType] "fiat" or "crypto"
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        // fiat only, for crypto transactions use fetchLedger
+        let currencyType = undefined;
+        [currencyType, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'currencyType');
+        if (currencyType === 'crypto') {
+            const results = await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params);
+            return this.filterByArray(results, 'type', 'deposit', false);
+        }
         return await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdDeposits', code, since, limit, params);
+    }
+    async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default = 50, Min: 1, Max: 100
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets();
+        const results = await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params);
+        return this.filterByArray(results, 'type', ['deposit', 'withdrawal'], false);
     }
     parseTransactionStatus(status) {
         const statuses = {
@@ -916,18 +945,62 @@ class coinbase extends coinbase$1 {
         //         "hide_native_amount": false
         //     }
         //
+        //
+        // crypto deposit & withdrawal (using `/transactions` endpoint)
+        //    {
+        //        "amount": {
+        //            "amount": "0.00014200", (negative for withdrawal)
+        //            "currency": "BTC"
+        //        },
+        //        "created_at": "2024-03-29T15:48:30Z",
+        //        "id": "0031a605-241d-514d-a97b-d4b99f3225d3",
+        //        "idem": "092a979b-017e-4403-940a-2ca57811f442", // field present only in case of withdrawal
+        //        "native_amount": {
+        //            "amount": "9.85", (negative for withdrawal)
+        //            "currency": "USD"
+        //        },
+        //        "network": {
+        //            "status": "pending", // if status is `off_blockchain` then no more other fields are present in this object
+        //            "hash": "5jYuvrNsvX2DZoMnzGYzVpYxJLfYu4GSK3xetG1H5LHrSovsuFCFYdFMwNRoiht3s6fBk92MM8QLLnz65xuEFTrE",
+        //            "network_name": "solana",
+        //            "transaction_fee": {
+        //                "amount": "0.000100000",
+        //                "currency": "SOL"
+        //            }
+        //        },
+        //        "resource": "transaction",
+        //        "resource_path": "/v2/accounts/dc504b1c-248e-5b68-a3b0-b991f7fa84e6/transactions/0031a605-241d-514d-a97b-d4b99f3225d3",
+        //        "status": "completed",
+        //        "type": "send",
+        //        "from": { // in some cases, field might be present for deposit
+        //            "id": "7fd10cd7-b091-5cee-ba41-c29e49a7cccf",
+        //            "name": "Coinbase",
+        //            "resource": "user"
+        //        },
+        //        "to": { // field only present for withdrawal
+        //            "address": "5HA12BNthAvBwNYARYf9y5MqqCpB4qhCNFCs1Qw48ACE",
+        //            "resource": "address"
+        //        },
+        //        "description": "C3 - One Time BTC Credit . Reference Case # 123.", //  in some cases, field might be present for deposit
+        //    }
+        //
         const transactionType = this.safeString(transaction, 'type');
         let amountAndCurrencyObject = undefined;
         let feeObject = undefined;
+        const network = this.safeDict(transaction, 'network', {});
         if (transactionType === 'send') {
-            const network = this.safeDict(transaction, 'network', {});
-            amountAndCurrencyObject = this.safeDict(network, 'transaction_amount', {});
+            amountAndCurrencyObject = this.safeDict(network, 'transaction_amount');
             feeObject = this.safeDict(network, 'transaction_fee', {});
         }
         else {
-            amountAndCurrencyObject = this.safeDict(transaction, 'subtotal', {});
+            amountAndCurrencyObject = this.safeDict(transaction, 'subtotal');
             feeObject = this.safeDict(transaction, 'fee', {});
         }
+        if (amountAndCurrencyObject === undefined) {
+            amountAndCurrencyObject = this.safeDict(transaction, 'amount');
+        }
+        const amountString = this.safeString(amountAndCurrencyObject, 'amount');
+        const amountStringAbs = Precise["default"].stringAbs(amountString);
         let status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
         if (status === undefined) {
             const committed = this.safeBool(transaction, 'committed');
@@ -937,23 +1010,34 @@ class coinbase extends coinbase$1 {
         const currencyId = this.safeString(amountAndCurrencyObject, 'currency');
         const feeCurrencyId = this.safeString(feeObject, 'currency');
         const datetime = this.safeString(transaction, 'created_at');
-        const toObject = this.safeDict(transaction, 'to', {});
-        const toAddress = this.safeString(toObject, 'address');
+        const resource = this.safeString(transaction, 'resource');
+        let type = resource;
+        if (!this.inArray(type, ['deposit', 'withdrawal'])) {
+            if (Precise["default"].stringGt(amountString, '0')) {
+                type = 'deposit';
+            }
+            else if (Precise["default"].stringLt(amountString, '0')) {
+                type = 'withdrawal';
+            }
+        }
+        const toObject = this.safeDict(transaction, 'to');
+        const addressTo = this.safeString(toObject, 'address');
+        const networkId = this.safeString(network, 'network_name');
         return {
             'info': transaction,
             'id': id,
-            'txid': id,
+            'txid': this.safeString(network, 'hash', id),
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
-            'network': undefined,
-            'address': toAddress,
-            'addressTo': toAddress,
+            'network': this.networkIdToCode(networkId),
+            'address': addressTo,
+            'addressTo': addressTo,
             'addressFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
-            'type': this.safeString(transaction, 'resource'),
-            'amount': this.safeNumber(amountAndCurrencyObject, 'amount'),
+            'type': type,
+            'amount': this.parseNumber(amountStringAbs),
             'currency': this.safeCurrencyCode(currencyId, currency),
             'status': status,
             'updated': this.parse8601(this.safeString(transaction, 'updated_at')),
@@ -2257,13 +2341,13 @@ class coinbase extends coinbase$1 {
         /**
          * @method
          * @name coinbase#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions
-         * @param {string} code unified currency code, default is undefined
+         * @description Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
+         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();
@@ -2292,8 +2376,28 @@ class coinbase extends coinbase$1 {
         const pagination = this.safeDict(response, 'pagination', {});
         const cursor = this.safeString(pagination, 'next_starting_after');
         if ((cursor !== undefined) && (cursor !== '')) {
+            const lastFee = this.safeDict(last, 'fee');
             last['next_starting_after'] = cursor;
-            ledger[lastIndex] = last;
+            ledger[lastIndex] = {
+                'info': this.safeDict(last, 'info'),
+                'id': this.safeString(last, 'id'),
+                'timestamp': this.safeInteger(last, 'timestamp'),
+                'datetime': this.safeString(last, 'datetime'),
+                'direction': this.safeString(last, 'direction'),
+                'account': this.safeString(last, 'account'),
+                'referenceId': undefined,
+                'referenceAccount': undefined,
+                'type': this.safeString(last, 'type'),
+                'currency': this.safeString(last, 'currency'),
+                'amount': this.safeNumber(last, 'amount'),
+                'before': undefined,
+                'after': undefined,
+                'status': this.safeString(last, 'status'),
+                'fee': {
+                    'cost': this.safeNumber(lastFee, 'cost'),
+                    'currency': this.safeString(lastFee, 'currency'),
+                },
+            };
         }
         return ledger;
     }
@@ -2573,6 +2677,7 @@ class coinbase extends coinbase$1 {
         }
         const currencyId = this.safeString(amountInfo, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         //
         // the address and txid do not belong to the unified ledger structure
         //
@@ -2608,7 +2713,7 @@ class coinbase extends coinbase$1 {
                 accountId = parts[3];
             }
         }
-        return {
+        return this.safeLedgerEntry({
             'info': item,
             'id': id,
             'timestamp': timestamp,
@@ -2624,7 +2729,7 @@ class coinbase extends coinbase$1 {
             'after': undefined,
             'status': status,
             'fee': fee,
-        };
+        }, currency);
     }
     async findAccountId(code, params = {}) {
         await this.loadMarkets();
@@ -3679,7 +3784,7 @@ class coinbase extends coinbase$1 {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100);
+            return await this.fetchPaginatedCallCursor('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', undefined, 250);
         }
         let market = undefined;
         if (symbol !== undefined) {
@@ -4052,9 +4157,9 @@ class coinbase extends coinbase$1 {
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode(marketId, currency),
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'tag': this.safeString(addressInfo, 'destination_tag'),
-            'network': this.networkIdToCode(networkId, code),
         };
     }
     async deposit(code, amount, id, params = {}) {

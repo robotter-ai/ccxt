@@ -33,6 +33,8 @@ public partial class blockchaincom : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchDeposit", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
@@ -68,7 +70,7 @@ public partial class blockchaincom : Exchange
             } },
             { "timeframes", null },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/147515585-1296e91b-7398-45e5-9d32-f6121538533f.jpeg" },
+                { "logo", "https://github.com/user-attachments/assets/975e3054-3399-4363-bcee-ec3c6d63d4e8" },
                 { "test", new Dictionary<string, object>() {
                     { "public", "https://testnet-api.delta.exchange" },
                     { "private", "https://testnet-api.delta.exchange" },
@@ -866,16 +868,13 @@ public partial class blockchaincom : Exchange
             tag = this.safeString(addressParts, 0);
             address = this.safeString(addressParts, 1);
         }
-        object result = new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "info", response },
+            { "currency", getValue(currency, "code") },
+            { "network", null },
+            { "address", address },
+            { "tag", tag },
         };
-        ((IDictionary<string,object>)result)["currency"] = getValue(currency, "code");
-        ((IDictionary<string,object>)result)["address"] = address;
-        if (isTrue(!isEqual(tag, null)))
-        {
-            ((IDictionary<string,object>)result)["tag"] = tag;
-        }
-        return result;
     }
 
     public virtual object parseTransactionState(object state)

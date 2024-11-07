@@ -40,6 +40,8 @@ public partial class bitvavo : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
@@ -100,7 +102,7 @@ public partial class bitvavo : Exchange
                 { "1d", "1d" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/169202626-bd130fc5-fcf9-41bb-8d97-6093225c73cd.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/d213155c-8c71-4701-9bd5-45351febc2a8" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.bitvavo.com" },
                     { "private", "https://api.bitvavo.com" },
@@ -244,6 +246,7 @@ public partial class bitvavo : Exchange
                 } },
             } },
             { "options", new Dictionary<string, object>() {
+                { "currencyToPrecisionRoundingMode", TRUNCATE },
                 { "BITVAVO-ACCESS-WINDOW", 10000 },
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
@@ -255,11 +258,6 @@ public partial class bitvavo : Exchange
                 { "MIOTA", "IOTA" },
             } },
         });
-    }
-
-    public override object currencyToPrecision(object code, object fee, object networkCode = null)
-    {
-        return this.decimalToPrecision(fee, 0, getValue(getValue(this.currencies, code), "precision"), DECIMAL_PLACES);
     }
 
     public override object amountToPrecision(object symbol, object amount)
@@ -443,10 +441,10 @@ public partial class bitvavo : Exchange
         //         },
         //     ]
         //
-        return this.parseCurrencies(response);
+        return this.parseCurrenciesCustom(response);
     }
 
-    public virtual object parseCurrencies(object currencies)
+    public virtual object parseCurrenciesCustom(object currencies)
     {
         //
         //     [
@@ -1087,11 +1085,11 @@ public partial class bitvavo : Exchange
         object tag = this.safeString(response, "paymentId");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", response },
         };
     }
 

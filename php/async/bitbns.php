@@ -37,6 +37,8 @@ class bitbns extends Exchange {
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
@@ -68,7 +70,7 @@ class bitbns extends Exchange {
             ),
             'hostname' => 'bitbns.com',
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/a5b9a562-cdd8-4bea-9fa7-fd24c1dad3d9',
                 'api' => array(
                     'www' => 'https://{hostname}',
                     'v1' => 'https://api.{hostname}/api/trade/v1',
@@ -1135,7 +1137,7 @@ class bitbns extends Exchange {
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -1164,11 +1166,11 @@ class bitbns extends Exchange {
             $tag = $this->safe_string($data, 'tag');
             $this->check_address($address);
             return array(
+                'info' => $response,
                 'currency' => $code,
+                'network' => null,
                 'address' => $address,
                 'tag' => $tag,
-                'network' => null,
-                'info' => $response,
             );
         }) ();
     }

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbase import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -89,6 +89,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -751,29 +752,53 @@ class coinbase(Exchange, ImplicitAPI):
 
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
-        fetch all withdrawals made from an account
-        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-withdrawals#list-withdrawals
+        Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
+        :see: https://docs.cdp.coinbase.com/coinbase-app/docs/api-withdrawals#list-withdrawals
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.currencyType]: "fiat" or "crypto"
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        # fiat only, for crypto transactions use fetchLedger
+        currencyType = None
+        currencyType, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'currencyType')
+        if currencyType == 'crypto':
+            results = self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params)
+            return self.filter_by_array(results, 'type', 'withdrawal', False)
         return self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, params)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
-        fetch all deposits made to an account
-        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#list-deposits
+        Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
+        :see: https://docs.cdp.coinbase.com/coinbase-app/docs/api-deposits#list-deposits
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.currencyType]: "fiat" or "crypto"
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        # fiat only, for crypto transactions use fetchLedger
+        currencyType = None
+        currencyType, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'currencyType')
+        if currencyType == 'crypto':
+            results = self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params)
+            return self.filter_by_array(results, 'type', 'deposit', False)
         return self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdDeposits', code, since, limit, params)
+
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+        """
+        fetch history of deposits and withdrawals
+        :see: https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default = 50, Min: 1, Max: 100
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        self.load_markets()
+        results = self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params)
+        return self.filter_by_array(results, 'type', ['deposit', 'withdrawal'], False)
 
     def parse_transaction_status(self, status: Str):
         statuses: dict = {
@@ -898,16 +923,59 @@ class coinbase(Exchange, ImplicitAPI):
         #         "hide_native_amount": False
         #     }
         #
+        #
+        # crypto deposit & withdrawal(using `/transactions` endpoint)
+        #    {
+        #        "amount": {
+        #            "amount": "0.00014200",(negative for withdrawal)
+        #            "currency": "BTC"
+        #        },
+        #        "created_at": "2024-03-29T15:48:30Z",
+        #        "id": "0031a605-241d-514d-a97b-d4b99f3225d3",
+        #        "idem": "092a979b-017e-4403-940a-2ca57811f442",  # field present only in case of withdrawal
+        #        "native_amount": {
+        #            "amount": "9.85",(negative for withdrawal)
+        #            "currency": "USD"
+        #        },
+        #        "network": {
+        #            "status": "pending",  # if status is `off_blockchain` then no more other fields are hasattr(self, present) object
+        #            "hash": "5jYuvrNsvX2DZoMnzGYzVpYxJLfYu4GSK3xetG1H5LHrSovsuFCFYdFMwNRoiht3s6fBk92MM8QLLnz65xuEFTrE",
+        #            "network_name": "solana",
+        #            "transaction_fee": {
+        #                "amount": "0.000100000",
+        #                "currency": "SOL"
+        #            }
+        #        },
+        #        "resource": "transaction",
+        #        "resource_path": "/v2/accounts/dc504b1c-248e-5b68-a3b0-b991f7fa84e6/transactions/0031a605-241d-514d-a97b-d4b99f3225d3",
+        #        "status": "completed",
+        #        "type": "send",
+        #        "from": { # in some cases, field might be present for deposit
+        #            "id": "7fd10cd7-b091-5cee-ba41-c29e49a7cccf",
+        #            "name": "Coinbase",
+        #            "resource": "user"
+        #        },
+        #        "to": { # field only present for withdrawal
+        #            "address": "5HA12BNthAvBwNYARYf9y5MqqCpB4qhCNFCs1Qw48ACE",
+        #            "resource": "address"
+        #        },
+        #        "description": "C3 - One Time BTC Credit . Reference Case  # 123.",  #  in some cases, field might be present for deposit
+        #    }
+        #
         transactionType = self.safe_string(transaction, 'type')
         amountAndCurrencyObject = None
         feeObject = None
+        network = self.safe_dict(transaction, 'network', {})
         if transactionType == 'send':
-            network = self.safe_dict(transaction, 'network', {})
-            amountAndCurrencyObject = self.safe_dict(network, 'transaction_amount', {})
+            amountAndCurrencyObject = self.safe_dict(network, 'transaction_amount')
             feeObject = self.safe_dict(network, 'transaction_fee', {})
         else:
-            amountAndCurrencyObject = self.safe_dict(transaction, 'subtotal', {})
+            amountAndCurrencyObject = self.safe_dict(transaction, 'subtotal')
             feeObject = self.safe_dict(transaction, 'fee', {})
+        if amountAndCurrencyObject is None:
+            amountAndCurrencyObject = self.safe_dict(transaction, 'amount')
+        amountString = self.safe_string(amountAndCurrencyObject, 'amount')
+        amountStringAbs = Precise.string_abs(amountString)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         if status is None:
             committed = self.safe_bool(transaction, 'committed')
@@ -916,23 +984,31 @@ class coinbase(Exchange, ImplicitAPI):
         currencyId = self.safe_string(amountAndCurrencyObject, 'currency')
         feeCurrencyId = self.safe_string(feeObject, 'currency')
         datetime = self.safe_string(transaction, 'created_at')
-        toObject = self.safe_dict(transaction, 'to', {})
-        toAddress = self.safe_string(toObject, 'address')
+        resource = self.safe_string(transaction, 'resource')
+        type = resource
+        if not self.in_array(type, ['deposit', 'withdrawal']):
+            if Precise.string_gt(amountString, '0'):
+                type = 'deposit'
+            elif Precise.string_lt(amountString, '0'):
+                type = 'withdrawal'
+        toObject = self.safe_dict(transaction, 'to')
+        addressTo = self.safe_string(toObject, 'address')
+        networkId = self.safe_string(network, 'network_name')
         return {
             'info': transaction,
             'id': id,
-            'txid': id,
+            'txid': self.safe_string(network, 'hash', id),
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
-            'network': None,
-            'address': toAddress,
-            'addressTo': toAddress,
+            'network': self.network_id_to_code(networkId),
+            'address': addressTo,
+            'addressTo': addressTo,
             'addressFrom': None,
             'tag': None,
             'tagTo': None,
             'tagFrom': None,
-            'type': self.safe_string(transaction, 'resource'),
-            'amount': self.safe_number(amountAndCurrencyObject, 'amount'),
+            'type': type,
+            'amount': self.parse_number(amountStringAbs),
             'currency': self.safe_currency_code(currencyId, currency),
             'status': status,
             'updated': self.parse8601(self.safe_string(transaction, 'updated_at')),
@@ -2170,15 +2246,15 @@ class coinbase(Exchange, ImplicitAPI):
         params['type'] = marketType
         return self.parse_custom_balance(response, params)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
-        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions
-        :param str code: unified currency code, default is None
+        Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
+        :see: https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
+        :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         self.load_markets()
@@ -2204,8 +2280,28 @@ class coinbase(Exchange, ImplicitAPI):
         pagination = self.safe_dict(response, 'pagination', {})
         cursor = self.safe_string(pagination, 'next_starting_after')
         if (cursor is not None) and (cursor != ''):
+            lastFee = self.safe_dict(last, 'fee')
             last['next_starting_after'] = cursor
-            ledger[lastIndex] = last
+            ledger[lastIndex] = {
+                'info': self.safe_dict(last, 'info'),
+                'id': self.safe_string(last, 'id'),
+                'timestamp': self.safe_integer(last, 'timestamp'),
+                'datetime': self.safe_string(last, 'datetime'),
+                'direction': self.safe_string(last, 'direction'),
+                'account': self.safe_string(last, 'account'),
+                'referenceId': None,
+                'referenceAccount': None,
+                'type': self.safe_string(last, 'type'),
+                'currency': self.safe_string(last, 'currency'),
+                'amount': self.safe_number(last, 'amount'),
+                'before': None,
+                'after': None,
+                'status': self.safe_string(last, 'status'),
+                'fee': {
+                    'cost': self.safe_number(lastFee, 'cost'),
+                    'currency': self.safe_string(lastFee, 'currency'),
+                },
+            }
         return ledger
 
     def parse_ledger_entry_status(self, status):
@@ -2228,7 +2324,7 @@ class coinbase(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item: dict, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         # crypto deposit transaction
         #
@@ -2482,6 +2578,7 @@ class coinbase(Exchange, ImplicitAPI):
             direction = 'in'
         currencyId = self.safe_string(amountInfo, 'currency')
         code = self.safe_currency_code(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         #
         # the address and txid do not belong to the unified ledger structure
         #
@@ -2514,7 +2611,7 @@ class coinbase(Exchange, ImplicitAPI):
             numParts = len(parts)
             if numParts > 3:
                 accountId = parts[3]
-        return {
+        return self.safe_ledger_entry({
             'info': item,
             'id': id,
             'timestamp': timestamp,
@@ -2530,7 +2627,7 @@ class coinbase(Exchange, ImplicitAPI):
             'after': None,
             'status': status,
             'fee': fee,
-        }
+        }, currency)
 
     def find_account_id(self, code, params={}):
         self.load_markets()
@@ -3472,7 +3569,7 @@ class coinbase(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', None, 100)
+            return self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', None, 250)
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -3695,7 +3792,7 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def fetch_deposit_addresses_by_network(self, code: str, params={}):
+    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
@@ -3767,7 +3864,7 @@ class coinbase(Exchange, ImplicitAPI):
         addressStructures = self.parse_deposit_addresses(data, None, False)
         return self.index_by(addressStructures, 'network')
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
@@ -3822,9 +3919,9 @@ class coinbase(Exchange, ImplicitAPI):
         return {
             'info': depositAddress,
             'currency': self.safe_currency_code(marketId, currency),
+            'network': self.network_id_to_code(networkId, code),
             'address': address,
             'tag': self.safe_string(addressInfo, 'destination_tag'),
-            'network': self.network_id_to_code(networkId, code),
         }
 
     def deposit(self, code: str, amount: float, id: str, params={}):

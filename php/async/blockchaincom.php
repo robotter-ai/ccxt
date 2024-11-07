@@ -43,6 +43,8 @@ class blockchaincom extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
@@ -78,7 +80,7 @@ class blockchaincom extends Exchange {
             ),
             'timeframes' => null,
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/147515585-1296e91b-7398-45e5-9d32-f6121538533f.jpeg',
+                'logo' => 'https://github.com/user-attachments/assets/975e3054-3399-4363-bcee-ec3c6d63d4e8',
                 'test' => array(
                     'public' => 'https://testnet-api.delta.exchange',
                     'private' => 'https://testnet-api.delta.exchange',
@@ -837,7 +839,7 @@ class blockchaincom extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -861,13 +863,13 @@ class blockchaincom extends Exchange {
                 $tag = $this->safe_string($addressParts, 0);
                 $address = $this->safe_string($addressParts, 1);
             }
-            $result = array( 'info' => $response );
-            $result['currency'] = $currency['code'];
-            $result['address'] = $address;
-            if ($tag !== null) {
-                $result['tag'] = $tag;
-            }
-            return $result;
+            return array(
+                'info' => $response,
+                'currency' => $currency['code'],
+                'network' => null,
+                'address' => $address,
+                'tag' => $tag,
+            );
         }) ();
     }
 

@@ -47,6 +47,8 @@ class bitvavo extends bitvavo$1 {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
@@ -107,7 +109,7 @@ class bitvavo extends bitvavo$1 {
                 '1d': '1d',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/169202626-bd130fc5-fcf9-41bb-8d97-6093225c73cd.jpg',
+                'logo': 'https://github.com/user-attachments/assets/d213155c-8c71-4701-9bd5-45351febc2a8',
                 'api': {
                     'public': 'https://api.bitvavo.com',
                     'private': 'https://api.bitvavo.com',
@@ -266,6 +268,7 @@ class bitvavo extends bitvavo$1 {
                 },
             },
             'options': {
+                'currencyToPrecisionRoundingMode': number.TRUNCATE,
                 'BITVAVO-ACCESS-WINDOW': 10000,
                 'networks': {
                     'ERC20': 'ETH',
@@ -277,9 +280,6 @@ class bitvavo extends bitvavo$1 {
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
             },
         });
-    }
-    currencyToPrecision(code, fee, networkCode = undefined) {
-        return this.decimalToPrecision(fee, 0, this.currencies[code]['precision'], number.DECIMAL_PLACES);
     }
     amountToPrecision(symbol, amount) {
         // https://docs.bitfinex.com/docs/introduction#amount-precision
@@ -447,9 +447,9 @@ class bitvavo extends bitvavo$1 {
         //         },
         //     ]
         //
-        return this.parseCurrencies(response);
+        return this.parseCurrenciesCustom(response);
     }
-    parseCurrencies(currencies) {
+    parseCurrenciesCustom(currencies) {
         //
         //     [
         //         {
@@ -1043,11 +1043,11 @@ class bitvavo extends bitvavo$1 {
         const tag = this.safeString(response, 'paymentId');
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
         };
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {

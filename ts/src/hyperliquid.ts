@@ -4,11 +4,11 @@
 import Exchange from './abstract/hyperliquid.js';
 import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { TICK_SIZE, ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES } from './base/functions/number.js';
+import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers, LedgerEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -152,7 +152,17 @@ export default class hyperliquid extends Exchange {
             'api': {
                 'public': {
                     'post': {
-                        'info': 1,
+                        'info': {
+                            'cost': 20,
+                            'byType': {
+                                'l2Book': 2,
+                                'allMids': 2,
+                                'clearinghouseState': 2,
+                                'orderStatus': 2,
+                                'spotClearinghouseState': 2,
+                                'exchangeStatus': 2,
+                            },
+                        },
                     },
                 },
                 'private': {
@@ -191,9 +201,11 @@ export default class hyperliquid extends Exchange {
                     'No liquidity available for market order.': InvalidOrder,
                     'Order was never placed, already canceled, or filled.': OrderNotFound,
                     'User or API Wallet ': InvalidOrder,
+                    'Order has invalid size': InvalidOrder,
+                    'Order price cannot be more than 80% away from the reference price': InvalidOrder,
                 },
             },
-            'precisionMode': TICK_SIZE,
+            'precisionMode': DECIMAL_PLACES,
             'commonCurrencies': {
             },
             'options': {
@@ -215,7 +227,7 @@ export default class hyperliquid extends Exchange {
          * @method
          * @name hyperliquid#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-exchange-metadata
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -275,7 +287,8 @@ export default class hyperliquid extends Exchange {
          * @method
          * @name hyperliquid#fetchMarkets
          * @description retrieves data on all markets for hyperliquid
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -294,7 +307,7 @@ export default class hyperliquid extends Exchange {
          * @method
          * @name hyperliquid#fetchMarkets
          * @description retrieves data on all swap markets for hyperliquid
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -353,7 +366,7 @@ export default class hyperliquid extends Exchange {
          * @method
          * @name hyperliquid#fetchMarkets
          * @description retrieves data on all spot markets for hyperliquid
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -364,102 +377,51 @@ export default class hyperliquid extends Exchange {
         //
         // [
         //     {
-        //         'tokens': [
+        //         "tokens": [
         //             {
-        //                 'name': 'USDC',
-        //                 'szDecimals': '8',
-        //                 'weiDecimals': '8',
+        //                 "name": "USDC",
+        //                 "szDecimals": 8,
+        //                 "weiDecimals" 8,
+        //                 "index": 0,
+        //                 "tokenId": "0x6d1e7cde53ba9467b783cb7c530ce054",
+        //                 "isCanonical": true,
+        //                 "evmContract":null,
+        //                 "fullName":null
         //             },
         //             {
-        //                 'name': 'PURR',
-        //                 'szDecimals': '0',
-        //                 'weiDecimals': '5',
-        //             },
+        //                 "name": "PURR",
+        //                 "szDecimals": 0,
+        //                 "weiDecimals": 5,
+        //                 "index": 1,
+        //                 "tokenId": "0xc1fb593aeffbeb02f85e0308e9956a90",
+        //                 "isCanonical": true,
+        //                 "evmContract":null,
+        //                 "fullName":null
+        //             }
         //         ],
-        //         'universe': [
+        //         "universe": [
         //             {
-        //                 'name': 'PURR/USDC',
-        //                 'tokens': [
-        //                     1,
-        //                     0,
-        //                 ],
-        //             },
-        //         ],
+        //                 "name": "PURR/USDC",
+        //                 "tokens": [1, 0],
+        //                 "index": 0,
+        //                 "isCanonical": true
+        //             }
+        //         ]
         //     },
         //     [
         //         {
-        //             'dayNtlVlm': '264250385.14640012',
-        //             'markPx': '0.018314',
-        //             'midPx': '0.0182235',
-        //             'prevDayPx': '0.017427',
-        //         },
-        //     ],
-        // ];
-        // mainnet
-        // [
-        //     {
-        //        "canonical_tokens2":[
-        //           0,
-        //           1
-        //        ],
-        //        "spot_infos":[
-        //           {
-        //              "name":"PURR/USDC",
-        //              "tokens":[
-        //                 1,
-        //                 0
-        //              ]
-        //           }
-        //        ],
-        //        "token_id_to_token":[
-        //           [
-        //              "0x6d1e7cde53ba9467b783cb7c530ce054",
-        //              0
-        //           ],
-        //           [
-        //              "0xc1fb593aeffbeb02f85e0308e9956a90",
-        //              1
-        //           ]
-        //        ],
-        //        "token_infos":[
-        //           {
-        //              "deployer":null,
-        //              "spec":{
-        //                 "name":"USDC",
-        //                 "szDecimals":"8",
-        //                 "weiDecimals":"8"
-        //              },
-        //              "spots":[
-        //              ]
-        //           },
-        //           {
-        //              "deployer":null,
-        //              "spec":{
-        //                 "name":"PURR",
-        //                 "szDecimals":"0",
-        //                 "weiDecimals":"5"
-        //              },
-        //              "spots":[
-        //                 0
-        //              ]
-        //           }
-        //        ]
-        //     },
-        //     [
-        //        {
-        //           "dayNtlVlm":"35001170.16631",
-        //           "markPx":"0.15743",
-        //           "midPx":"0.157555",
-        //           "prevDayPx":"0.158"
-        //        }
+        //             "dayNtlVlm":"8906.0",
+        //             "markPx":"0.14",
+        //             "midPx":"0.209265",
+        //             "prevDayPx":"0.20432"
+        //         }
         //     ]
         // ]
         //
-        // response differs depending on the environment (mainnet vs sandbox)
         const first = this.safeDict (response, 0, {});
         const second = this.safeList (response, 1, []);
-        const meta = this.safeList2 (first, 'universe', 'spot_infos', []);
-        const tokens = this.safeList2 (first, 'tokens', 'token_infos', []);
+        const meta = this.safeList (first, 'universe', []);
+        const tokens = this.safeList (first, 'tokens', []);
         const markets = [];
         for (let i = 0; i < meta.length; i++) {
             const market = this.safeDict (meta, i, {});
@@ -487,7 +449,7 @@ export default class hyperliquid extends Exchange {
             const symbol = base + '/' + quote;
             const innerBaseTokenInfo = this.safeDict (baseTokenInfo, 'spec', baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
-            const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (innerBaseTokenInfo, 'szDecimals')));
+            const amountPrecision = this.safeInteger (innerBaseTokenInfo, 'szDecimals');
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             const baseId = this.numberToString (i + 10000);
             markets.push (this.safeMarketStructure ({
@@ -519,7 +481,7 @@ export default class hyperliquid extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': amountPrecision, // decimal places
-                    'price': 5, // significant digits
+                    'price': 8 - amountPrecision, // MAX_DECIMALS is 8
                 },
                 'limits': {
                     'leverage': {
@@ -535,7 +497,7 @@ export default class hyperliquid extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.parseNumber ('10'),
                         'max': undefined,
                     },
                 },
@@ -584,7 +546,8 @@ export default class hyperliquid extends Exchange {
         const fees = this.safeDict (this.fees, 'swap', {});
         const taker = this.safeNumber (fees, 'taker');
         const maker = this.safeNumber (fees, 'maker');
-        return {
+        const amountPrecision = this.safeInteger (market, 'szDecimals');
+        return this.safeMarketStructure ({
             'id': baseId,
             'symbol': symbol,
             'base': base,
@@ -611,8 +574,8 @@ export default class hyperliquid extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'szDecimals'))), // decimal places
-                'price': 5, // significant digits
+                'amount': amountPrecision, // decimal places
+                'price': 6 - amountPrecision, // MAX_DECIMALS is 6
             },
             'limits': {
                 'leverage': {
@@ -628,13 +591,13 @@ export default class hyperliquid extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': this.parseNumber ('10'),
                     'max': undefined,
                 },
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     async fetchBalance (params = {}): Promise<Balances> {
@@ -642,7 +605,8 @@ export default class hyperliquid extends Exchange {
          * @method
          * @name hyperliquid#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-state
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.user] user address, will default to this.walletAddress if not provided
          * @param {string} [params.type] wallet type, ['spot', 'swap'], defaults to swap
@@ -702,9 +666,9 @@ export default class hyperliquid extends Exchange {
                 const code = this.safeCurrencyCode (this.safeString (balance, 'coin'));
                 const account = this.account ();
                 const total = this.safeString (balance, 'total');
-                const free = this.safeString (balance, 'hold');
+                const used = this.safeString (balance, 'hold');
                 account['total'] = total;
-                account['used'] = free;
+                account['used'] = used;
                 spotBalances[code] = account;
             }
             return this.safeBalance (spotBalances);
@@ -713,8 +677,8 @@ export default class hyperliquid extends Exchange {
         const result: Dict = {
             'info': response,
             'USDC': {
-                'total': this.safeFloat (data, 'accountValue'),
-                'used': this.safeFloat (data, 'totalMarginUsed'),
+                'total': this.safeNumber (data, 'accountValue'),
+                'free': this.safeNumber (response, 'withdrawable'),
             },
         };
         const timestamp = this.safeInteger (response, 'time');
@@ -728,7 +692,7 @@ export default class hyperliquid extends Exchange {
          * @method
          * @name hyperliquid#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#info
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -777,7 +741,8 @@ export default class hyperliquid extends Exchange {
          * @method
          * @name hyperliquid#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -833,7 +798,7 @@ export default class hyperliquid extends Exchange {
          * @method
          * @name hyperliquid#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#info-1
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#candle-snapshot
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents, support '1m', '15m', '1h', '1d'
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -845,9 +810,17 @@ export default class hyperliquid extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const until = this.safeInteger (params, 'until', this.milliseconds ());
-        const useTail = (since === undefined);
+        let useTail = since === undefined;
+        const originalSince = since;
         if (since === undefined) {
-            since = 0;
+            if (limit !== undefined) {
+                // optimization if limit is provided
+                const timeframeInMilliseconds = this.parseTimeframe (timeframe) * 1000;
+                since = this.sum (until, timeframeInMilliseconds * limit * -1);
+                useTail = false;
+            } else {
+                since = 0;
+            }
         }
         params = this.omit (params, [ 'until' ]);
         const request: Dict = {
@@ -876,7 +849,7 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit, useTail);
+        return this.parseOHLCVs (response, market, timeframe, originalSince, limit, useTail);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
@@ -964,16 +937,14 @@ export default class hyperliquid extends Exchange {
 
     amountToPrecision (symbol, amount) {
         const market = this.market (symbol);
-        if (market['spot']) {
-            return super.amountToPrecision (symbol, amount);
-        }
-        return this.decimalToPrecision (amount, ROUND, this.markets[symbol]['precision']['amount'], this.precisionMode);
+        return this.decimalToPrecision (amount, ROUND, market['precision']['amount'], this.precisionMode, this.paddingMode);
     }
 
     priceToPrecision (symbol: string, price): string {
         const market = this.market (symbol);
-        const result = this.decimalToPrecision (price, ROUND, market['precision']['price'], SIGNIFICANT_DIGITS, this.paddingMode);
-        const decimalParsedResult = this.decimalToPrecision (result, ROUND, 6, DECIMAL_PLACES, this.paddingMode);
+        // https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/tick-and-lot-size
+        const result = this.decimalToPrecision (price, ROUND, 5, SIGNIFICANT_DIGITS, this.paddingMode);
+        const decimalParsedResult = this.decimalToPrecision (result, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
         return decimalParsedResult;
     }
 
@@ -1676,7 +1647,7 @@ export default class hyperliquid extends Exchange {
          * @method
          * @name hyperliquid#fetchFundingRateHistory
          * @description fetches historical funding rate prices
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-historical-funding-rates
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-historical-funding-rates
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
@@ -1693,7 +1664,8 @@ export default class hyperliquid extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         } else {
-            request['startTime'] = this.milliseconds () - 100 * 60 * 60 * 1000;
+            const maxLimit = (limit === undefined) ? 500 : limit;
+            request['startTime'] = this.milliseconds () - maxLimit * 60 * 60 * 1000;
         }
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
@@ -2068,6 +2040,10 @@ export default class hyperliquid extends Exchange {
         const statuses: Dict = {
             'triggered': 'open',
             'filled': 'closed',
+            'open': 'open',
+            'canceled': 'canceled',
+            'rejected': 'rejected',
+            'marginCanceled': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -2121,6 +2097,7 @@ export default class hyperliquid extends Exchange {
         //             "crossed": true,
         //             "dir": "Close Long",
         //             "fee": "0.050062",
+        //             "feeToken": "USDC",
         //             "hash": "0x09d77c96791e98b5775a04092584ab010d009445119c71e4005c0d634ea322bc",
         //             "liquidationMarkPx": null,
         //             "oid": 3929354691,
@@ -2181,7 +2158,11 @@ export default class hyperliquid extends Exchange {
             'price': price,
             'amount': amount,
             'cost': undefined,
-            'fee': { 'cost': fee, 'currency': 'USDC' },
+            'fee': {
+                'cost': fee,
+                'currency': this.safeString (trade, 'feeToken'),
+                'rate': undefined,
+            },
         }, market);
     }
 
@@ -2190,7 +2171,7 @@ export default class hyperliquid extends Exchange {
          * @method
          * @name hyperliquid#fetchPosition
          * @description fetch data on an open position
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-state
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
          * @param {string} symbol unified market symbol of the market the position is held in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.user] user address, will default to this.walletAddress if not provided
@@ -2205,7 +2186,7 @@ export default class hyperliquid extends Exchange {
          * @method
          * @name hyperliquid#fetchPositions
          * @description fetch all open positions
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-state
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
          * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.user] user address, will default to this.walletAddress if not provided
@@ -2306,15 +2287,19 @@ export default class hyperliquid extends Exchange {
         market = this.safeMarket (marketId, undefined);
         const symbol = market['symbol'];
         const leverage = this.safeDict (entry, 'leverage', {});
-        const isIsolated = (this.safeString (leverage, 'type') === 'isolated');
-        const quantity = this.safeNumber (leverage, 'rawUsd');
+        const marginMode = this.safeString (leverage, 'type');
+        const isIsolated = (marginMode === 'isolated');
+        const rawSize = this.safeString (entry, 'szi');
+        let size = rawSize;
         let side = undefined;
-        if (quantity !== undefined) {
-            side = (quantity > 0) ? 'short' : 'long';
+        if (size !== undefined) {
+            side = Precise.stringGt (rawSize, '0') ? 'long' : 'short';
+            size = Precise.stringAbs (size);
         }
-        const unrealizedPnl = this.safeNumber (entry, 'unrealizedPnl');
-        const initialMargin = this.safeNumber (entry, 'marginUsed');
-        const percentage = unrealizedPnl / initialMargin * 100;
+        const rawUnrealizedPnl = this.safeString (entry, 'unrealizedPnl');
+        const absRawUnrealizedPnl = Precise.stringAbs (rawUnrealizedPnl);
+        const initialMargin = this.safeString (entry, 'marginUsed');
+        const percentage = Precise.stringMul (Precise.stringDiv (absRawUnrealizedPnl, initialMargin), '100');
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -2324,21 +2309,21 @@ export default class hyperliquid extends Exchange {
             'isolated': isIsolated,
             'hedged': undefined,
             'side': side,
-            'contracts': this.safeNumber (entry, 'szi'),
+            'contracts': this.parseNumber (size),
             'contractSize': undefined,
             'entryPrice': this.safeNumber (entry, 'entryPx'),
             'markPrice': undefined,
             'notional': this.safeNumber (entry, 'positionValue'),
             'leverage': this.safeNumber (leverage, 'value'),
-            'collateral': undefined,
-            'initialMargin': initialMargin,
+            'collateral': this.safeNumber (entry, 'marginUsed'),
+            'initialMargin': this.parseNumber (initialMargin),
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
-            'unrealizedPnl': unrealizedPnl,
+            'unrealizedPnl': this.parseNumber (rawUnrealizedPnl),
             'liquidationPrice': this.safeNumber (entry, 'liquidationPx'),
-            'marginMode': undefined,
-            'percentage': percentage,
+            'marginMode': marginMode,
+            'percentage': this.parseNumber (percentage),
         });
     }
 
@@ -2843,14 +2828,14 @@ export default class hyperliquid extends Exchange {
         };
     }
 
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         /**
          * @method
          * @name hyperliquid#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-         * @param {string} code unified currency code
+         * @param {string} [code] unified currency code
          * @param {int} [since] timestamp in ms of the earliest ledger entry
-         * @param {int} [limit] max number of ledger entrys to return
+         * @param {int} [limit] max number of ledger entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest ledger entry
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
@@ -2887,7 +2872,7 @@ export default class hyperliquid extends Exchange {
         return this.parseLedger (response, undefined, since, limit);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         // {
         //     "time":1724762307531,
@@ -2911,7 +2896,8 @@ export default class hyperliquid extends Exchange {
         }
         const type = this.safeString (delta, 'type');
         const amount = this.safeString (delta, 'usdc');
-        return {
+        return this.safeLedgerEntry ({
+            'info': item,
             'id': this.safeString (item, 'hash'),
             'direction': undefined,
             'account': undefined,
@@ -2926,8 +2912,7 @@ export default class hyperliquid extends Exchange {
             'after': undefined,
             'status': undefined,
             'fee': fee,
-            'info': item,
-        };
+        }, currency) as LedgerEntry;
     }
 
     parseLedgerEntryType (type) {
@@ -3114,6 +3099,17 @@ export default class hyperliquid extends Exchange {
             body = this.json (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    calculateRateLimiterCost (api, method, path, params, config = {}) {
+        if (('byType' in config) && ('type' in params)) {
+            const type = params['type'];
+            const byType = config['byType'] as Dict;
+            if (type in byType) {
+                return byType[type];
+            }
+        }
+        return this.safeValue (config, 'cost', 1);
     }
 
     parseCreateOrderArgs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {

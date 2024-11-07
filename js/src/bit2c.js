@@ -43,6 +43,8 @@ export default class bit2c extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -78,7 +80,7 @@ export default class bit2c extends Exchange {
                 'ws': false,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
+                'logo': 'https://github.com/user-attachments/assets/db0bce50-6842-4c09-a1d5-0c87d22118aa',
                 'api': {
                     'rest': 'https://bit2c.co.il',
                 },
@@ -869,11 +871,11 @@ export default class bit2c extends Exchange {
         this.checkAddress(address);
         const code = this.safeCurrencyCode(undefined, currency);
         return {
+            'info': depositAddress,
             'currency': code,
             'network': undefined,
             'address': address,
             'tag': undefined,
-            'info': depositAddress,
         };
     }
     nonce() {

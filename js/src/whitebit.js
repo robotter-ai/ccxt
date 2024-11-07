@@ -52,6 +52,8 @@ export default class whitebit extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -1948,11 +1950,11 @@ export default class whitebit extends Exchange {
         const tag = this.safeString(account, 'memo');
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
         };
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
@@ -2358,23 +2360,23 @@ export default class whitebit extends Exchange {
         const symbol = this.safeSymbol(marketId, market, '_');
         const timestamp = this.safeTimestamp(info, 'modifyDate');
         return {
+            'info': info,
             'symbol': symbol,
-            'marginMode': 'cross',
             'currency': 'USDT',
             'interest': this.safeNumber(info, 'unrealizedFunding'),
             'interestRate': 0.00098,
             'amountBorrowed': this.safeNumber(info, 'amount'),
+            'marginMode': 'cross',
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'info': info,
         };
     }
     async fetchFundingRate(symbol, params = {}) {
         /**
          * @method
          * @name whitebit#fetchFundingRate
-         * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
          * @description fetch the current funding rate
+         * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -2388,11 +2390,11 @@ export default class whitebit extends Exchange {
         /**
          * @method
          * @name whitebit#fetchFundingRates
-         * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
          * @description fetch the funding rate for multiple markets
+         * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -2441,7 +2443,7 @@ export default class whitebit extends Exchange {
         //        }
         //    ]
         //
-        const data = this.safeValue(response, 'result', []);
+        const data = this.safeList(response, 'result', []);
         const result = this.parseFundingRates(data);
         return this.filterByArray(result, 'symbol', symbols);
     }
@@ -2484,7 +2486,7 @@ export default class whitebit extends Exchange {
         const indexPrice = this.safeNumber(contract, 'indexPrice');
         const interestRate = this.safeNumber(contract, 'interestRate');
         const fundingRate = this.safeNumber(contract, 'funding_rate');
-        const nextFundingTime = this.safeInteger(contract, 'next_funding_rate_timestamp');
+        const fundingTime = this.safeInteger(contract, 'next_funding_rate_timestamp');
         return {
             'info': contract,
             'symbol': symbol,
@@ -2494,14 +2496,15 @@ export default class whitebit extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
             'fundingRate': fundingRate,
-            'fundingTimestamp': undefined,
-            'fundingDatetime': this.iso8601(undefined),
+            'fundingTimestamp': fundingTime,
+            'fundingDatetime': this.iso8601(fundingTime),
             'nextFundingRate': undefined,
-            'nextFundingTimestamp': nextFundingTime,
-            'nextFundingDatetime': this.iso8601(nextFundingTime),
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
