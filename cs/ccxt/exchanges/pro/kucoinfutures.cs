@@ -117,7 +117,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         {
             var future = this.safeValue(getValue(this.options, "urls"), connectId);
             ((Future)future).reject(e);
-
+            ((IDictionary<string,object>)getValue(this.options, "urls")).Remove((string)connectId);
         }
         return null;
     }
@@ -553,7 +553,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
             object key = getValue(keys, i);
             if (isTrue(isEqual(getValue(newPosition, key), null)))
             {
-
+                ((IDictionary<string,object>)newPosition).Remove((string)key);
             }
         }
         object position = this.extend(currentPosition, newPosition);
@@ -621,7 +621,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
-    public async virtual Task<object> unWatchTrades(object symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         /**
         * @method
@@ -636,7 +636,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
     }
 
-    public async virtual Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
+    public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
         /**
         * @method
@@ -829,7 +829,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         {
             if (isTrue(isTrue((!isEqual(limit, 20))) && isTrue((!isEqual(limit, 100)))))
             {
-                throw new ExchangeError ((string)add(this.id, " watchOrderBook \'limit\' argument must be undefined, 20 or 100")) ;
+                throw new ExchangeError ((string)add(this.id, " watchOrderBook 'limit' argument must be undefined, 20 or 100")) ;
             }
         }
         await this.loadMarkets();
@@ -853,7 +853,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         return (orderbook as IOrderBook).limit();
     }
 
-    public async virtual Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         /**
         * @method
@@ -868,7 +868,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         return await this.unWatchOrderBookForSymbols(new List<object>() {symbol}, parameters);
     }
 
-    public async virtual Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
+    public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
         /**
         * @method
@@ -1395,7 +1395,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         }
         object subscriptionHash = this.safeString(((WebSocketClient)client).subscriptions, id);
         object subscription = this.safeValue(((WebSocketClient)client).subscriptions, subscriptionHash);
-
+        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
         object method = this.safeValue(subscription, "method");
         if (isTrue(!isEqual(method, null)))
         {

@@ -42,6 +42,8 @@ export default class blockchaincom extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -77,7 +79,7 @@ export default class blockchaincom extends Exchange {
             },
             'timeframes': undefined,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/147515585-1296e91b-7398-45e5-9d32-f6121538533f.jpeg',
+                'logo': 'https://github.com/user-attachments/assets/975e3054-3399-4363-bcee-ec3c6d63d4e8',
                 'test': {
                     'public': 'https://testnet-api.delta.exchange',
                     'private': 'https://testnet-api.delta.exchange',
@@ -840,13 +842,13 @@ export default class blockchaincom extends Exchange {
             tag = this.safeString(addressParts, 0);
             address = this.safeString(addressParts, 1);
         }
-        const result = { 'info': response };
-        result['currency'] = currency['code'];
-        result['address'] = address;
-        if (tag !== undefined) {
-            result['tag'] = tag;
-        }
-        return result;
+        return {
+            'info': response,
+            'currency': currency['code'],
+            'network': undefined,
+            'address': address,
+            'tag': tag,
+        };
     }
     parseTransactionState(state) {
         const states = {

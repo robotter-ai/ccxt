@@ -84,6 +84,7 @@ class coinbase extends Exchange {
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -787,15 +788,21 @@ class coinbase extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch all withdrawals made from an account
-             * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-withdrawals#list-withdrawals
+             * Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
+             * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-withdrawals#list-withdrawals
              * @param {string} $code unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->currencyType] "fiat" or "crypto"
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
-            // fiat only, for crypto transactions use fetchLedger
+            $currencyType = null;
+            list($currencyType, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'currencyType');
+            if ($currencyType === 'crypto') {
+                $results = Async\await($this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', $code, $since, $limit, $params));
+                return $this->filter_by_array($results, 'type', 'withdrawal', false);
+            }
             return Async\await($this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', $code, $since, $limit, $params));
         }) ();
     }
@@ -803,16 +810,39 @@ class coinbase extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch all deposits made to an account
-             * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#list-deposits
+             * Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
+             * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-deposits#list-deposits
              * @param {string} $code unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->currencyType] "fiat" or "crypto"
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
-            // fiat only, for crypto transactions use fetchLedger
+            $currencyType = null;
+            list($currencyType, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'currencyType');
+            if ($currencyType === 'crypto') {
+                $results = Async\await($this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', $code, $since, $limit, $params));
+                return $this->filter_by_array($results, 'type', 'deposit', false);
+            }
             return Async\await($this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdDeposits', $code, $since, $limit, $params));
+        }) ();
+    }
+
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch history of deposits and withdrawals
+             * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions
+             * @param {string} [$code] unified currency $code for the currency of the deposit/withdrawals, default is null
+             * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
+             * @param {int} [$limit] max number of deposit/withdrawals to return, default = 50, Min => 1, Max => 100
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             */
+            Async\await($this->load_markets());
+            $results = Async\await($this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', $code, $since, $limit, $params));
+            return $this->filter_by_array($results, 'type', array( 'deposit', 'withdrawal' ), false);
         }) ();
     }
 
@@ -940,17 +970,61 @@ class coinbase extends Exchange {
         //         "hide_native_amount" => false
         //     }
         //
+        //
+        // crypto deposit & withdrawal (using `/transactions` endpoint)
+        //    {
+        //        "amount" => array(
+        //            "amount" => "0.00014200", (negative for withdrawal)
+        //            "currency" => "BTC"
+        //        ),
+        //        "created_at" => "2024-03-29T15:48:30Z",
+        //        "id" => "0031a605-241d-514d-a97b-d4b99f3225d3",
+        //        "idem" => "092a979b-017e-4403-940a-2ca57811f442", // field present only in case of withdrawal
+        //        "native_amount" => array(
+        //            "amount" => "9.85", (negative for withdrawal)
+        //            "currency" => "USD"
+        //        ),
+        //        "network" => {
+        //            "status" => "pending", // if $status is `off_blockchain` then no more other fields are property_exists($this, present) object
+        //            "hash" => "5jYuvrNsvX2DZoMnzGYzVpYxJLfYu4GSK3xetG1H5LHrSovsuFCFYdFMwNRoiht3s6fBk92MM8QLLnz65xuEFTrE",
+        //            "network_name" => "solana",
+        //            "transaction_fee" => array(
+        //                "amount" => "0.000100000",
+        //                "currency" => "SOL"
+        //            }
+        //        ),
+        //        "resource" => "transaction",
+        //        "resource_path" => "/v2/accounts/dc504b1c-248e-5b68-a3b0-b991f7fa84e6/transactions/0031a605-241d-514d-a97b-d4b99f3225d3",
+        //        "status" => "completed",
+        //        "type" => "send",
+        //        "from" => array( // in some cases, field might be present for deposit
+        //            "id" => "7fd10cd7-b091-5cee-ba41-c29e49a7cccf",
+        //            "name" => "Coinbase",
+        //            "resource" => "user"
+        //        ),
+        //        "to" => array( // field only present for withdrawal
+        //            "address" => "5HA12BNthAvBwNYARYf9y5MqqCpB4qhCNFCs1Qw48ACE",
+        //            "resource" => "address"
+        //        ),
+        //        "description" => "C3 - One Time BTC Credit . Reference Case # 123.", //  in some cases, field might be present for deposit
+        //    }
+        //
         $transactionType = $this->safe_string($transaction, 'type');
         $amountAndCurrencyObject = null;
         $feeObject = null;
+        $network = $this->safe_dict($transaction, 'network', array());
         if ($transactionType === 'send') {
-            $network = $this->safe_dict($transaction, 'network', array());
-            $amountAndCurrencyObject = $this->safe_dict($network, 'transaction_amount', array());
+            $amountAndCurrencyObject = $this->safe_dict($network, 'transaction_amount');
             $feeObject = $this->safe_dict($network, 'transaction_fee', array());
         } else {
-            $amountAndCurrencyObject = $this->safe_dict($transaction, 'subtotal', array());
+            $amountAndCurrencyObject = $this->safe_dict($transaction, 'subtotal');
             $feeObject = $this->safe_dict($transaction, 'fee', array());
         }
+        if ($amountAndCurrencyObject === null) {
+            $amountAndCurrencyObject = $this->safe_dict($transaction, 'amount');
+        }
+        $amountString = $this->safe_string($amountAndCurrencyObject, 'amount');
+        $amountStringAbs = Precise::string_abs($amountString);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         if ($status === null) {
             $committed = $this->safe_bool($transaction, 'committed');
@@ -960,23 +1034,33 @@ class coinbase extends Exchange {
         $currencyId = $this->safe_string($amountAndCurrencyObject, 'currency');
         $feeCurrencyId = $this->safe_string($feeObject, 'currency');
         $datetime = $this->safe_string($transaction, 'created_at');
-        $toObject = $this->safe_dict($transaction, 'to', array());
-        $toAddress = $this->safe_string($toObject, 'address');
+        $resource = $this->safe_string($transaction, 'resource');
+        $type = $resource;
+        if (!$this->in_array($type, array( 'deposit', 'withdrawal' ))) {
+            if (Precise::string_gt($amountString, '0')) {
+                $type = 'deposit';
+            } elseif (Precise::string_lt($amountString, '0')) {
+                $type = 'withdrawal';
+            }
+        }
+        $toObject = $this->safe_dict($transaction, 'to');
+        $addressTo = $this->safe_string($toObject, 'address');
+        $networkId = $this->safe_string($network, 'network_name');
         return array(
             'info' => $transaction,
             'id' => $id,
-            'txid' => $id,
+            'txid' => $this->safe_string($network, 'hash', $id),
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
-            'network' => null,
-            'address' => $toAddress,
-            'addressTo' => $toAddress,
+            'network' => $this->network_id_to_code($networkId),
+            'address' => $addressTo,
+            'addressTo' => $addressTo,
             'addressFrom' => null,
             'tag' => null,
             'tagTo' => null,
             'tagFrom' => null,
-            'type' => $this->safe_string($transaction, 'resource'),
-            'amount' => $this->safe_number($amountAndCurrencyObject, 'amount'),
+            'type' => $type,
+            'amount' => $this->parse_number($amountStringAbs),
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'status' => $status,
             'updated' => $this->parse8601($this->safe_string($transaction, 'updated_at')),
@@ -2294,16 +2378,16 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch the history of changes, actions done by the user or operations that altered balance of the user
-             * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions
-             * @param {string} $code unified $currency $code, default is null
+             * Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
+             * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions
+             * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest $ledger entry, default is null
-             * @param {int} [$limit] max number of $ledger entrys to return, default is null
+             * @param {int} [$limit] max number of $ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
              */
             Async\await($this->load_markets());
@@ -2332,8 +2416,28 @@ class coinbase extends Exchange {
             $pagination = $this->safe_dict($response, 'pagination', array());
             $cursor = $this->safe_string($pagination, 'next_starting_after');
             if (($cursor !== null) && ($cursor !== '')) {
+                $lastFee = $this->safe_dict($last, 'fee');
                 $last['next_starting_after'] = $cursor;
-                $ledger[$lastIndex] = $last;
+                $ledger[$lastIndex] = array(
+                    'info' => $this->safe_dict($last, 'info'),
+                    'id' => $this->safe_string($last, 'id'),
+                    'timestamp' => $this->safe_integer($last, 'timestamp'),
+                    'datetime' => $this->safe_string($last, 'datetime'),
+                    'direction' => $this->safe_string($last, 'direction'),
+                    'account' => $this->safe_string($last, 'account'),
+                    'referenceId' => null,
+                    'referenceAccount' => null,
+                    'type' => $this->safe_string($last, 'type'),
+                    'currency' => $this->safe_string($last, 'currency'),
+                    'amount' => $this->safe_number($last, 'amount'),
+                    'before' => null,
+                    'after' => null,
+                    'status' => $this->safe_string($last, 'status'),
+                    'fee' => array(
+                        'cost' => $this->safe_number($lastFee, 'cost'),
+                        'currency' => $this->safe_string($lastFee, 'currency'),
+                    ),
+                );
             }
             return $ledger;
         }) ();
@@ -2361,7 +2465,7 @@ class coinbase extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         // crypto deposit transaction
         //
@@ -2616,6 +2720,7 @@ class coinbase extends Exchange {
         }
         $currencyId = $this->safe_string($amountInfo, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         //
         // the $address and $txid do not belong to the unified ledger structure
         //
@@ -2651,7 +2756,7 @@ class coinbase extends Exchange {
                 $accountId = $parts[3];
             }
         }
-        return array(
+        return $this->safe_ledger_entry(array(
             'info' => $item,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -2667,7 +2772,7 @@ class coinbase extends Exchange {
             'after' => null,
             'status' => $status,
             'fee' => $fee,
-        );
+        ), $currency);
     }
 
     public function find_account_id($code, $params = array ()) {
@@ -3725,7 +3830,7 @@ class coinbase extends Exchange {
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
             if ($paginate) {
-                return Async\await($this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 100));
+                return Async\await($this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 250));
             }
             $market = null;
             if ($symbol !== null) {
@@ -3973,7 +4078,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -4048,7 +4153,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //    {
         //        id => '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
@@ -4103,9 +4208,9 @@ class coinbase extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_currency_code($marketId, $currency),
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'tag' => $this->safe_string($addressInfo, 'destination_tag'),
-            'network' => $this->network_id_to_code($networkId, $code),
         );
     }
 

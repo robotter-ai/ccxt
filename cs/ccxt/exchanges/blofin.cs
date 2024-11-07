@@ -146,7 +146,7 @@ public partial class blofin : Exchange
             } },
             { "hostname", "www.blofin.com" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/ccxt/ccxt/assets/43336371/255a7b29-341f-4d20-8342-fbfae4932807" },
+                { "logo", "https://github.com/user-attachments/assets/518cdf80-f05d-4821-a3e3-d48ceb41d73b" },
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://openapi.blofin.com" },
                 } },
@@ -542,6 +542,8 @@ public partial class blofin : Exchange
             { "average", null },
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
+            { "indexPrice", this.safeString(ticker, "indexPrice") },
+            { "markPrice", this.safeString(ticker, "markPrice") },
             { "info", ticker },
         }, market);
     }
@@ -564,6 +566,30 @@ public partial class blofin : Exchange
             { "instId", getValue(market, "id") },
         };
         object response = await this.publicGetMarketTickers(this.extend(request, parameters));
+        object data = this.safeList(response, "data", new List<object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        return this.parseTicker(first, market);
+    }
+
+    public async override Task<object> fetchMarkPrice(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name blofin#fetchMarkPrice
+        * @description fetches mark price for the market
+        * @see https://docs.blofin.com/index.html#get-mark-price
+        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
+        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.publicGetMarketMarkPrice(this.extend(request, parameters));
         object data = this.safeList(response, "data", new List<object>() {});
         object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseTicker(first, market);
@@ -830,17 +856,10 @@ public partial class blofin : Exchange
         //        "fundingRate": "0.00027815",
         //        "fundingTime": "1634256000000",
         //        "instId": "BTC-USD-SWAP",
-        //        "instType": "SWAP",
-        //        "nextFundingRate": "0.00017",
-        //        "nextFundingTime": "1634284800000"
         //    }
         //
-        // in the response above nextFundingRate is actually two funding rates from now
-        //
-        object nextFundingRateTimestamp = this.safeInteger(contract, "nextFundingTime");
         object marketId = this.safeString(contract, "instId");
         object symbol = this.safeSymbol(marketId, market);
-        object nextFundingRate = this.safeNumber(contract, "nextFundingRate");
         object fundingTime = this.safeInteger(contract, "fundingTime");
         // > The current interest is 0.
         return new Dictionary<string, object>() {
@@ -855,12 +874,13 @@ public partial class blofin : Exchange
             { "fundingRate", this.safeNumber(contract, "fundingRate") },
             { "fundingTimestamp", fundingTime },
             { "fundingDatetime", this.iso8601(fundingTime) },
-            { "nextFundingRate", nextFundingRate },
-            { "nextFundingTimestamp", nextFundingRateTimestamp },
-            { "nextFundingDatetime", this.iso8601(nextFundingRateTimestamp) },
+            { "nextFundingRate", null },
+            { "nextFundingTimestamp", null },
+            { "nextFundingDatetime", null },
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 
@@ -894,9 +914,6 @@ public partial class blofin : Exchange
         //                "fundingRate": "0.00027815",
         //                "fundingTime": "1634256000000",
         //                "instId": "BTC-USD-SWAP",
-        //                "instType": "SWAP",
-        //                "nextFundingRate": "0.00017",
-        //                "nextFundingTime": "1634284800000"
         //            }
         //        ],
         //        "msg": ""
@@ -1653,15 +1670,15 @@ public partial class blofin : Exchange
         /**
         * @method
         * @name blofin#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://blofin.com/docs#get-funds-transfer-history
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] 'cross' or 'isolated'
         * @param {int} [params.until] the latest time in ms to fetch entries for
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -1814,29 +1831,27 @@ public partial class blofin : Exchange
 
     public override object parseLedgerEntry(object item, object currency = null)
     {
-        object id = this.safeString(item, "transferId");
-        object referenceId = this.safeString(item, "clientId");
-        object fromAccount = this.safeString(item, "fromAccount");
-        object toAccount = this.safeString(item, "toAccount");
-        object type = this.parseLedgerEntryType(this.safeString(item, "type"));
-        object code = this.safeCurrencyCode(this.safeString(item, "currency"), currency);
-        object amountString = this.safeString(item, "amount");
-        object amount = this.parseNumber(amountString);
+        object currencyId = this.safeString(item, "currency");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object timestamp = this.safeInteger(item, "ts");
-        object status = "ok";
-        return new Dictionary<string, object>() {
-            { "id", id },
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
+            { "id", this.safeString(item, "transferId") },
+            { "direction", null },
+            { "account", null },
+            { "referenceId", this.safeString(item, "clientId") },
+            { "referenceAccount", null },
+            { "type", this.parseLedgerEntryType(this.safeString(item, "type")) },
+            { "currency", code },
+            { "amount", this.safeNumber(item, "amount") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "fromAccount", fromAccount },
-            { "toAccount", toAccount },
-            { "type", type },
-            { "currency", code },
-            { "amount", amount },
-            { "clientId", referenceId },
-            { "status", status },
-        };
+            { "before", null },
+            { "after", null },
+            { "status", "ok" },
+            { "fee", null },
+        }, currency);
     }
 
     public virtual object parseIds(object ids)

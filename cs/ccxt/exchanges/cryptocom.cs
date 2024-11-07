@@ -45,6 +45,7 @@ public partial class cryptocom : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", false },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", true },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", false },
@@ -150,6 +151,7 @@ public partial class cryptocom : Exchange
                             { "public/get-valuations", 1 },
                             { "public/get-expired-settlement-price", divide(10, 3) },
                             { "public/get-insurance", 1 },
+                            { "public/get-risk-parameters", 1 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "public/staking/get-conversion-rate", 2 },
@@ -1723,7 +1725,7 @@ public partial class cryptocom : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters);
+            return await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters, 100);
         }
         object request = new Dictionary<string, object>() {};
         object market = null;
@@ -1919,9 +1921,9 @@ public partial class cryptocom : Exchange
             ((IDictionary<string,object>)result)[(string)network] = new Dictionary<string, object>() {
                 { "info", value },
                 { "currency", responseCode },
+                { "network", network },
                 { "address", address },
                 { "tag", tag },
-                { "network", network },
             };
         }
         return result;
@@ -2592,7 +2594,7 @@ public partial class cryptocom : Exchange
         * @name cryptocom#fetchLedger
         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions
-        * @param {string} code unified currency code
+        * @param {string} [code] unified currency code
         * @param {int} [since] timestamp in ms of the earliest ledger entry
         * @param {int} [limit] max number of ledger entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2680,6 +2682,8 @@ public partial class cryptocom : Exchange
         //
         object timestamp = this.safeInteger(item, "event_timestamp_ms");
         object currencyId = this.safeString(item, "instrument_name");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object amount = this.safeString(item, "transaction_qty");
         object direction = null;
         if (isTrue(Precise.stringLt(amount, "0")))
@@ -2690,14 +2694,15 @@ public partial class cryptocom : Exchange
         {
             direction = "in";
         }
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
             { "id", this.safeString(item, "order_id") },
             { "direction", direction },
             { "account", this.safeString(item, "account_id") },
             { "referenceId", this.safeString(item, "trade_id") },
             { "referenceAccount", this.safeString(item, "trade_match_id") },
             { "type", this.parseLedgerEntryType(this.safeString(item, "journal_type")) },
-            { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "currency", code },
             { "amount", this.parseNumber(amount) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -2708,8 +2713,7 @@ public partial class cryptocom : Exchange
                 { "currency", null },
                 { "cost", null },
             } },
-            { "info", item },
-        };
+        }, currency);
     }
 
     public virtual object parseLedgerEntryType(object type)

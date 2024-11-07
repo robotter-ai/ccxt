@@ -47,11 +47,15 @@ public partial class xt : Exchange
                 { "fetchCurrencies", true },
                 { "fetchDeposit", false },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawals", false },
                 { "fetchDepositWithdrawFee", false },
                 { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", true },
+                { "fetchFundingInterval", true },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
@@ -1095,6 +1099,7 @@ public partial class xt : Exchange
         object maxCost = null;
         object minPrice = null;
         object maxPrice = null;
+        object amountPrecision = null;
         for (object i = 0; isLessThan(i, getArrayLength(filters)); postFixIncrement(ref i))
         {
             object entry = getValue(filters, i);
@@ -1103,6 +1108,7 @@ public partial class xt : Exchange
             {
                 minAmount = this.safeNumber(entry, "min");
                 maxAmount = this.safeNumber(entry, "max");
+                amountPrecision = this.safeNumber(entry, "tickSize");
             }
             if (isTrue(isEqual(filter, "QUOTE_QTY")))
             {
@@ -1113,6 +1119,10 @@ public partial class xt : Exchange
                 minPrice = this.safeNumber(entry, "min");
                 maxPrice = this.safeNumber(entry, "max");
             }
+        }
+        if (isTrue(isEqual(amountPrecision, null)))
+        {
+            amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
         }
         object underlyingType = this.safeString(market, "underlyingType");
         object linear = null;
@@ -1201,7 +1211,7 @@ public partial class xt : Exchange
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
                 { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision"))) },
-                { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision"))) },
+                { "amount", amountPrecision },
                 { "base", this.parseNumber(this.parsePrecision(this.safeString(market, "baseCoinPrecision"))) },
                 { "quote", this.parseNumber(this.parsePrecision(this.safeString(market, "quoteCoinPrecision"))) },
             } },
@@ -1739,6 +1749,11 @@ public partial class xt : Exchange
         market = this.safeMarket(marketId, market, "_", marketType);
         object symbol = getValue(market, "symbol");
         object timestamp = this.safeInteger(ticker, "t");
+        object percentage = this.safeString2(ticker, "cr", "r");
+        if (isTrue(!isEqual(percentage, null)))
+        {
+            percentage = Precise.stringMul(percentage, "100");
+        }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -1755,7 +1770,7 @@ public partial class xt : Exchange
             { "last", this.safeString(ticker, "c") },
             { "previousClose", null },
             { "change", this.safeNumber(ticker, "cv") },
-            { "percentage", this.safeNumber2(ticker, "cr", "r") },
+            { "percentage", this.parseNumber(percentage) },
             { "average", null },
             { "baseVolume", null },
             { "quoteVolume", this.safeNumber2(ticker, "a", "v") },
@@ -1985,6 +2000,17 @@ public partial class xt : Exchange
         //         "b": true
         //     }
         //
+        // spot: watchTrades
+        //
+        //    {
+        //        s: 'btc_usdt',
+        //        i: '228825383103928709',
+        //        t: 1684258222702,
+        //        p: '27003.65',
+        //        q: '0.000796',
+        //        b: true
+        //    }
+        //
         // spot: watchMyTrades
         //
         //    {
@@ -1995,17 +2021,6 @@ public partial class xt : Exchange
         //        "p": "30000",                   // trade price
         //        "q": "3",                       // qty quantity
         //        "v": "90000"                    // volume trade amount
-        //    }
-        //
-        // spot: watchTrades
-        //
-        //    {
-        //        s: 'btc_usdt',
-        //        i: '228825383103928709',
-        //        t: 1684258222702,
-        //        p: '27003.65',
-        //        q: '0.000796',
-        //        b: true
         //    }
         //
         // swap and future: fetchTrades
@@ -2088,26 +2103,39 @@ public partial class xt : Exchange
             marketType = ((bool) isTrue(hasSpotKeys)) ? "spot" : "contract";
         }
         market = this.safeMarket(marketId, market, "_", marketType);
-        object bidOrAsk = this.safeString(trade, "m");
-        object side = this.safeStringLower(trade, "orderSide");
-        if (isTrue(!isEqual(bidOrAsk, null)))
+        object side = null;
+        object takerOrMaker = null;
+        object isBuyerMaker = this.safeBool(trade, "b");
+        if (isTrue(!isEqual(isBuyerMaker, null)))
         {
-            side = ((bool) isTrue((isEqual(bidOrAsk, "BID")))) ? "buy" : "sell";
-        }
-        object buyerMaker = this.safeValue(trade, "b");
-        if (isTrue(!isEqual(buyerMaker, null)))
+            side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
+            takerOrMaker = "taker"; // public trades always taker
+        } else
         {
-            side = "buy";
-        }
-        object takerOrMaker = this.safeStringLower(trade, "takerMaker");
-        if (isTrue(!isEqual(buyerMaker, null)))
-        {
-            takerOrMaker = ((bool) isTrue(buyerMaker)) ? "maker" : "taker";
-        }
-        object isMaker = this.safeBool(trade, "isMaker");
-        if (isTrue(!isEqual(isMaker, null)))
-        {
-            takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+            object takerMaker = this.safeStringLower(trade, "takerMaker");
+            if (isTrue(!isEqual(takerMaker, null)))
+            {
+                takerOrMaker = takerMaker;
+            } else
+            {
+                object isMaker = this.safeBool(trade, "isMaker");
+                if (isTrue(!isEqual(isMaker, null)))
+                {
+                    takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+                }
+            }
+            object orderSide = this.safeStringLower(trade, "orderSide");
+            if (isTrue(!isEqual(orderSide, null)))
+            {
+                side = orderSide;
+            } else
+            {
+                object bidOrAsk = this.safeString(trade, "m");
+                if (isTrue(!isEqual(bidOrAsk, null)))
+                {
+                    side = ((bool) isTrue((isEqual(bidOrAsk, "BID")))) ? "buy" : "sell";
+                }
+            }
         }
         object timestamp = this.safeIntegerN(trade, new List<object>() {"t", "time", "timestamp"});
         object quantity = this.safeString2(trade, "q", "quantity");
@@ -3777,8 +3805,10 @@ public partial class xt : Exchange
         object side = this.safeString(item, "side");
         object direction = ((bool) isTrue((isEqual(side, "ADD")))) ? "in" : "out";
         object currencyId = this.safeString(item, "coin");
+        currency = this.safeCurrency(currencyId, currency);
         object timestamp = this.safeInteger(item, "createdTime");
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
             { "id", this.safeString(item, "id") },
             { "direction", direction },
             { "account", null },
@@ -3796,8 +3826,7 @@ public partial class xt : Exchange
                 { "currency", null },
                 { "cost", null },
             } },
-            { "info", item },
-        };
+        }, currency);
     }
 
     public virtual object parseLedgerEntryType(object type)
@@ -3867,11 +3896,11 @@ public partial class xt : Exchange
         object address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", this.safeCurrencyCode(null, currency) },
+            { "network", null },
             { "address", address },
             { "tag", this.safeString(depositAddress, "memo") },
-            { "network", null },
-            { "info", depositAddress },
         };
     }
 
@@ -4558,6 +4587,21 @@ public partial class xt : Exchange
         return this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit);
     }
 
+    public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name xt#fetchFundingInterval
+        * @description fetch the current funding rate interval
+        * @see https://doc.xt.com/#futures_quotesgetFundingRate
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchFundingRate(symbol, parameters);
+    }
+
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
         /**
@@ -4621,6 +4665,7 @@ public partial class xt : Exchange
         object marketId = this.safeString(contract, "symbol");
         object symbol = this.safeSymbol(marketId, market, "_", "swap");
         object timestamp = this.safeInteger(contract, "nextCollectionTime");
+        object interval = this.safeString(contract, "collectionInternal");
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
@@ -4639,6 +4684,7 @@ public partial class xt : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", add(interval, "h") },
         };
     }
 

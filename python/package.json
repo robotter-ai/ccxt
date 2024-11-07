@@ -1,6 +1,6 @@
 {
-  "name": "ccxt-robotter",
-  "version": "4.4.2.6",
+  "name": "ccxt",
+  "version": "4.4.27",
   "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for 100+ exchanges",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
@@ -163,7 +163,7 @@
     "as-table": "1.0.37",
     "asciichart": "^1.5.25",
     "assert": "^2.0.0",
-    "ast-transpiler": "^0.0.44",
+    "ast-transpiler": "^0.0.56",
     "docsify": "^4.11.4",
     "eslint": "8.22.0",
     "eslint-config-airbnb-base": "15.0.0",
@@ -280,7 +280,6 @@
   },
   "ethereum": "0x26a3CB49578F07000575405a57888681249c35Fd",
   "dependencies": {
-    "protobufjs": "^7.2.6",
-    "ws": "^8.16.0"
+    "ws": "^8.8.1"
   }
 }

@@ -39,12 +39,14 @@ public partial class lbank : Exchange
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
-                { "fetchFundingRates", false },
+                { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
@@ -1023,16 +1025,16 @@ public partial class lbank : Exchange
         if (isTrue(isEqual(since, null)))
         {
             object duration = this.parseTimeframe(timeframe);
-            since = subtract(this.milliseconds(), multiply(multiply(duration, 1000), limit));
+            since = subtract(this.milliseconds(), (multiply(multiply(duration, 1000), limit)));
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "type", this.safeString(this.timeframes, timeframe, timeframe) },
             { "time", this.parseToInt(divide(since, 1000)) },
-            { "size", limit },
+            { "size", mathMin(add(limit, 1), 2000) },
         };
         object response = await this.spotPublicGetKline(this.extend(request, parameters));
-        object ohlcvs = this.safeValue(response, "data", new List<object>() {});
+        object ohlcvs = this.safeList(response, "data", new List<object>() {});
         //
         //
         // [
@@ -1194,6 +1196,113 @@ public partial class lbank : Exchange
             return this.safeBalance(result);
         }
         return null;
+    }
+
+    public override object parseFundingRate(object ticker, object market = null)
+    {
+        // {
+        //     "symbol": "BTCUSDT",
+        //     "highestPrice": "69495.5",
+        //     "underlyingPrice": "68455.904",
+        //     "lowestPrice": "68182.1",
+        //     "openPrice": "68762.4",
+        //     "positionFeeRate": "0.0001",
+        //     "volume": "33534.2858",
+        //     "markedPrice": "68434.1",
+        //     "turnover": "1200636218.210558",
+        //     "positionFeeTime": "28800",
+        //     "lastPrice": "68427.3",
+        //     "nextFeeTime": "1730736000000",
+        //     "fundingRate": "0.0001",
+        // }
+        object marketId = this.safeString(ticker, "symbol");
+        object symbol = this.safeSymbol(marketId, market);
+        object markPrice = this.safeNumber(ticker, "markedPrice");
+        object indexPrice = this.safeNumber(ticker, "underlyingPrice");
+        object fundingRate = this.safeNumber(ticker, "fundingRate");
+        object fundingTime = this.safeInteger(ticker, "nextFeeTime");
+        return new Dictionary<string, object>() {
+            { "info", ticker },
+            { "symbol", symbol },
+            { "markPrice", markPrice },
+            { "indexPrice", indexPrice },
+            { "fundingRate", fundingRate },
+            { "fundingTimestamp", fundingTime },
+            { "fundingDatetime", this.iso8601(fundingTime) },
+            { "timestamp", null },
+            { "datetime", null },
+            { "nextFundingRate", null },
+            { "nextFundingTimestamp", null },
+            { "nextFundingDatetime", null },
+            { "previousFundingRate", null },
+            { "previousFundingTimestamp", null },
+            { "previousFundingDatetime", null },
+            { "interval", null },
+        };
+    }
+
+    public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name lbank#fetchFundingRate
+        * @description fetch the current funding rate
+        * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object responseForSwap = await this.fetchFundingRates(new List<object>() {getValue(market, "symbol")}, parameters);
+        return this.safeValue(responseForSwap, getValue(market, "symbol"));
+    }
+
+    public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name lbank#fetchFundingRates
+        * @description fetch the funding rate for multiple markets
+        * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
+        * @param {string[]|undefined} symbols list of unified market symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object request = new Dictionary<string, object>() {
+            { "productGroup", "SwapU" },
+        };
+        object response = await this.contractPublicGetCfdOpenApiV1PubMarketData(this.extend(request, parameters));
+        // {
+        //     "data": [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "highestPrice": "69495.5",
+        //             "underlyingPrice": "68455.904",
+        //             "lowestPrice": "68182.1",
+        //             "openPrice": "68762.4",
+        //             "positionFeeRate": "0.0001",
+        //             "volume": "33534.2858",
+        //             "markedPrice": "68434.1",
+        //             "turnover": "1200636218.210558",
+        //             "positionFeeTime": "28800",
+        //             "lastPrice": "68427.3",
+        //             "nextFeeTime": "1730736000000",
+        //             "fundingRate": "0.0001",
+        //         }
+        //     ],
+        //     "error_code": "0",
+        //     "msg": "Success",
+        //     "result": "true",
+        //     "success": True,
+        // }
+        object data = this.safeList(response, "data", new List<object>() {});
+        object result = this.parseFundingRates(data);
+        return this.filterByArray(result, "symbol", symbols);
     }
 
     public async override Task<object> fetchBalance(object parameters = null)
@@ -2094,11 +2203,11 @@ public partial class lbank : Exchange
         object inverseNetworks = this.safeValue(this.options, "inverse-networks", new Dictionary<string, object>() {});
         object networkCode = this.safeStringUpper(inverseNetworks, networkId, networkId);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", networkCode },
             { "address", address },
             { "tag", tag },
-            { "network", networkCode },
-            { "info", response },
         };
     }
 
@@ -2138,11 +2247,11 @@ public partial class lbank : Exchange
         object inverseNetworks = this.safeValue(this.options, "inverse-networks", new Dictionary<string, object>() {});
         object networkCode = this.safeStringUpper(inverseNetworks, network, network);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", networkCode },
             { "address", address },
             { "tag", tag },
-            { "network", networkCode },
-            { "info", response },
         };
     }
 
@@ -2609,7 +2718,7 @@ public partial class lbank : Exchange
         * @description when using private endpoint, only returns information for currencies with non-zero balance, use public method by specifying this.options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
         * @see https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
         * @see https://www.lbank.com/en-US/docs/index.html#withdrawal-configurations
-        * @param {string[]|undefined} codes array of unified currency codes
+        * @param {string[]} [codes] array of unified currency codes
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
         */
@@ -2625,14 +2734,14 @@ public partial class lbank : Exchange
             parameters = this.omit(parameters, "method");
             if (isTrue(isEqual(method, "fetchPublicDepositWithdrawFees")))
             {
-                await this.fetchPublicDepositWithdrawFees(codes, parameters);
+                response = await this.fetchPublicDepositWithdrawFees(codes, parameters);
             } else
             {
-                await this.fetchPrivateDepositWithdrawFees(codes, parameters);
+                response = await this.fetchPrivateDepositWithdrawFees(codes, parameters);
             }
         } else
         {
-            await this.fetchPublicDepositWithdrawFees(codes, parameters);
+            response = await this.fetchPublicDepositWithdrawFees(codes, parameters);
         }
         return response;
     }
